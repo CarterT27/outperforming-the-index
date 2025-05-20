@@ -27,8 +27,13 @@ stocks_df = load_data('sp500_stocks.csv')
 index_df = load_data('sp500_index.csv')
 companies_df = load_data('sp500_companies.csv')
 # %%
-# 1. Line plot of S&P 500 Index
-pass
+# 1. Average Volume by Sector
+merged = stocks_df.reset_index().merge(companies_df[['Symbol', 'Sector']], on='Symbol')
+avg_vol = merged.groupby('Sector')['Volume'].mean().sort_values()
+ax = avg_vol.plot(kind='barh', figsize=(10,6), title='Average Volume by Sector')
+ax.set_xlabel("Average Daily Volume (Millions of Shares)")
+plt.tight_layout()
+plt.show()
 # %%
 # 2. Treemap of S&P at a given point in time
 def build_treemap(stock_df: pd.DataFrame = stocks_df, date: str = '2021-01-05'):
