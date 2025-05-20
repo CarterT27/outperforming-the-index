@@ -6,6 +6,7 @@ import pandas as pd
 import plotly.express as px
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as np
 # %%
 def load_data(file_path: str = "sp500_stocks.csv"):
     if not os.path.exists(file_path):
@@ -16,7 +17,7 @@ def load_data(file_path: str = "sp500_stocks.csv"):
             pandas_kwargs={"parse_dates": True},
         )
         if file_path == 'sp500_stocks.csv':
-            df = df.dropna(subset=['Adj Close']).set_index('Date')
+            df = df.set_index('Date')
         df.to_parquet(file_path.replace('.csv', '.parquet'))
     else:
         df = pd.read_parquet(file_path)
@@ -30,7 +31,14 @@ companies_df = load_data('sp500_companies.csv')
 pass
 # %%
 # 2. Treemap of S&P at a given point in time
-pass
+def build_treemap(stock_df: pd.DataFrame = stocks_df, date: str = '2021-01-05'):
+    df = stock_df.loc[date].merge(companies_df, on='Symbol')
+    fig = px.treemap(df, path=['Sector', 'Industry', 'Symbol'], values='Close',
+                     color='Close', hover_data=['Symbol'],
+                  color_continuous_scale='BuGn',
+                  color_continuous_midpoint=np.average(df['Close'], weights=df['Volume']))
+    fig.show()
+build_treemap()
 # %%
 # 3. Area plot of S&P 500 Index
 pass
