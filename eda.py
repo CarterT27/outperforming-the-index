@@ -22,9 +22,9 @@ def load_data(file_path: str = "sp500_stocks.csv"):
         df = pd.read_parquet(file_path)
     return df
 # %%
-for filepath in ['sp500_stocks.csv', 'sp500_index.csv', 'sp500_companies.csv']:
-    df = load_data(filepath)
-    print(df.head())
+stocks_df = load_data('sp500_stocks.csv')
+index_df = load_data('sp500_index.csv')
+companies_df = load_data('sp500_companies.csv')
 # %%
 # 1. Line plot of S&P 500 Index
 pass
