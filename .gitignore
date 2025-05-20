@@ -139,3 +139,5 @@ dist
 sp500_stocks.parquet
 sp500_index.parquet
 sp500_companies.parquet
+
+.venv
