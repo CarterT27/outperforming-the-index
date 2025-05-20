@@ -49,5 +49,14 @@ pass
 # 5. Bar chart of daily, weekly, and monthly returns of S&P 500 Index
 pass
 # %%
-# 6. Scatter plot of daily returns of S&P 500 Constituents over time
-pass
+# 6. Line plot of stock prices per sector over time
+with_date = stocks_df.reset_index()
+merged = with_date.merge(companies_df[['Symbol', 'Sector']], on='Symbol')
+grouped = merged.groupby(['Date', 'Sector'])['Adj Close'].mean().unstack()
+
+grouped.plot(figsize= (14, 6), title='Average Adjusted Closing Price by Sector Over Time')
+plt.xlabel('Date')
+plt.ylabel('Average Adjusted Closing Price')
+plt.tight_layout()
+plt.show()
+# %%
