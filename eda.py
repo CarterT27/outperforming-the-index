@@ -3,6 +3,9 @@ import kagglehub
 from kagglehub import KaggleDatasetAdapter
 import os
 import pandas as pd
+import plotly.express as px
+import matplotlib.pyplot as plt
+import seaborn as sns
 # %%
 def load_data(file_path: str = "sp500_stocks.csv"):
     if not os.path.exists(file_path):

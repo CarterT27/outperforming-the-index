@@ -2,3 +2,6 @@ kagglehub[pandas-datasets]
 pandas
 ipykernel
 pyarrow
+plotly
+matplotlib
+seaborn
