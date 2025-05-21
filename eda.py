@@ -14,18 +14,27 @@ ASSETS_PATH = Path("assets")
 
 # %%
 def load_data(file_path: str = "sp500_stocks.csv"):
-    if not os.path.exists(file_path):
+    if not os.path.exists(file_path.replace('.csv', '.parquet')):
         df = kagglehub.dataset_load(
             KaggleDatasetAdapter.PANDAS,
             "andrewmvd/sp-500-stocks",
             file_path,
-            pandas_kwargs={"parse_dates": True},
+            pandas_kwargs={"parse_dates": ["Date"] if file_path != 'sp500_companies.csv' else None},
         )
-        if file_path == 'sp500_stocks.csv':
+        numeric_columns = ['Open', 'High', 'Low', 'Close', 'Volume']
+        for col in numeric_columns:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+
+        if "Date" in df.columns:
             df = df.set_index('Date')
         df.to_parquet(file_path.replace('.csv', '.parquet'))
     else:
-        df = pd.read_parquet(file_path)
+        df = pd.read_parquet(file_path.replace('.csv', '.parquet'))
+        if "Date" in df.columns:
+            df = df.set_index('Date')
+        if not isinstance(df.index, pd.DatetimeIndex) and df.index.name == 'Date':
+            df.index = pd.to_datetime(df.index)
     return df
 # %%
 stocks_df = load_data('sp500_stocks.csv')
@@ -103,8 +112,10 @@ def create_sp500_area_plot(stock_df: pd.DataFrame = stocks_df, start_date=None, 
 # Create plot for the entire dataset
 create_sp500_area_plot()
 # %%
-# 4. Bar chart of daily, weekly, and monthly returns of S&P 500 Constituents
-pass
+# 4. Bar chart of daily, weekly, monthly, and annual returns of S&P 500 Constituents
+def build_bar_charts(stock_df: pd.DataFrame = stocks_df, freq: str = 'daily'):
+    pass
+build_bar_charts()
 # %%
 # 5. Scatter plot of daily returns vs trading volume for S&P 500
 def create_returns_volume_scatter(stock_df: pd.DataFrame = stocks_df, start_date=None, end_date=None):
