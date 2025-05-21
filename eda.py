@@ -102,10 +102,11 @@ create_sp500_area_plot()
 # 4. Bar chart of daily, weekly, and monthly returns of S&P 500 Constituents
 pass
 # %%
-# 5. Scatter plot of daily returns of S&P 500 Constituents over time
-def create_daily_returns_scatter(stock_df: pd.DataFrame = stocks_df, start_date=None, end_date=None):
+# 5. Scatter plot of daily returns vs trading volume for S&P 500
+def create_returns_volume_scatter(stock_df: pd.DataFrame = stocks_df, start_date=None, end_date=None):
     """
-    Create a scatter plot of daily returns for S&P 500 constituents over time.
+    Create a scatter plot showing the relationship between daily returns and trading volume
+    for the S&P 500 index, demonstrating market stability.
     
     Args:
         stock_df (pd.DataFrame): DataFrame containing stock data. Defaults to stocks_df.
@@ -118,79 +119,82 @@ def create_daily_returns_scatter(stock_df: pd.DataFrame = stocks_df, start_date=
     if end_date:
         stock_df = stock_df[stock_df.index <= end_date]
     
-    # Calculate daily returns for all stocks
+    # Calculate daily returns for each stock
     daily_returns = stock_df['Adj Close'].pct_change()
     
-    # Remove any infinite values and extreme outliers
-    daily_returns = daily_returns.replace([np.inf, -np.inf], np.nan)
-    daily_returns = daily_returns.clip(lower=-0.1, upper=0.1)  # Clip returns to ±10%
+    # Calculate average daily return across all stocks
+    avg_daily_returns = daily_returns.groupby(level=0).mean()
     
-    # Melt the dataframe to get it in long format for plotting
-    returns_long = daily_returns.reset_index().melt(
-        id_vars=['Date'],
-        var_name='Symbol',
-        value_name='Daily Return'
-    )
+    # Calculate total volume by summing across all stocks for each date
+    total_volume = stock_df.groupby(level=0)['Volume'].sum()
     
-    # Remove any NaN values
-    returns_long = returns_long.dropna()
-    
-    # Merge with companies data to get sector information
-    returns_with_sector = returns_long.merge(
-        companies_df[['Symbol', 'Sector']],
-        on='Symbol'
-    )
+    # Create a DataFrame for plotting
+    plot_data = pd.DataFrame({
+        'Date': avg_daily_returns.index,
+        'Daily Return': avg_daily_returns,
+        'Trading Volume': total_volume / 1e6  # Convert to millions
+    }).dropna()
     
     # Create scatter plot
     fig = px.scatter(
-        returns_with_sector,
-        x='Date',
+        plot_data,
+        x='Trading Volume',
         y='Daily Return',
-        color='Sector',
-        title='Daily Returns of S&P 500 Constituents Over Time',
+        title='S&P 500 Daily Returns vs Trading Volume',
         labels={
-            'Date': 'Date',
-            'Daily Return': 'Daily Return (%)',
-            'Sector': 'Sector'
+            'Trading Volume': 'Trading Volume (Millions of Shares)',
+            'Daily Return': 'Daily Return (%)'
         },
-        opacity=0.3,  # Make points more transparent to handle overlapping
-        size_max=10   # Limit maximum point size
+        hover_data=['Date'],
+        color='Daily Return',  # Color points by return value
+        color_continuous_scale='RdYlGn',  # Red for negative, green for positive
+        color_continuous_midpoint=0
+    )
+    
+    # Add a horizontal line at y=0
+    fig.add_shape(
+        type='line',
+        x0=plot_data['Trading Volume'].min(),
+        x1=plot_data['Trading Volume'].max(),
+        y0=0,
+        y1=0,
+        line=dict(color='black', width=1, dash='dash')
     )
     
     # Update layout
     fig.update_layout(
-        xaxis_title='Date',
-        yaxis_title='Daily Return (%)',
-        hovermode='closest',
         width=1200,
         height=800,
-        xaxis=dict(
-            tickformat='%Y-%m-%d',
-            tickangle=45,
-            nticks=20,  # Increase number of date labels
-            tickmode='auto',
-            rangeslider=dict(visible=True)  # Add rangeslider for better navigation
-        ),
         yaxis=dict(
             tickformat='.1%',  # Format y-axis as percentages
-            range=[-0.1, 0.1]  # Set fixed y-axis range
+            range=[-0.05, 0.05]  # Focus on typical daily return range
         ),
-        showlegend=True,
-        legend=dict(
-            yanchor="top",
-            y=0.99,
-            xanchor="left",
-            x=1.05
-        )
+        xaxis=dict(
+            title='Trading Volume (Millions of Shares)'
+        ),
+        showlegend=False,
+        annotations=[
+            dict(
+                x=0.02,
+                y=0.98,
+                xref='paper',
+                yref='paper',
+                text='Most returns cluster around 0%,<br>showing market stability',
+                showarrow=False,
+                bgcolor='white',
+                bordercolor='black',
+                borderwidth=1
+            )
+        ]
     )
     
     # Save the plot
-    fig.write_image(ASSETS_PATH / 'sp500_daily_returns_scatter.png')
+    fig.write_image(ASSETS_PATH / 'sp500_returns_volume_scatter.png')
     
     return fig
 
 # Create the scatter plot for the entire dataset
-create_daily_returns_scatter()
+create_returns_volume_scatter()
 # %%
 # 6. Line plot of stock prices per sector over time
 with_date = stocks_df.reset_index()
