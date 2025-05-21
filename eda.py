@@ -38,6 +38,10 @@ avg_vol = merged.groupby('Sector')['Volume'].mean().sort_values()
 ax = avg_vol.plot(kind='barh', figsize=(10,6), title='Average Volume by Sector')
 ax.set_xlabel("Average Daily Volume (Millions of Shares)")
 plt.tight_layout()
+
+fig = ax.get_figure()
+fig.savefig("assets/avg_volume_by_sector.png", dpi=300)
+
 plt.show()
 # %%
 # 2. Treemap of S&P at a given point in time
@@ -201,9 +205,13 @@ with_date = stocks_df.reset_index()
 merged = with_date.merge(companies_df[['Symbol', 'Sector']], on='Symbol')
 grouped = merged.groupby(['Date', 'Sector'])['Adj Close'].mean().unstack()
 
-grouped.plot(figsize= (14, 6), title='Average Adjusted Closing Price by Sector Over Time')
+ax = grouped.plot(figsize= (14, 6), title='Average Adjusted Closing Price by Sector Over Time')
 plt.xlabel('Date')
 plt.ylabel('Average Adjusted Closing Price')
 plt.tight_layout()
+
+fig = ax.get_figure()
+fig.savefig("assets/sector_avg_adj_close_over_time.png", dpi=300)
+
 plt.show()
 # %%
