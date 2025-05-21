@@ -7,6 +7,11 @@ import plotly.express as px
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+from pathlib import Path
+
+# %%
+ASSETS_PATH = Path("assets")
+
 # %%
 def load_data(file_path: str = "sp500_stocks.csv"):
     if not os.path.exists(file_path):
@@ -46,7 +51,55 @@ def build_treemap(stock_df: pd.DataFrame = stocks_df, date: str = '2021-01-05'):
 build_treemap()
 # %%
 # 3. Area plot of S&P 500 Index
-pass
+def create_sp500_area_plot(start_date=None, end_date=None):
+    """
+    Create an area plot of S&P 500 Index for a specified date range.
+    
+    Args:
+        start_date (str, optional): Start date in 'YYYY-MM-DD' format. Defaults to None (earliest date).
+        end_date (str, optional): End date in 'YYYY-MM-DD' format. Defaults to None (latest date).
+    """
+    # Load the S&P 500 index data
+    sp500_index = load_data('sp500_index.csv')
+    
+    # Filter data by date range if specified
+    if start_date:
+        sp500_index = sp500_index[sp500_index.index >= start_date]
+    if end_date:
+        sp500_index = sp500_index[sp500_index.index <= end_date]
+    
+    # Print date range information
+    print("Date range in the data:")
+    print(f"Start date: {sp500_index.index.min()}")
+    print(f"End date: {sp500_index.index.max()}")
+    
+    # Create area plot using plotly
+    fig = px.area(sp500_index, 
+                  y='S&P500',
+                  title='S&P 500 Index Over Time',
+                  labels={'S&P500': 'S&P 500 Price', 'Date': 'Date'})
+    
+    # Update layout for better visualization
+    fig.update_layout(
+        xaxis_title='Date',
+        yaxis_title='Price (USD)',
+        hovermode='x unified',
+        width=1200,  # Set width for better quality
+        height=800,  # Set height for better quality
+        xaxis=dict(
+            tickformat='%Y-%m-%d',  # Format dates as YYYY-MM-DD
+            tickangle=45,  # Angle the date labels for better readability
+            nticks=10  # Limit the number of date labels to prevent overcrowding
+        )
+    )
+    
+    # Save the plot as a PNG file in the assets folder
+    fig.write_image(ASSETS_PATH / 'sp500_area_plot.png')
+    
+    return fig
+
+# Create plot for the entire dataset
+create_sp500_area_plot()
 # %%
 # 4. Bar chart of daily, weekly, and monthly returns of S&P 500 Constituents
 pass
