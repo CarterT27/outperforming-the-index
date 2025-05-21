@@ -141,3 +141,4 @@ sp500_index.parquet
 sp500_companies.parquet
 
 .venv
+venv/
