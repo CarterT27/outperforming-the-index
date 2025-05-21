@@ -51,33 +51,31 @@ def build_treemap(stock_df: pd.DataFrame = stocks_df, date: str = '2021-01-05'):
 build_treemap()
 # %%
 # 3. Area plot of S&P 500 Index
-def create_sp500_area_plot(start_date=None, end_date=None):
+def create_sp500_area_plot(stock_df: pd.DataFrame = stocks_df, start_date=None, end_date=None):
     """
     Create an area plot of S&P 500 Index for a specified date range.
     
     Args:
+        stock_df (pd.DataFrame): DataFrame containing stock data. Defaults to stocks_df.
         start_date (str, optional): Start date in 'YYYY-MM-DD' format. Defaults to None (earliest date).
         end_date (str, optional): End date in 'YYYY-MM-DD' format. Defaults to None (latest date).
     """
-    # Load the S&P 500 index data
-    sp500_index = load_data('sp500_index.csv')
-    
     # Filter data by date range if specified
     if start_date:
-        sp500_index = sp500_index[sp500_index.index >= start_date]
+        stock_df = stock_df[stock_df.index >= start_date]
     if end_date:
-        sp500_index = sp500_index[sp500_index.index <= end_date]
+        stock_df = stock_df[stock_df.index <= end_date]
     
     # Print date range information
     print("Date range in the data:")
-    print(f"Start date: {sp500_index.index.min()}")
-    print(f"End date: {sp500_index.index.max()}")
+    print(f"Start date: {stock_df.index.min()}")
+    print(f"End date: {stock_df.index.max()}")
     
     # Create area plot using plotly
-    fig = px.area(sp500_index, 
-                  y='S&P500',
+    fig = px.area(stock_df, 
+                  y='Adj Close',
                   title='S&P 500 Index Over Time',
-                  labels={'S&P500': 'S&P 500 Price', 'Date': 'Date'})
+                  labels={'Adj Close': 'Price', 'Date': 'Date'})
     
     # Update layout for better visualization
     fig.update_layout(
@@ -104,8 +102,95 @@ create_sp500_area_plot()
 # 4. Bar chart of daily, weekly, and monthly returns of S&P 500 Constituents
 pass
 # %%
-# 5. Bar chart of daily, weekly, and monthly returns of S&P 500 Index
-pass
+# 5. Scatter plot of daily returns of S&P 500 Constituents over time
+def create_daily_returns_scatter(stock_df: pd.DataFrame = stocks_df, start_date=None, end_date=None):
+    """
+    Create a scatter plot of daily returns for S&P 500 constituents over time.
+    
+    Args:
+        stock_df (pd.DataFrame): DataFrame containing stock data. Defaults to stocks_df.
+        start_date (str, optional): Start date in 'YYYY-MM-DD' format. Defaults to None (earliest date).
+        end_date (str, optional): End date in 'YYYY-MM-DD' format. Defaults to None (latest date).
+    """
+    # Filter by date range if specified
+    if start_date:
+        stock_df = stock_df[stock_df.index >= start_date]
+    if end_date:
+        stock_df = stock_df[stock_df.index <= end_date]
+    
+    # Calculate daily returns for all stocks
+    daily_returns = stock_df['Adj Close'].pct_change()
+    
+    # Remove any infinite values and extreme outliers
+    daily_returns = daily_returns.replace([np.inf, -np.inf], np.nan)
+    daily_returns = daily_returns.clip(lower=-0.1, upper=0.1)  # Clip returns to ±10%
+    
+    # Melt the dataframe to get it in long format for plotting
+    returns_long = daily_returns.reset_index().melt(
+        id_vars=['Date'],
+        var_name='Symbol',
+        value_name='Daily Return'
+    )
+    
+    # Remove any NaN values
+    returns_long = returns_long.dropna()
+    
+    # Merge with companies data to get sector information
+    returns_with_sector = returns_long.merge(
+        companies_df[['Symbol', 'Sector']],
+        on='Symbol'
+    )
+    
+    # Create scatter plot
+    fig = px.scatter(
+        returns_with_sector,
+        x='Date',
+        y='Daily Return',
+        color='Sector',
+        title='Daily Returns of S&P 500 Constituents Over Time',
+        labels={
+            'Date': 'Date',
+            'Daily Return': 'Daily Return (%)',
+            'Sector': 'Sector'
+        },
+        opacity=0.3,  # Make points more transparent to handle overlapping
+        size_max=10   # Limit maximum point size
+    )
+    
+    # Update layout
+    fig.update_layout(
+        xaxis_title='Date',
+        yaxis_title='Daily Return (%)',
+        hovermode='closest',
+        width=1200,
+        height=800,
+        xaxis=dict(
+            tickformat='%Y-%m-%d',
+            tickangle=45,
+            nticks=20,  # Increase number of date labels
+            tickmode='auto',
+            rangeslider=dict(visible=True)  # Add rangeslider for better navigation
+        ),
+        yaxis=dict(
+            tickformat='.1%',  # Format y-axis as percentages
+            range=[-0.1, 0.1]  # Set fixed y-axis range
+        ),
+        showlegend=True,
+        legend=dict(
+            yanchor="top",
+            y=0.99,
+            xanchor="left",
+            x=1.05
+        )
+    )
+    
+    # Save the plot
+    fig.write_image(ASSETS_PATH / 'sp500_daily_returns_scatter.png')
+    
+    return fig
+
+# Create the scatter plot for the entire dataset
+create_daily_returns_scatter()
 # %%
 # 6. Line plot of stock prices per sector over time
 with_date = stocks_df.reset_index()
