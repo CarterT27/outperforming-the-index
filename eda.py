@@ -11,6 +11,7 @@ from pathlib import Path
 
 # %%
 ASSETS_PATH = Path("assets")
+ASSETS_PATH.mkdir(parents=True, exist_ok=True)
 
 # %%
 def load_data(file_path: str = "sp500_stocks.csv"):
@@ -49,7 +50,7 @@ ax.set_xlabel("Average Daily Volume (Millions of Shares)")
 plt.tight_layout()
 
 fig = ax.get_figure()
-fig.savefig("assets/avg_volume_by_sector.png", dpi=300)
+fig.savefig(ASSETS_PATH / 'avg_volume_by_sector.png', dpi=300)
 
 plt.show()
 # %%
@@ -61,6 +62,7 @@ def build_treemap(stock_df: pd.DataFrame = stocks_df, date: str = '2021-01-05'):
                   color_continuous_scale='BuGn',
                   color_continuous_midpoint=np.average(df['Close'], weights=df['Volume']))
     fig.show()
+    fig.write_image(ASSETS_PATH / 'sp500_treemap.png')
 build_treemap()
 # %%
 # 3. Area plot of S&P 500 Index
@@ -112,10 +114,127 @@ def create_sp500_area_plot(stock_df: pd.DataFrame = stocks_df, start_date=None, 
 # Create plot for the entire dataset
 create_sp500_area_plot()
 # %%
-# 4. Bar chart of daily, weekly, monthly, and annual returns of S&P 500 Constituents
+# 4. Density histogram of daily, weekly, monthly, and annual returns of S&P 500 Constituents
 def build_bar_charts(stock_df: pd.DataFrame = stocks_df, freq: str = 'daily'):
-    pass
-build_bar_charts()
+    stock_df_reset = stock_df.reset_index()
+    merged = stock_df_reset.merge(companies_df[['Symbol', 'Sector']], on='Symbol')
+    merged_indexed = merged.set_index('Date')
+    
+    # Calculate returns based on frequency
+    if freq == 'daily':
+        # Group by Symbol and calculate daily returns
+        merged_indexed['Return'] = merged_indexed.groupby('Symbol')['Adj Close'].pct_change()
+        title = 'Distribution of Daily Returns of S&P 500 Constituents'
+    elif freq == 'weekly':
+        # Resample to weekly and calculate returns
+        weekly_prices = merged_indexed.groupby(['Symbol', 'Sector'])['Adj Close'].resample('W').last()
+        weekly_returns = weekly_prices.groupby(level=[0, 1]).pct_change()
+        
+        # Restructure data for plotting
+        merged_indexed = weekly_returns.reset_index()
+        merged_indexed.columns = ['Symbol', 'Sector', 'Date', 'Return']
+        merged_indexed = merged_indexed.set_index('Date')
+        title = 'Distribution of Weekly Returns of S&P 500 Constituents'
+    elif freq == 'monthly':
+        # Resample to monthly and calculate returns
+        monthly_prices = merged_indexed.groupby(['Symbol', 'Sector'])['Adj Close'].resample('M').last()
+        monthly_returns = monthly_prices.groupby(level=[0, 1]).pct_change()
+        
+        # Restructure data for plotting
+        merged_indexed = monthly_returns.reset_index()
+        merged_indexed.columns = ['Symbol', 'Sector', 'Date', 'Return']
+        merged_indexed = merged_indexed.set_index('Date')
+        title = 'Distribution of Monthly Returns of S&P 500 Constituents'
+    elif freq == 'annual':
+        # Resample to yearly and calculate returns
+        annual_prices = merged_indexed.groupby(['Symbol', 'Sector'])['Adj Close'].resample('Y').last()
+        annual_returns = annual_prices.groupby(level=[0, 1]).pct_change()
+        
+        # Restructure data for plotting
+        merged_indexed = annual_returns.reset_index()
+        merged_indexed.columns = ['Symbol', 'Sector', 'Date', 'Return']
+        merged_indexed = merged_indexed.set_index('Date')
+        title = 'Distribution of Annual Returns of S&P 500 Constituents'
+    else:
+        raise ValueError("Frequency must be one of: 'daily', 'weekly', 'monthly', 'annual'")
+    
+    # Drop NaN values
+    merged_indexed = merged_indexed.dropna(subset=['Return'])
+    
+    # Set return range based on frequency to capture most data while excluding extreme outliers
+    if freq == 'daily':
+        return_range = [-0.1, 0.1]  # ±10% for daily returns
+    elif freq == 'weekly':
+        return_range = [-0.2, 0.2]  # ±20% for weekly returns
+    elif freq == 'monthly':
+        return_range = [-0.3, 0.3]  # ±30% for monthly returns
+    else:  # annual
+        return_range = [-0.5, 0.5]  # ±50% for annual returns
+    
+    # Create density histogram without sector differentiation
+    fig = px.histogram(
+        merged_indexed.reset_index(),
+        x='Return',
+        title=title,
+        marginal='box',  # Add box plot on the margin
+        opacity=0.7,
+        histnorm='probability density',  # Normalize to show density
+        range_x=return_range,
+        labels={'Return': f'{freq.capitalize()} Return'},
+        color_discrete_sequence=['#636EFA']  # Use a single color
+    )
+    
+    # Update layout
+    fig.update_layout(
+        width=1200,
+        height=800,
+        xaxis=dict(
+            tickformat='.1%',  # Format x-axis as percentages
+            title=f'{freq.capitalize()} Return (%)'
+        ),
+        yaxis=dict(
+            title='Density'
+        ),
+        showlegend=False
+    )
+    
+    # Add a vertical line at x=0
+    fig.add_shape(
+        type='line',
+        x0=0, x1=0,
+        y0=0, y1=1,
+        yref='paper',
+        line=dict(color='black', width=1, dash='dash')
+    )
+    
+    # Add mean line
+    mean_return = merged_indexed['Return'].mean()
+    fig.add_shape(
+        type='line',
+        x0=mean_return, x1=mean_return,
+        y0=0, y1=1,
+        yref='paper',
+        line=dict(color='red', width=1.5)
+    )
+    
+    # Add annotation for mean
+    fig.add_annotation(
+        x=mean_return,
+        y=0.95,
+        yref='paper',
+        text=f"Mean: {mean_return:.2%}",
+        showarrow=True,
+        arrowhead=1,
+        ax=50,
+        ay=-30,
+        font=dict(color='red')
+    )
+    
+    # Save the chart
+    fig.write_image(ASSETS_PATH / f'sp500_{freq}_returns_density_histogram.png')
+    
+    return fig
+build_bar_charts(freq='daily')
 # %%
 # 5. Scatter plot of daily returns vs trading volume for S&P 500
 def create_returns_volume_scatter(stock_df: pd.DataFrame = stocks_df, start_date=None, end_date=None):
@@ -222,7 +341,7 @@ plt.ylabel('Average Adjusted Closing Price')
 plt.tight_layout()
 
 fig = ax.get_figure()
-fig.savefig("assets/sector_avg_adj_close_over_time.png", dpi=300)
+fig.savefig(ASSETS_PATH / 'sector_avg_adj_close_over_time.png', dpi=300)
 
 plt.show()
 # %%
