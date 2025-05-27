@@ -88,14 +88,18 @@ export default function OutperformingIndex() {
 
     // Parse dates
     const parseDate = d3.timeParse("%Y-%m-%d")
-    const targetData: StockDataWithDate[] = comparisonData.target_stock.data.map(d => ({
-      ...d,
-      date: parseDate(d.date) as Date
-    }))
-    const sp500Data: StockDataWithDate[] = comparisonData.sp500.data.map(d => ({
-      ...d,
-      date: parseDate(d.date) as Date
-    }))
+    const targetData: StockDataWithDate[] = comparisonData.target_stock.data
+      .filter(d => d.normalizedPrice !== null)
+      .map(d => ({
+        ...d,
+        date: parseDate(d.date) as Date
+      }))
+    const sp500Data: StockDataWithDate[] = comparisonData.sp500.data
+      .filter(d => d.normalizedPrice !== null)
+      .map(d => ({
+        ...d,
+        date: parseDate(d.date) as Date
+      }))
 
     // Combine data for scales
     const allData = [...targetData, ...sp500Data]
