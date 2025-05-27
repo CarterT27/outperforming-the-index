@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outperforming The Index - Investment Strategy Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                    },
+                    colors: {
+                        'primary': {
+                            50: '#eff6ff',
+                            500: '#2563eb',
+                            600: '#1d4ed8',
+                            900: '#1e3a8a'
+                        },
+                        'nvidia': '#f59e0b',
+                        'sp500': '#10b981'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom toggle switch styles */
+        input:checked + .toggle-bg {
+            background-color: #2563eb;
+        }
+        input:checked + .toggle-bg .dot {
+            transform: translateX(100%);
+        }
+        .toggle-bg .dot {
+            transition: transform 0.3s ease;
+        }
+        
+        /* Nav link hover effects */
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #2563eb;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        /* Custom width for form inputs */
+        .w-30 {
+            width: 7.5rem;
+        }
+        
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+  <body class="font-inter text-gray-800 bg-white">
+     <!-- Navigation -->
+     <nav class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200 transition-all duration-300" id="navbar">
+         <div class="max-w-6xl mx-auto px-4 flex justify-between items-center h-16">
+             <h1 class="text-xl font-bold text-primary-500 flex items-center gap-2">
+                 <i class="fas fa-chart-line"></i>
+                 Outperforming The Index
+             </h1>
+             <div class="flex gap-8">
+                 <a href="#nvidia-performance" class="nav-link text-gray-600 font-medium hover:text-primary-500 transition-colors duration-300 relative">NVIDIA Performance</a>
+                 <a href="#market-comparison" class="nav-link text-gray-600 font-medium hover:text-primary-500 transition-colors duration-300 relative">Market Comparison</a>
+                 <a href="#dca-analysis" class="nav-link text-gray-600 font-medium hover:text-primary-500 transition-colors duration-300 relative">DCA Analysis</a>
+                 <a href="#strategy-builder" class="nav-link text-gray-600 font-medium hover:text-primary-500 transition-colors duration-300 relative">Strategy Builder</a>
+             </div>
+         </div>
+     </nav>
+
+         <!-- Hero Section -->
+     <section class="relative bg-gradient-to-br from-primary-500 to-primary-600 text-white pt-28 pb-20 text-center overflow-hidden">
+         <div class="absolute inset-0 bg-gradient-to-t from-primary-600/20 to-transparent"></div>
+         <div class="relative z-10 max-w-4xl mx-auto px-4">
+             <h1 class="text-4xl md:text-5xl font-bold mb-6 leading-tight">Can You Really Outperform The Index?</h1>
+             <p class="text-xl mb-12 opacity-90 max-w-2xl mx-auto">
+                 Explore the reality of beating market returns through interactive data visualizations
+             </p>
+             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+                 <div class="bg-white/10 backdrop-blur-sm p-6 rounded-xl border border-white/20">
+                     <div class="text-2xl font-bold mb-2">S&P 500</div>
+                     <div class="text-sm opacity-80">Market Benchmark</div>
+                 </div>
+                 <div class="bg-white/10 backdrop-blur-sm p-6 rounded-xl border border-white/20">
+                     <div class="text-2xl font-bold mb-2">10+ Years</div>
+                     <div class="text-sm opacity-80">Analysis Period</div>
+                 </div>
+                 <div class="bg-white/10 backdrop-blur-sm p-6 rounded-xl border border-white/20">
+                     <div class="text-2xl font-bold mb-2">500+</div>
+                     <div class="text-sm opacity-80">Stocks Analyzed</div>
+                 </div>
+             </div>
+         </div>
+     </section>
+
+         <!-- NVIDIA Performance Section -->
+     <section id="nvidia-performance" class="py-20">
+         <div class="max-w-6xl mx-auto px-4">
+             <div class="text-center mb-16">
+                 <h2 class="text-3xl font-bold text-gray-900 mb-4">The NVIDIA Success Story</h2>
+                 <p class="text-lg text-gray-600 max-w-2xl mx-auto">Let's examine one of the market's biggest winners over the past decade</p>
+             </div>
+             
+             <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+                 <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex flex-wrap justify-between items-center gap-4">
+                     <h3 class="text-xl font-semibold text-gray-900">NVIDIA Stock Price Performance</h3>
+                     <div class="flex items-center gap-4 flex-wrap">
+                         <button class="inline-flex items-center gap-2 px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 hover:border-gray-400 transition-all duration-300" id="play-nvidia-animation">
+                             <i class="fas fa-play"></i> Play Animation
+                         </button>
+                         <select id="nvidia-timeframe" class="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
+                             <option value="5y">5 Years</option>
+                             <option value="10y" selected>10 Years</option>
+                             <option value="max">All Time</option>
+                         </select>
+                     </div>
+                 </div>
+                 <div id="nvidia-chart" class="h-96 flex items-center justify-center bg-gray-50 border-2 border-dashed border-gray-300 m-6 rounded-lg">
+                     <!-- D3.js NVIDIA performance chart will be rendered here -->
+                     <div class="text-center text-gray-500">
+                         <i class="fas fa-chart-line text-5xl mb-4 text-gray-400"></i>
+                         <p class="text-lg font-semibold mb-2">NVIDIA Stock Price Animation</p>
+                         <small class="text-sm">Interactive D3.js chart showing dramatic price appreciation over time</small>
+                     </div>
+                 </div>
+                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-6 bg-gray-50">
+                     <div class="bg-white p-4 rounded-lg text-center shadow-sm">
+                         <div class="text-xl font-bold text-green-600 mb-1">+2,847%</div>
+                         <div class="text-sm text-gray-600">Total Return (10Y)</div>
+                     </div>
+                     <div class="bg-white p-4 rounded-lg text-center shadow-sm">
+                         <div class="text-xl font-bold text-gray-900 mb-1">42.3%</div>
+                         <div class="text-sm text-gray-600">Annualized Return</div>
+                     </div>
+                     <div class="bg-white p-4 rounded-lg text-center shadow-sm">
+                         <div class="text-xl font-bold text-gray-900 mb-1">$10K → $295K</div>
+                         <div class="text-sm text-gray-600">Investment Growth</div>
+                     </div>
+                 </div>
+             </div>
+         </div>
+     </section>
+
+         <!-- Market Comparison Section -->
+     <section id="market-comparison" class="py-20 bg-gray-50">
+         <div class="max-w-6xl mx-auto px-4">
+             <div class="text-center mb-16">
+                 <h2 class="text-3xl font-bold text-gray-900 mb-4">The Reality Check</h2>
+                 <p class="text-lg text-gray-600 max-w-2xl mx-auto">How rare is NVIDIA's performance compared to the broader market?</p>
+             </div>
+             
+             <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+                 <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex flex-wrap justify-between items-center gap-4">
+                     <h3 class="text-xl font-semibold text-gray-900">S&P 500 Stock Returns Distribution</h3>
+                     <div class="flex items-center gap-4 flex-wrap">
+                         <button class="inline-flex items-center gap-2 px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 hover:border-gray-400 transition-all duration-300" id="show-percentiles">Show Percentiles</button>
+                         <select id="return-period" class="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
+                             <option value="1y">1 Year</option>
+                             <option value="5y">5 Years</option>
+                             <option value="10y" selected>10 Years</option>
+                         </select>
+                     </div>
+                 </div>
+                 <div id="returns-histogram" class="h-96 flex items-center justify-center bg-gray-50 border-2 border-dashed border-gray-300 m-6 rounded-lg">
+                     <!-- D3.js histogram with market and NVIDIA markers -->
+                     <div class="text-center text-gray-500">
+                         <i class="fas fa-chart-bar text-5xl mb-4 text-gray-400"></i>
+                         <p class="text-lg font-semibold mb-2">Returns Distribution Histogram</p>
+                         <small class="text-sm">Histogram showing where NVIDIA ranks among all S&P 500 stocks</small>
+                     </div>
+                 </div>
+                 <div class="p-6 bg-white">
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                         <div class="flex items-center gap-3">
+                             <div class="w-6 h-1 bg-gray-400 rounded"></div>
+                             <div>
+                                 <div class="text-sm text-gray-600">S&P 500 Average</div>
+                                 <div class="font-semibold text-gray-900">+13.2% annually</div>
+                             </div>
+                         </div>
+                         <div class="flex items-center gap-3">
+                             <div class="w-6 h-1 bg-green-500 rounded"></div>
+                             <div>
+                                 <div class="text-sm text-gray-600">NVIDIA Performance</div>
+                                 <div class="font-semibold text-gray-900">+42.3% annually</div>
+                             </div>
+                         </div>
+                     </div>
+                     <div class="text-center p-4 bg-gray-50 rounded-lg">
+                         <strong class="text-gray-700">NVIDIA is in the top 0.2% of S&P 500 performers</strong>
+                     </div>
+                 </div>
+             </div>
+         </div>
+     </section>
+
+         <!-- DCA Analysis Section -->
+     <section id="dca-analysis" class="py-20">
+         <div class="max-w-6xl mx-auto px-4">
+             <div class="text-center mb-16">
+                 <h2 class="text-3xl font-bold text-gray-900 mb-4">Dollar Cost Averaging: The Safe Alternative</h2>
+                 <p class="text-lg text-gray-600 max-w-2xl mx-auto">What if you had simply invested in the S&P 500 instead?</p>
+             </div>
+             
+             <div class="grid gap-8">
+                 <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+                     <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex flex-wrap justify-between items-center gap-4">
+                         <h3 class="text-xl font-semibold text-gray-900">DCA Strategy Comparison</h3>
+                         <div class="flex items-center gap-4 flex-wrap">
+                             <label class="flex items-center gap-3 cursor-pointer">
+                                 <div class="relative">
+                                     <input type="checkbox" id="show-both-strategies" checked class="sr-only">
+                                     <div class="block bg-gray-300 w-11 h-6 rounded-full toggle-bg"></div>
+                                     <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition"></div>
+                                 </div>
+                                 <span class="text-sm font-medium">Show Both Strategies</span>
+                             </label>
+                             <div class="flex items-center gap-2">
+                                 <label for="monthly-amount" class="text-sm font-medium">Monthly Investment:</label>
+                                 <select id="monthly-amount" class="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
+                                     <option value="500">$500</option>
+                                     <option value="1000" selected>$1,000</option>
+                                     <option value="2000">$2,000</option>
+                                 </select>
+                             </div>
+                         </div>
+                     </div>
+                     <div id="dca-chart" class="h-96 flex items-center justify-center bg-gray-50 border-2 border-dashed border-gray-300 m-6 rounded-lg">
+                         <!-- D3.js DCA comparison chart -->
+                         <div class="text-center text-gray-500">
+                             <i class="fas fa-coins text-5xl mb-4 text-gray-400"></i>
+                             <p class="text-lg font-semibold mb-2">Dollar Cost Averaging Comparison</p>
+                             <small class="text-sm">Compare systematic investing in NVIDIA vs S&P 500</small>
+                         </div>
+                     </div>
+                 </div>
+                                 
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <div class="bg-white rounded-xl p-6 shadow-md border-l-4 border-nvidia">
+                         <h4 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                             <i class="fas fa-microchip"></i> NVIDIA DCA Strategy
+                         </h4>
+                         <div class="space-y-3 mb-4">
+                             <div class="flex justify-between items-center">
+                                 <span class="text-gray-600">Total Invested</span>
+                                 <span class="font-semibold metric-value">$120,000</span>
+                             </div>
+                             <div class="flex justify-between items-center">
+                                 <span class="text-gray-600">Final Value</span>
+                                 <span class="font-semibold metric-value">$347,000</span>
+                             </div>
+                             <div class="flex justify-between items-center p-3 bg-gray-50 rounded-md font-semibold">
+                                 <span class="text-gray-600">Total Return</span>
+                                 <span class="text-green-600 metric-value">+189%</span>
+                             </div>
+                         </div>
+                         <div class="flex items-center gap-2 text-sm p-3 bg-red-50 text-red-700 rounded-md">
+                             <i class="fas fa-exclamation-triangle"></i>
+                             High risk, high reward
+                         </div>
+                     </div>
+                     
+                     <div class="bg-white rounded-xl p-6 shadow-md border-l-4 border-sp500">
+                         <h4 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                             <i class="fas fa-chart-pie"></i> S&P 500 DCA Strategy
+                         </h4>
+                         <div class="space-y-3 mb-4">
+                             <div class="flex justify-between items-center">
+                                 <span class="text-gray-600">Total Invested</span>
+                                 <span class="font-semibold metric-value">$120,000</span>
+                             </div>
+                             <div class="flex justify-between items-center">
+                                 <span class="text-gray-600">Final Value</span>
+                                 <span class="font-semibold metric-value">$186,000</span>
+                             </div>
+                             <div class="flex justify-between items-center p-3 bg-gray-50 rounded-md font-semibold">
+                                 <span class="text-gray-600">Total Return</span>
+                                 <span class="text-green-600 metric-value">+55%</span>
+                             </div>
+                         </div>
+                         <div class="flex items-center gap-2 text-sm p-3 bg-green-50 text-green-700 rounded-md">
+                             <i class="fas fa-shield-alt"></i>
+                             Lower risk, steady growth
+                         </div>
+                     </div>
+                 </div>
+             </div>
+         </div>
+     </section>
+
+         <!-- Strategy Builder Section -->
+     <section id="strategy-builder" class="py-20 bg-gray-50">
+         <div class="max-w-6xl mx-auto px-4">
+             <div class="text-center mb-16">
+                 <h2 class="text-3xl font-bold text-gray-900 mb-4">Build Your Own Strategy</h2>
+                 <p class="text-lg text-gray-600 max-w-2xl mx-auto">Test different investment approaches and see how they compare to dollar cost averaging</p>
+             </div>
+             
+             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                 <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                     <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                         <h3 class="text-xl font-semibold">Strategy Configuration</h3>
+                     </div>
+                     
+                     <div class="p-6">
+                         <div class="mb-8">
+                             <h4 class="text-lg font-semibold mb-4 text-gray-900">Investment Type</h4>
+                             <div class="space-y-3">
+                                 <label class="flex items-center gap-3 cursor-pointer p-3 rounded-md hover:bg-gray-50 transition-colors">
+                                     <input type="radio" name="investment-type" value="individual-stocks" checked class="text-primary-500 focus:ring-primary-500">
+                                     <span>Individual Stocks</span>
+                                 </label>
+                                 <label class="flex items-center gap-3 cursor-pointer p-3 rounded-md hover:bg-gray-50 transition-colors">
+                                     <input type="radio" name="investment-type" value="sector-rotation" class="text-primary-500 focus:ring-primary-500">
+                                     <span>Sector Rotation</span>
+                                 </label>
+                                 <label class="flex items-center gap-3 cursor-pointer p-3 rounded-md hover:bg-gray-50 transition-colors">
+                                     <input type="radio" name="investment-type" value="factor-based" class="text-primary-500 focus:ring-primary-500">
+                                     <span>Factor-Based</span>
+                                 </label>
+                             </div>
+                         </div>
+                                                 
+                         <div class="mb-8" id="stock-picker">
+                             <h4 class="text-lg font-semibold mb-4 text-gray-900">Select Stocks</h4>
+                             <div class="mb-4">
+                                 <input type="text" id="stock-search-input" placeholder="Search for stocks..." 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
+                                 <div class="flex flex-wrap gap-2 mt-4">
+                                     <div class="bg-primary-500 text-white px-3 py-1 rounded-lg text-sm flex items-center gap-2">
+                                         AAPL <span class="remove-stock cursor-pointer font-bold opacity-80 hover:opacity-100">×</span>
+                                     </div>
+                                     <div class="bg-primary-500 text-white px-3 py-1 rounded-lg text-sm flex items-center gap-2">
+                                         GOOGL <span class="remove-stock cursor-pointer font-bold opacity-80 hover:opacity-100">×</span>
+                                     </div>
+                                     <div class="bg-primary-500 text-white px-3 py-1 rounded-lg text-sm flex items-center gap-2">
+                                         TSLA <span class="remove-stock cursor-pointer font-bold opacity-80 hover:opacity-100">×</span>
+                                     </div>
+                                 </div>
+                             </div>
+                         </div>
+                         
+                         <div class="mb-8">
+                             <h4 class="text-lg font-semibold mb-4 text-gray-900">Investment Parameters</h4>
+                             <div class="space-y-4">
+                                 <div class="flex justify-between items-center">
+                                     <label for="initial-investment" class="font-medium text-gray-700">Initial Investment</label>
+                                     <input type="number" id="initial-investment" value="10000" min="1000" step="1000" 
+                                            class="w-30 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
+                                 </div>
+                                 <div class="flex justify-between items-center">
+                                     <label for="monthly-contribution" class="font-medium text-gray-700">Monthly Contribution</label>
+                                     <input type="number" id="monthly-contribution" value="1000" min="100" step="100" 
+                                            class="w-30 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
+                                 </div>
+                                 <div class="flex justify-between items-center">
+                                     <label for="rebalance-frequency" class="font-medium text-gray-700">Rebalancing</label>
+                                     <select id="rebalance-frequency" class="w-30 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
+                                         <option value="monthly">Monthly</option>
+                                         <option value="quarterly" selected>Quarterly</option>
+                                         <option value="annually">Annually</option>
+                                         <option value="never">Never</option>
+                                     </select>
+                                 </div>
+                             </div>
+                         </div>
+                         
+                         <div class="flex gap-4 pt-6 border-t border-gray-200">
+                             <button class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transform hover:-translate-y-0.5 transition-all duration-300" id="run-backtest">
+                                 <i class="fas fa-play"></i>
+                                 Run Backtest
+                             </button>
+                             <button class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 hover:border-gray-400 transition-all duration-300" id="reset-strategy">
+                                 <i class="fas fa-redo"></i>
+                                 Reset
+                             </button>
+                         </div>
+                     </div>
+                 </div>
+                                 
+                 <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                     <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                         <h3 class="text-xl font-semibold">Backtest Results</h3>
+                         <label class="flex items-center gap-3 cursor-pointer">
+                             <div class="relative">
+                                 <input type="checkbox" id="show-benchmark" checked class="sr-only">
+                                 <div class="block bg-gray-300 w-11 h-6 rounded-full toggle-bg"></div>
+                                 <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition"></div>
+                             </div>
+                             <span class="text-sm font-medium">Compare to S&P 500</span>
+                         </label>
+                     </div>
+                     
+                     <div id="backtest-chart" class="h-96 flex items-center justify-center bg-gray-50 border-2 border-dashed border-gray-300 m-6 rounded-lg">
+                         <!-- D3.js backtest results chart -->
+                         <div class="text-center text-gray-500">
+                             <i class="fas fa-chart-line text-5xl mb-4 text-gray-400"></i>
+                             <p class="text-lg font-semibold mb-2">Strategy Performance Chart</p>
+                             <small class="text-sm">Run a backtest to see your strategy's performance</small>
+                         </div>
+                     </div>
+                     
+                     <div class="p-6">
+                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                             <div class="bg-gray-50 p-4 rounded-lg text-center">
+                                 <div class="text-xs text-gray-600 uppercase tracking-wide mb-2">Your Strategy</div>
+                                 <div class="text-xl font-bold text-green-600 mb-1">+127%</div>
+                                 <div class="text-sm text-gray-600">Total Return</div>
+                             </div>
+                             <div class="bg-gray-50 p-4 rounded-lg text-center">
+                                 <div class="text-xs text-gray-600 uppercase tracking-wide mb-2">S&P 500 DCA</div>
+                                 <div class="text-xl font-bold text-gray-900 mb-1">+89%</div>
+                                 <div class="text-sm text-gray-600">Total Return</div>
+                             </div>
+                             <div class="bg-gray-50 p-4 rounded-lg text-center">
+                                 <div class="text-xs text-gray-600 uppercase tracking-wide mb-2">Outperformance</div>
+                                 <div class="text-xl font-bold text-green-600 mb-1">+38%</div>
+                                 <div class="text-sm text-gray-600">vs Benchmark</div>
+                             </div>
+                         </div>
+                         
+                         <div>
+                             <h4 class="text-lg font-semibold mb-4">Risk Metrics</h4>
+                             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                 <div class="flex flex-col gap-1">
+                                     <span class="text-sm text-gray-600">Volatility</span>
+                                     <span class="text-lg font-semibold text-gray-900 metric-val">24.3%</span>
+                                 </div>
+                                 <div class="flex flex-col gap-1">
+                                     <span class="text-sm text-gray-600">Max Drawdown</span>
+                                     <span class="text-lg font-semibold text-gray-900 metric-val">-31.2%</span>
+                                 </div>
+                                 <div class="flex flex-col gap-1">
+                                     <span class="text-sm text-gray-600">Sharpe Ratio</span>
+                                     <span class="text-lg font-semibold text-gray-900 metric-val">1.47</span>
+                                 </div>
+                                 <div class="flex flex-col gap-1">
+                                     <span class="text-sm text-gray-600">Win Rate</span>
+                                     <span class="text-lg font-semibold text-gray-900 metric-val">67%</span>
+                                 </div>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+         </div>
+     </section>
+
+         <!-- Conclusion Section -->
+     <section class="bg-gray-900 text-white py-20">
+         <div class="max-w-4xl mx-auto px-4 text-center">
+             <h2 class="text-3xl font-bold mb-6">The Bottom Line</h2>
+             <p class="text-lg leading-relaxed mb-12 opacity-90 max-w-3xl mx-auto">
+                 While stories like NVIDIA capture our imagination, the data shows that consistently 
+                 outperforming the market is extremely difficult. Dollar cost averaging into broad 
+                 market indices remains one of the most reliable paths to long-term wealth building.
+             </p>
+             <div class="flex flex-col gap-4 text-left max-w-2xl mx-auto">
+                 <div class="flex items-center gap-3 p-4 bg-white/5 rounded-lg">
+                     <i class="fas fa-check-circle text-green-400 text-lg"></i>
+                     <span>Only 0.2% of stocks dramatically outperform the market</span>
+                 </div>
+                 <div class="flex items-center gap-3 p-4 bg-white/5 rounded-lg">
+                     <i class="fas fa-check-circle text-green-400 text-lg"></i>
+                     <span>Dollar cost averaging provides consistent, reliable returns</span>
+                 </div>
+                 <div class="flex items-center gap-3 p-4 bg-white/5 rounded-lg">
+                     <i class="fas fa-check-circle text-green-400 text-lg"></i>
+                     <span>Diversification reduces risk without sacrificing long-term growth</span>
+                 </div>
+             </div>
+         </div>
+     </section>
+
+         <!-- Footer -->
+     <footer class="bg-gray-800 text-white py-16">
+         <div class="max-w-6xl mx-auto px-4">
+             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                 <div>
+                     <h3 class="text-xl font-semibold mb-3">Outperforming The Index</h3>
+                     <p class="text-gray-400">Data-driven investment analysis and visualization</p>
+                 </div>
+                 <div class="flex flex-col gap-3">
+                     <!-- <a href="#methodology" class="text-gray-400 hover:text-white transition-colors">Methodology</a> -->
+                     <a href="https://www.kaggle.com/datasets/andrewmvd/sp-500-stocks/data" class="text-gray-400 hover:text-white transition-colors">Data Source</a>
+                     <!-- <a href="#disclaimer" class="text-gray-400 hover:text-white transition-colors">Disclaimer</a> -->
+                 </div>
+             </div>
+             <div class="text-center pt-8 border-t border-gray-700 text-gray-400 text-sm">
+                 <p>&copy; <script>document.write(new Date().getFullYear())</script> Outperforming The Index. Educational purposes only.</p>
+             </div>
+         </div>
+     </footer>
+
+    <script src="script.js"></script>
+    <script src="d3-charts.js"></script>
+</body>
+</html>
