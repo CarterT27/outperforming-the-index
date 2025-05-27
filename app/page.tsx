@@ -50,23 +50,37 @@ export default function OutperformingIndex() {
   useEffect(() => {
     const loadData = async () => {
       try {
+        console.log('Attempting to load data...');
+        const basePath = process.env.NODE_ENV === 'production' ? '.' : '';
         const [comparisonResponse, returnsResponse] = await Promise.all([
-          fetch('/data/comparison_data.json'),
-          fetch('/data/returns_distribution.json')
-        ])
+          fetch(`${basePath}/data/comparison_data.json`),
+          fetch(`${basePath}/data/returns_distribution.json`)
+        ]);
         
-        const comparison = await comparisonResponse.json()
-        const returns = await returnsResponse.json()
+        if (!comparisonResponse.ok) {
+          throw new Error(`Failed to load comparison data: ${comparisonResponse.status}`);
+        }
+        if (!returnsResponse.ok) {
+          throw new Error(`Failed to load returns data: ${returnsResponse.status}`);
+        }
         
-        setComparisonData(comparison)
-        setReturnsData(returns)
+        const comparison = await comparisonResponse.json();
+        const returns = await returnsResponse.json();
+        
+        console.log('Data loaded successfully:', {
+          comparisonDataSize: comparison.target_stock.data.length,
+          returnsDataSize: returns.bins.length
+        });
+        
+        setComparisonData(comparison);
+        setReturnsData(returns);
       } catch (error) {
-        console.error('Error loading data:', error)
+        console.error('Error loading data:', error);
       }
     }
     
-    loadData()
-  }, [])
+    loadData();
+  }, []);
 
   const drawComparisonChart = () => {
     if (!chartRef.current || !comparisonData) return
