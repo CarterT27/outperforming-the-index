@@ -9,39 +9,67 @@ import { TrendingUp, TrendingDown, Search, ExternalLink } from "lucide-react"
 import * as d3 from "d3"
 
 interface StockData {
-  date: Date
+  date: string
   price: number
   normalizedPrice: number
-  company: string
+}
+
+interface StockDataWithDate extends Omit<StockData, 'date'> {
+  date: Date
+}
+
+interface ComparisonData {
+  target_stock: {
+    name: string
+    data: StockData[]
+  }
+  sp500: {
+    name: string
+    data: StockData[]
+  }
+}
+
+interface ReturnsDistribution {
+  bins: number[]
+  counts: number[]
+  mean: number
+  median: number
+  std: number
 }
 
 export default function OutperformingIndex() {
   const [selectedStocks, setSelectedStocks] = useState<string[]>(["AAPL", "GOOGL"])
   const [searchTerm, setSearchTerm] = useState("")
+  const [comparisonData, setComparisonData] = useState<ComparisonData | null>(null)
+  const [returnsData, setReturnsData] = useState<ReturnsDistribution | null>(null)
 
   const chartRef = useRef<HTMLDivElement>(null)
   const histogramRef = useRef<HTMLDivElement>(null)
 
-  // Mock data for demonstration - using normalized values for comparison
-  const startDate = new Date(2020, 0, 1)
-  const nvidiaData: StockData[] = Array.from({ length: 100 }, (_, i) => ({
-    date: new Date(startDate.getTime() + i * 10 * 24 * 60 * 60 * 1000),
-    price: 100 + Math.pow(i / 10, 2) * 50 + Math.random() * 20,
-    normalizedPrice: 100 + i * 28 + Math.random() * 50, // Normalized for comparison
-    company: "NVIDIA",
-  }))
-
-  const sp500Data: StockData[] = Array.from({ length: 100 }, (_, i) => ({
-    date: new Date(startDate.getTime() + i * 10 * 24 * 60 * 60 * 1000),
-    price: 3000 + i * 15 + Math.random() * 100,
-    normalizedPrice: 100 + i * 10 + Math.random() * 20, // Normalized for comparison
-    company: "S&P 500",
-  }))
-
-  const stockReturns = Array.from({ length: 500 }, () => (Math.random() - 0.3) * 200)
+  // Load data
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [comparisonResponse, returnsResponse] = await Promise.all([
+          fetch('/data/comparison_data.json'),
+          fetch('/data/returns_distribution.json')
+        ])
+        
+        const comparison = await comparisonResponse.json()
+        const returns = await returnsResponse.json()
+        
+        setComparisonData(comparison)
+        setReturnsData(returns)
+      } catch (error) {
+        console.error('Error loading data:', error)
+      }
+    }
+    
+    loadData()
+  }, [])
 
   const drawComparisonChart = () => {
-    if (!chartRef.current) return
+    if (!chartRef.current || !comparisonData) return
 
     // Clear previous chart
     d3.select(chartRef.current).selectAll("*").remove()
@@ -58,14 +86,25 @@ export default function OutperformingIndex() {
 
     const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`)
 
+    // Parse dates
+    const parseDate = d3.timeParse("%Y-%m-%d")
+    const targetData: StockDataWithDate[] = comparisonData.target_stock.data.map(d => ({
+      ...d,
+      date: parseDate(d.date) as Date
+    }))
+    const sp500Data: StockDataWithDate[] = comparisonData.sp500.data.map(d => ({
+      ...d,
+      date: parseDate(d.date) as Date
+    }))
+
     // Combine data for scales
-    const allData = [...nvidiaData, ...sp500Data]
-    const allPrices = allData.map((d: StockData) => d.normalizedPrice)
+    const allData = [...targetData, ...sp500Data]
+    const allPrices = allData.map(d => d.normalizedPrice)
 
     // Scales
     const xScale = d3
       .scaleTime()
-      .domain(d3.extent(nvidiaData, (d: StockData) => d.date) as [Date, Date])
+      .domain(d3.extent(targetData, d => d.date) as [Date, Date])
       .range([0, width])
 
     const yScale = d3
@@ -76,9 +115,9 @@ export default function OutperformingIndex() {
 
     // Line generator
     const line = d3
-      .line<StockData>()
-      .x((d: StockData) => xScale(d.date))
-      .y((d: StockData) => yScale(d.normalizedPrice))
+      .line<StockDataWithDate>()
+      .x(d => xScale(d.date))
+      .y(d => yScale(d.normalizedPrice))
       .curve(d3.curveMonotoneX)
 
     // Add grid lines
@@ -139,9 +178,9 @@ export default function OutperformingIndex() {
       .style("font-weight", "500")
       .text("Price Index (Normalized to 100)")
 
-    // Add NVIDIA line
+    // Add target stock line
     g.append("path")
-      .datum(nvidiaData)
+      .datum(targetData)
       .attr("fill", "none")
       .attr("stroke", "#10b981")
       .attr("stroke-width", 3)
@@ -156,12 +195,12 @@ export default function OutperformingIndex() {
       .attr("d", line)
 
     // Add final value points
-    const nvidiaFinal = nvidiaData[nvidiaData.length - 1]
+    const targetFinal = targetData[targetData.length - 1]
     const sp500Final = sp500Data[sp500Data.length - 1]
 
     g.append("circle")
-      .attr("cx", xScale(nvidiaFinal.date))
-      .attr("cy", yScale(nvidiaFinal.normalizedPrice))
+      .attr("cx", xScale(targetFinal.date))
+      .attr("cy", yScale(targetFinal.normalizedPrice))
       .attr("r", 6)
       .attr("fill", "#10b981")
 
@@ -173,12 +212,12 @@ export default function OutperformingIndex() {
 
     // Add value labels
     g.append("text")
-      .attr("x", xScale(nvidiaFinal.date))
-      .attr("y", yScale(nvidiaFinal.normalizedPrice) - 15)
+      .attr("x", xScale(targetFinal.date))
+      .attr("y", yScale(targetFinal.normalizedPrice) - 15)
       .attr("text-anchor", "middle")
       .style("font-size", "12px")
       .style("font-weight", "500")
-      .text(nvidiaFinal.normalizedPrice.toFixed(0))
+      .text(targetFinal.normalizedPrice.toFixed(0))
 
     g.append("text")
       .attr("x", xScale(sp500Final.date))
@@ -200,7 +239,7 @@ export default function OutperformingIndex() {
       .attr("stroke", "#10b981")
       .attr("stroke-width", 3)
 
-    legend.append("text").attr("x", 25).attr("y", 0).attr("dy", "0.35em").style("font-size", "12px").text("NVIDIA")
+    legend.append("text").attr("x", 25).attr("y", 0).attr("dy", "0.35em").style("font-size", "12px").text(comparisonData.target_stock.name)
 
     legend
       .append("line")
@@ -239,34 +278,34 @@ export default function OutperformingIndex() {
         const date = xScale.invert(mouseX)
 
         // Find closest data points with proper bounds checking
-        const bisect = d3.bisector((d: StockData) => d.date).left
-        const i = bisect(nvidiaData, date, 1)
+        const bisect = d3.bisector((d: StockDataWithDate) => d.date).left
+        const i = bisect(targetData, date, 1)
 
         // Ensure we have valid indices
         const i0 = Math.max(0, i - 1)
-        const i1 = Math.min(nvidiaData.length - 1, i)
+        const i1 = Math.min(targetData.length - 1, i)
 
-        const d0 = nvidiaData[i0]
-        const d1 = nvidiaData[i1]
+        const d0 = targetData[i0]
+        const d1 = targetData[i1]
 
         // Choose the closest point
-        let nvidiaPoint: StockData
+        let targetPoint: StockDataWithDate
         if (i0 === i1) {
-          nvidiaPoint = d0
+          targetPoint = d0
         } else {
-          nvidiaPoint = date.getTime() - d0.date.getTime() > d1.date.getTime() - date.getTime() ? d1 : d0
+          targetPoint = date.getTime() - d0.date.getTime() > d1.date.getTime() - date.getTime() ? d1 : d0
         }
 
         // Find corresponding S&P 500 point
-        const nvidiaIndex = nvidiaData.indexOf(nvidiaPoint)
-        const sp500Point = sp500Data[nvidiaIndex]
+        const targetIndex = targetData.indexOf(targetPoint)
+        const sp500Point = sp500Data[targetIndex]
 
-        if (nvidiaPoint && sp500Point) {
+        if (targetPoint && sp500Point) {
           tooltip
             .style("visibility", "visible")
             .html(`
-              <div><strong>${d3.timeFormat("%b %Y")(nvidiaPoint.date)}</strong></div>
-              <div>NVIDIA: ${nvidiaPoint.normalizedPrice.toFixed(1)}</div>
+              <div><strong>${d3.timeFormat("%b %Y")(targetPoint.date)}</strong></div>
+              <div>${comparisonData.target_stock.name}: ${targetPoint.normalizedPrice.toFixed(1)}</div>
               <div>S&P 500: ${sp500Point.normalizedPrice.toFixed(1)}</div>
             `)
             .style("left", event.pageX + 10 + "px")
@@ -279,7 +318,7 @@ export default function OutperformingIndex() {
   }
 
   const drawHistogram = () => {
-    if (!histogramRef.current) return
+    if (!histogramRef.current || !returnsData) return
 
     // Clear previous chart
     d3.select(histogramRef.current).selectAll("*").remove()
@@ -299,17 +338,12 @@ export default function OutperformingIndex() {
     // Create histogram bins
     const xScale = d3
       .scaleLinear()
-      .domain(d3.extent(stockReturns) as [number, number])
+      .domain([-0.5, 0.5])
       .range([0, width])
-
-    const bins = d3
-      .histogram()
-      .domain(xScale.domain() as [number, number])
-      .thresholds(20)(stockReturns)
 
     const yScale = d3
       .scaleLinear()
-      .domain([0, d3.max(bins, (d) => d.length) as number])
+      .domain([0, d3.max(returnsData.counts) as number])
       .nice()
       .range([height, 0])
 
@@ -340,7 +374,7 @@ export default function OutperformingIndex() {
     // Add X axis
     g.append("g")
       .attr("transform", `translate(0,${height})`)
-      .call(d3.axisBottom(xScale).tickFormat((d) => d + "%"))
+      .call(d3.axisBottom(xScale).tickFormat(d => d + "%"))
       .style("font-size", "12px")
 
     // Add Y axis
@@ -366,19 +400,19 @@ export default function OutperformingIndex() {
 
     // Add bars
     g.selectAll(".bar")
-      .data(bins)
+      .data(returnsData.bins.map((bin, i) => ({
+        bin,
+        count: returnsData.counts[i]
+      })))
       .enter()
       .append("rect")
       .attr("class", "bar")
-      .attr("x", (d) => xScale(d.x0 as number))
-      .attr("width", (d) => Math.max(0, xScale(d.x1 as number) - xScale(d.x0 as number) - 1))
-      .attr("y", (d) => yScale(d.length))
-      .attr("height", (d) => height - yScale(d.length))
-      .attr("fill", (d) => {
-        const midpoint = ((d.x0 as number) + (d.x1 as number)) / 2
-        return midpoint < 10 ? "#ef4444" : "#10b981"
-      })
-      .on("mouseover", function (event, d) {
+      .attr("x", d => xScale(d.bin))
+      .attr("width", width / returnsData.bins.length - 1)
+      .attr("y", d => yScale(d.count))
+      .attr("height", d => height - yScale(d.count))
+      .attr("fill", d => d.bin < returnsData.mean ? "#ef4444" : "#10b981")
+      .on("mouseover", function(event, d) {
         d3.select(this).attr("opacity", 0.8)
 
         // Remove any existing histogram tooltips
@@ -397,37 +431,36 @@ export default function OutperformingIndex() {
           .style("pointer-events", "none")
           .style("z-index", "1000")
           .html(`
-            <div><strong>Return Range:</strong> ${(d.x0 as number).toFixed(1)}% to ${(d.x1 as number).toFixed(1)}%</div>
-            <div><strong>Number of Stocks:</strong> ${d.length}</div>
+            <div><strong>Return Range:</strong> ${(d.bin * 100).toFixed(1)}% to ${((d.bin + 0.05) * 100).toFixed(1)}%</div>
+            <div><strong>Number of Stocks:</strong> ${d.count}</div>
           `)
           .style("left", event.pageX + 10 + "px")
           .style("top", event.pageY - 10 + "px")
       })
-      .on("mouseout", function () {
+      .on("mouseout", function() {
         d3.select(this).attr("opacity", 1)
         d3.selectAll(".histogram-tooltip").remove()
       })
 
-    // Add market average line
-    const avgReturn = 10
+    // Add mean line
     g.append("line")
-      .attr("x1", xScale(avgReturn))
-      .attr("x2", xScale(avgReturn))
+      .attr("x1", xScale(returnsData.mean))
+      .attr("x2", xScale(returnsData.mean))
       .attr("y1", 0)
       .attr("y2", height)
       .attr("stroke", "#3b82f6")
       .attr("stroke-width", 3)
       .attr("stroke-dasharray", "5,5")
 
-    // Add market average label
+    // Add mean label
     g.append("text")
-      .attr("x", xScale(avgReturn))
+      .attr("x", xScale(returnsData.mean))
       .attr("y", -5)
       .attr("text-anchor", "middle")
       .style("font-size", "12px")
       .style("font-weight", "500")
       .style("fill", "#3b82f6")
-      .text("Market Average (10%)")
+      .text(`Market Average (${(returnsData.mean * 100).toFixed(1)}%)`)
   }
 
   // Draw charts on mount and resize
@@ -445,7 +478,7 @@ export default function OutperformingIndex() {
       d3.selectAll(".d3-tooltip").remove()
       d3.selectAll(".histogram-tooltip").remove()
     }
-  }, [])
+  }, [comparisonData, returnsData])
 
   const addStock = (stock: string) => {
     if (!selectedStocks.includes(stock) && selectedStocks.length < 5) {
