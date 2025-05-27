@@ -1,5 +1,5 @@
 {
-  "name": "my-v0-project",
+  "name": "outperforming-the-index",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -58,6 +58,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@types/d3": "^7.4.3",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",

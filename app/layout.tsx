@@ -2,9 +2,12 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
+  title: 'Outperforming the Index',
+  description: 'Analyzing S&P 500 stocks performance and identifying opportunities to outperform the index',
   generator: 'v0.dev',
+  icons: {
+    icon: '/favicon.ico',
+  },
 }
 
 export default function RootLayout({

@@ -5,8 +5,15 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { TrendingUp, TrendingDown, Search } from "lucide-react"
+import { TrendingUp, TrendingDown, Search, ExternalLink } from "lucide-react"
 import * as d3 from "d3"
+
+interface StockData {
+  date: Date
+  price: number
+  normalizedPrice: number
+  company: string
+}
 
 export default function OutperformingIndex() {
   const [selectedStocks, setSelectedStocks] = useState<string[]>(["AAPL", "GOOGL"])
@@ -17,14 +24,14 @@ export default function OutperformingIndex() {
 
   // Mock data for demonstration - using normalized values for comparison
   const startDate = new Date(2020, 0, 1)
-  const nvidiaData = Array.from({ length: 100 }, (_, i) => ({
+  const nvidiaData: StockData[] = Array.from({ length: 100 }, (_, i) => ({
     date: new Date(startDate.getTime() + i * 10 * 24 * 60 * 60 * 1000),
     price: 100 + Math.pow(i / 10, 2) * 50 + Math.random() * 20,
     normalizedPrice: 100 + i * 28 + Math.random() * 50, // Normalized for comparison
     company: "NVIDIA",
   }))
 
-  const sp500Data = Array.from({ length: 100 }, (_, i) => ({
+  const sp500Data: StockData[] = Array.from({ length: 100 }, (_, i) => ({
     date: new Date(startDate.getTime() + i * 10 * 24 * 60 * 60 * 1000),
     price: 3000 + i * 15 + Math.random() * 100,
     normalizedPrice: 100 + i * 10 + Math.random() * 20, // Normalized for comparison
@@ -53,12 +60,12 @@ export default function OutperformingIndex() {
 
     // Combine data for scales
     const allData = [...nvidiaData, ...sp500Data]
-    const allPrices = allData.map((d) => d.normalizedPrice)
+    const allPrices = allData.map((d: StockData) => d.normalizedPrice)
 
     // Scales
     const xScale = d3
       .scaleTime()
-      .domain(d3.extent(nvidiaData, (d) => d.date) as [Date, Date])
+      .domain(d3.extent(nvidiaData, (d: StockData) => d.date) as [Date, Date])
       .range([0, width])
 
     const yScale = d3
@@ -69,9 +76,9 @@ export default function OutperformingIndex() {
 
     // Line generator
     const line = d3
-      .line<(typeof nvidiaData)[0]>()
-      .x((d) => xScale(d.date))
-      .y((d) => yScale(d.normalizedPrice))
+      .line<StockData>()
+      .x((d: StockData) => xScale(d.date))
+      .y((d: StockData) => yScale(d.normalizedPrice))
       .curve(d3.curveMonotoneX)
 
     // Add grid lines
@@ -101,7 +108,14 @@ export default function OutperformingIndex() {
     // Add X axis
     g.append("g")
       .attr("transform", `translate(0,${height})`)
-      .call(d3.axisBottom(xScale).tickFormat(d3.timeFormat("%Y")))
+      .call(
+        d3.axisBottom(xScale).tickFormat((d: Date | d3.NumberValue) => {
+          if (d instanceof Date) {
+            return d3.timeFormat("%Y")(d)
+          }
+          return ""
+        })
+      )
       .style("font-size", "12px")
 
     // Add Y axis
@@ -220,12 +234,12 @@ export default function OutperformingIndex() {
       .attr("height", height)
       .attr("fill", "none")
       .attr("pointer-events", "all")
-      .on("mousemove", (event) => {
+      .on("mousemove", (event: MouseEvent) => {
         const [mouseX] = d3.pointer(event)
         const date = xScale.invert(mouseX)
 
         // Find closest data points with proper bounds checking
-        const bisect = d3.bisector((d: (typeof nvidiaData)[0]) => d.date).left
+        const bisect = d3.bisector((d: StockData) => d.date).left
         const i = bisect(nvidiaData, date, 1)
 
         // Ensure we have valid indices
@@ -236,7 +250,7 @@ export default function OutperformingIndex() {
         const d1 = nvidiaData[i1]
 
         // Choose the closest point
-        let nvidiaPoint: (typeof nvidiaData)[0]
+        let nvidiaPoint: StockData
         if (i0 === i1) {
           nvidiaPoint = d0
         } else {
@@ -444,7 +458,7 @@ export default function OutperformingIndex() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <div className="min-h-screen bg-background">
       {/* Section 1: Hero Introduction */}
       <section className="min-h-screen flex items-center justify-center px-4">
         <div className="text-center max-w-4xl">
@@ -645,6 +659,24 @@ export default function OutperformingIndex() {
           </div>
         </div>
       </section>
+
+      {/* Footer with dataset reference */}
+      <footer className="border-t mt-8 py-6">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-center text-sm text-muted-foreground">
+            <span>Data source: </span>
+            <a
+              href="https://www.kaggle.com/datasets/andrewmvd/sp-500-stocks/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 ml-1 text-primary hover:underline"
+            >
+              S&P 500 Stocks Dataset
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

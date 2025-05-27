@@ -127,7 +127,8 @@ The CSS uses custom properties for easy theming:
 
 ## 📈 Data Sources
 
-The prototype currently uses:
+The prototype uses the following data sources:
+- **S&P 500 Stocks Dataset**: [Kaggle Dataset](https://www.kaggle.com/datasets/andrewmvd/sp-500-stocks/) containing historical data for S&P 500 stocks
 - **Sample Data**: Generated simulated data for demonstration
 - **Existing Files**: Your S&P 500 analysis from `*.parquet` files
 - **Static Images**: Visualization exports in `assets/`
