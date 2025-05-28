@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { TrendingUp, TrendingDown, Search, ExternalLink } from "lucide-react"
 import * as d3 from "d3"
+import Link from "next/link"
 
 interface StockData {
   date: string
@@ -559,9 +560,9 @@ export default function OutperformingIndex() {
             <Button
               variant="outline"
               className="text-sm border-white text-green-600 hover:bg-white hover:text-green-600"
-              onClick={() => window.location.href = process.env.NODE_ENV === 'production' ? '/outperforming-the-index/about' : '/about'}
+              asChild
             >
-              Writeup
+              <Link href="/about">Writeup</Link>
             </Button>
           </div>
         </div>
