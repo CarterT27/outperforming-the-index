@@ -502,7 +502,7 @@ export default function OutperformingIndex() {
       .attr("y2", height)
       .attr("stroke", "#f59e0b")
       .attr("stroke-width", 3)
-      .attr("stroke-dasharray", "4,2");
+      .attr("stroke-dasharray", "5,5");
 
     //Add NVIDIA Label
     g.append("text")
