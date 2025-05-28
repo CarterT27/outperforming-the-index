@@ -559,7 +559,7 @@ export default function OutperformingIndex() {
             <Button
               variant="outline"
               className="text-sm border-white text-green-600 hover:bg-white hover:text-green-600"
-              onClick={() => window.location.href = '/about'}
+              onClick={() => window.location.href = process.env.NODE_ENV === 'production' ? '/outperforming-the-index/about' : '/about'}
             >
               Writeup
             </Button>

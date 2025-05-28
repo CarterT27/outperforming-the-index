@@ -12,6 +12,7 @@ const nextConfig = {
     unoptimized: true,
   },
   assetPrefix: process.env.NODE_ENV === 'production' ? '.' : '',
+  basePath: process.env.NODE_ENV === 'production' ? '/outperforming-the-index' : '',
 }
 
 export default nextConfig
