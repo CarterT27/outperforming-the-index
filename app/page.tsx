@@ -607,17 +607,39 @@ export default function OutperformingIndex() {
           <Card className="p-6">
             <CardContent>
               <div ref={histogramRef} className="w-full border rounded-lg bg-white" />
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="text-center p-4 bg-red-50 rounded-lg">
-                  <div className="text-2xl font-bold text-red-600">77%</div>
-                  <div className="text-sm text-gray-600">Underperformed Market</div>
+                  <div className="text-2xl font-bold text-red-600">
+                    {returnsData && comparisonData
+                      ? `${(
+                          (returnsData.counts
+                            .map((c, i) => (returnsData.bins[i] < returnsData.mean ? c : 0))
+                            .reduce((a, b) => a + b, 0) /
+                          returnsData.counts.reduce((a, b) => a + b, 0)) *
+                          100
+                        ).toFixed(0)}%`
+                      : "--"}
+                </div>
+                <div className="text-sm text-gray-600">Underperformed Market</div>
                 </div>
                 <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">10.1%</div>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {returnsData ? `${(returnsData.mean * 100).toFixed(1)}%` : "--"}
+                  </div>
                   <div className="text-sm text-gray-600">Market Average Return</div>
                 </div>
                 <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">23%</div>
+                  <div className="text-2xl font-bold text-green-600">
+                    {returnsData && comparisonData
+                      ? `${(
+                          (returnsData.counts
+                            .map((c, i) => (returnsData.bins[i] >= returnsData.mean ? c : 0))
+                            .reduce((a, b) => a + b, 0) /
+                          returnsData.counts.reduce((a, b) => a + b, 0)) *
+                          100
+                        ).toFixed(0)}%`
+                      : "--"}
+                  </div>
                   <div className="text-sm text-gray-600">Outperformed Market</div>
                 </div>
               </div>
