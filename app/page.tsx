@@ -335,8 +335,8 @@ export default function OutperformingIndex() {
       })
   }
 
-  const drawHistogram = () => {
-    if (!histogramRef.current || !returnsData) return
+  const drawHistogram = (comparisonData: ComparisonData | null) => {
+  if (!histogramRef.current || !returnsData || !comparisonData) return
 
     // Clear previous chart
     d3.select(histogramRef.current).selectAll("*").remove()
@@ -392,7 +392,9 @@ export default function OutperformingIndex() {
     // Add X axis
     g.append("g")
       .attr("transform", `translate(0,${height})`)
-      .call(d3.axisBottom(xScale).tickFormat(d => d + "%"))
+      .call(
+        d3.axisBottom(xScale).tickFormat((d) => `${(d as number * 100).toFixed(0)}%`)
+        )
       .style("font-size", "12px")
 
     // Add Y axis
@@ -479,13 +481,47 @@ export default function OutperformingIndex() {
       .style("font-weight", "500")
       .style("fill", "#3b82f6")
       .text(`Market Average (${(returnsData.mean * 100).toFixed(1)}%)`)
+
+    //NVIDIA line
+    // Compute annualized NVIDIA return
+    const parseDate = d3.timeParse("%Y-%m-%d");
+    const startDate = parseDate(comparisonData.target_stock.data[0].date) as Date;
+    const endDate = parseDate(comparisonData.target_stock.data.at(-1)!.date) as Date;
+    const years = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+
+    const start = comparisonData.target_stock.data[0].normalizedPrice ?? 100;
+    const end = comparisonData.target_stock.data.at(-1)?.normalizedPrice ?? 100;
+    const totalReturn = (end - start) / start;
+    const annualizedReturn = Math.pow(1 + totalReturn, 1 / years) - 1;
+
+    //Add NVIDIA Line
+    g.append("line")
+      .attr("x1", xScale(annualizedReturn))
+      .attr("x2", xScale(annualizedReturn))
+      .attr("y1", 0)
+      .attr("y2", height)
+      .attr("stroke", "#f59e0b")
+      .attr("stroke-width", 3)
+      .attr("stroke-dasharray", "4,2");
+
+    //Add NVIDIA Label
+    g.append("text")
+      .attr("x", xScale(annualizedReturn))
+      .attr("y", -5)
+      .attr("text-anchor", "middle")
+      .style("font-size", "12px")
+      .style("font-weight", "500")
+      .style("fill", "#f59e0b")
+      .text(`NVIDIA (${(annualizedReturn * 100).toFixed(1)}%)`);
+
+
   }
 
   // Draw charts on mount and resize
   useEffect(() => {
     const drawCharts = () => {
       drawComparisonChart()
-      drawHistogram()
+      drawHistogram(comparisonData)
     }
 
     drawCharts()
