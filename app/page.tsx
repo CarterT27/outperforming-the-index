@@ -20,6 +20,19 @@ interface StockDataWithDate extends Omit<StockData, 'date'> {
 }
 
 interface ComparisonData {
+  stocks: {
+    [symbol: string]: {
+      name: string
+      data: StockData[]
+    }
+  }
+  sp500: {
+    name: string
+    data: StockData[]
+  }
+}
+
+interface NvidiaComparisonData {
   target_stock: {
     name: string
     data: StockData[]
@@ -38,14 +51,24 @@ interface ReturnsDistribution {
   std: number
 }
 
+interface PortfolioStock {
+  symbol: string
+  investment: number
+}
+
 export default function OutperformingIndex() {
-  const [selectedStocks, setSelectedStocks] = useState<string[]>(["AAPL", "GOOGL"])
-  const [searchTerm, setSearchTerm] = useState("")
+  const [selectedStocks, setSelectedStocks] = useState<string[]>([])
   const [comparisonData, setComparisonData] = useState<ComparisonData | null>(null)
+  const [nvidiaComparisonData, setNvidiaComparisonData] = useState<NvidiaComparisonData | null>(null)
   const [returnsData, setReturnsData] = useState<ReturnsDistribution | null>(null)
+  const [portfolioStocks, setPortfolioStocks] = useState<PortfolioStock[]>([])
+  const [portfolioReturn, setPortfolioReturn] = useState<number>(0)
+  const [sp500Return, setSp500Return] = useState<number>(0)
+  const [isCalculated, setIsCalculated] = useState<boolean>(false)
 
   const chartRef = useRef<HTMLDivElement>(null)
   const histogramRef = useRef<HTMLDivElement>(null)
+  const portfolioChartRef = useRef<HTMLDivElement>(null)
 
   // Load data
   useEffect(() => {
@@ -53,27 +76,34 @@ export default function OutperformingIndex() {
       try {
         console.log('Attempting to load data...');
         const basePath = process.env.NODE_ENV === 'production' ? '.' : '';
-        const [comparisonResponse, returnsResponse] = await Promise.all([
+        const [comparisonResponse, nvidiaResponse, returnsResponse] = await Promise.all([
           fetch(`${basePath}/data/comparison_data.json`),
+          fetch(`${basePath}/data/nvidia_comparison.json`),
           fetch(`${basePath}/data/returns_distribution.json`)
         ]);
         
         if (!comparisonResponse.ok) {
           throw new Error(`Failed to load comparison data: ${comparisonResponse.status}`);
         }
+        if (!nvidiaResponse.ok) {
+          throw new Error(`Failed to load NVIDIA comparison data: ${nvidiaResponse.status}`);
+        }
         if (!returnsResponse.ok) {
           throw new Error(`Failed to load returns data: ${returnsResponse.status}`);
         }
         
         const comparison = await comparisonResponse.json();
+        const nvidiaComparison = await nvidiaResponse.json();
         const returns = await returnsResponse.json();
         
         console.log('Data loaded successfully:', {
-          comparisonDataSize: comparison.target_stock.data.length,
+          comparisonDataSize: Object.keys(comparison.stocks).length,
+          nvidiaComparisonDataSize: nvidiaComparison.target_stock.data.length,
           returnsDataSize: returns.bins.length
         });
         
         setComparisonData(comparison);
+        setNvidiaComparisonData(nvidiaComparison);
         setReturnsData(returns);
       } catch (error) {
         console.error('Error loading data:', error);
@@ -83,8 +113,91 @@ export default function OutperformingIndex() {
     loadData();
   }, []);
 
+  // Calculate portfolio returns
+  const calculatePortfolioReturns = () => {
+    if (!comparisonData) return
+
+    let totalInitialInvestment = 0
+    let totalCurrentValue = 0
+
+    portfolioStocks.forEach(stock => {
+      const stockData = comparisonData.stocks[stock.symbol]?.data
+      if (!stockData) {
+        console.warn(`No data found for stock ${stock.symbol}`)
+        return
+      }
+
+      // Use first and last data points (2023-03-01 and 2024-03-01)
+      const initialData = stockData[0]
+      const currentData = stockData[stockData.length - 1]
+
+      if (initialData && currentData) {
+        console.log(`Calculating returns for ${stock.symbol}:`, {
+          initialPrice: initialData.price,
+          currentPrice: currentData.price,
+          investment: stock.investment
+        })
+
+        const initialPrice = initialData.price
+        const currentPrice = currentData.price
+        const shares = stock.investment / initialPrice
+        const currentValue = shares * currentPrice
+
+        totalInitialInvestment += stock.investment
+        totalCurrentValue += currentValue
+      } else {
+        console.warn(`Missing data points for ${stock.symbol}`)
+      }
+    })
+
+    // Calculate S&P 500 return using first and last data points
+    const sp500Initial = comparisonData.sp500.data[0]
+    const sp500Current = comparisonData.sp500.data[comparisonData.sp500.data.length - 1]
+
+    if (sp500Initial && sp500Current) {
+      console.log('Calculating S&P 500 returns:', {
+        initialPrice: sp500Initial.price,
+        currentPrice: sp500Current.price
+      })
+
+      const sp500InitialPrice = sp500Initial.price
+      const sp500CurrentPrice = sp500Current.price
+      const sp500Return = ((sp500CurrentPrice - sp500InitialPrice) / sp500InitialPrice) * 100
+      setSp500Return(sp500Return)
+    } else {
+      console.warn('Missing S&P 500 data points')
+    }
+
+    if (totalInitialInvestment > 0) {
+      const returnPercentage = ((totalCurrentValue - totalInitialInvestment) / totalInitialInvestment) * 100
+      console.log('Portfolio calculation:', {
+        totalInitialInvestment,
+        totalCurrentValue,
+        returnPercentage
+      })
+      setPortfolioReturn(returnPercentage)
+    }
+
+    setIsCalculated(true)
+  }
+
+  // Remove the automatic calculation on portfolio changes
+  useEffect(() => {
+    setIsCalculated(false)
+  }, [portfolioStocks])
+
+  const updateInvestment = (symbol: string, investment: number) => {
+    setPortfolioStocks(prev => {
+      const existing = prev.find(s => s.symbol === symbol)
+      if (existing) {
+        return prev.map(s => s.symbol === symbol ? { ...s, investment } : s)
+      }
+      return [...prev, { symbol, investment }]
+    })
+  }
+
   const drawComparisonChart = () => {
-    if (!chartRef.current || !comparisonData) return
+    if (!chartRef.current || !nvidiaComparisonData) return
 
     // Clear previous chart
     d3.select(chartRef.current).selectAll("*").remove()
@@ -103,13 +216,13 @@ export default function OutperformingIndex() {
 
     // Parse dates
     const parseDate = d3.timeParse("%Y-%m-%d")
-    const targetData: StockDataWithDate[] = comparisonData.target_stock.data
+    const targetData: StockDataWithDate[] = nvidiaComparisonData.target_stock.data
       .filter(d => d.normalizedPrice !== null)
       .map(d => ({
         ...d,
         date: parseDate(d.date) as Date
       }))
-    const sp500Data: StockDataWithDate[] = comparisonData.sp500.data
+    const sp500Data: StockDataWithDate[] = nvidiaComparisonData.sp500.data
       .filter(d => d.normalizedPrice !== null)
       .map(d => ({
         ...d,
@@ -258,7 +371,7 @@ export default function OutperformingIndex() {
       .attr("stroke", "#10b981")
       .attr("stroke-width", 3)
 
-    legend.append("text").attr("x", 25).attr("y", 0).attr("dy", "0.35em").style("font-size", "12px").text(comparisonData.target_stock.name)
+    legend.append("text").attr("x", 25).attr("y", 0).attr("dy", "0.35em").style("font-size", "12px").text(nvidiaComparisonData.target_stock.name)
 
     legend
       .append("line")
@@ -324,7 +437,7 @@ export default function OutperformingIndex() {
             .style("visibility", "visible")
             .html(`
               <div><strong>${d3.timeFormat("%b %Y")(targetPoint.date)}</strong></div>
-              <div>${comparisonData.target_stock.name}: ${targetPoint.normalizedPrice.toFixed(1)}</div>
+              <div>${nvidiaComparisonData.target_stock.name}: ${targetPoint.normalizedPrice.toFixed(1)}</div>
               <div>S&P 500: ${sp500Point.normalizedPrice.toFixed(1)}</div>
             `)
             .style("left", event.pageX + 10 + "px")
@@ -336,8 +449,8 @@ export default function OutperformingIndex() {
       })
   }
 
-  const drawHistogram = (comparisonData: ComparisonData | null) => {
-  if (!histogramRef.current || !returnsData || !comparisonData) return
+  const drawHistogram = (comparisonData: NvidiaComparisonData | null) => {
+    if (!histogramRef.current || !returnsData || !nvidiaComparisonData) return
 
     // Clear previous chart
     d3.select(histogramRef.current).selectAll("*").remove()
@@ -486,12 +599,12 @@ export default function OutperformingIndex() {
     //NVIDIA line
     // Compute annualized NVIDIA return
     const parseDate = d3.timeParse("%Y-%m-%d");
-    const startDate = parseDate(comparisonData.target_stock.data[0].date) as Date;
-    const endDate = parseDate(comparisonData.target_stock.data.at(-1)!.date) as Date;
+    const startDate = parseDate(nvidiaComparisonData.target_stock.data[0].date) as Date;
+    const endDate = parseDate(nvidiaComparisonData.target_stock.data.at(-1)!.date) as Date;
     const years = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
 
-    const start = comparisonData.target_stock.data[0].normalizedPrice ?? 100;
-    const end = comparisonData.target_stock.data.at(-1)?.normalizedPrice ?? 100;
+    const start = nvidiaComparisonData.target_stock.data[0].normalizedPrice ?? 100;
+    const end = nvidiaComparisonData.target_stock.data.at(-1)?.normalizedPrice ?? 100;
     const totalReturn = (end - start) / start;
     const annualizedReturn = Math.pow(1 + totalReturn, 1 / years) - 1;
 
@@ -503,26 +616,175 @@ export default function OutperformingIndex() {
       .attr("y2", height)
       .attr("stroke", "#f59e0b")
       .attr("stroke-width", 3)
-      .attr("stroke-dasharray", "5,5");
+      .attr("stroke-dasharray", "5,5")
+      .style("opacity", 0.8);
 
-    //Add NVIDIA Label
+    //Add NVIDIA Label with background for better visibility
+    g.append("rect")
+      .attr("x", xScale(annualizedReturn) - 60)
+      .attr("y", -25)
+      .attr("width", 120)
+      .attr("height", 20)
+      .attr("fill", "white")
+      .attr("opacity", 0.9);
+
     g.append("text")
       .attr("x", xScale(annualizedReturn))
-      .attr("y", -5)
+      .attr("y", -10)
       .attr("text-anchor", "middle")
       .style("font-size", "12px")
       .style("font-weight", "500")
       .style("fill", "#f59e0b")
       .text(`NVIDIA (${(annualizedReturn * 100).toFixed(1)}%)`);
 
+  }
 
+  const drawPortfolioChart = () => {
+    if (!portfolioChartRef.current || !comparisonData || !isCalculated) return
+
+    // Clear previous chart
+    d3.select(portfolioChartRef.current).selectAll("*").remove()
+
+    const margin = { top: 20, right: 80, bottom: 60, left: 80 }
+    const width = portfolioChartRef.current.offsetWidth - margin.left - margin.right
+    const height = 300 - margin.top - margin.bottom
+
+    const svg = d3
+      .select(portfolioChartRef.current)
+      .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+
+    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`)
+
+    // Create data points
+    const data = [
+      { label: "Your Portfolio", value: portfolioReturn },
+      { label: "S&P 500", value: sp500Return }
+    ]
+
+    // Scales
+    const xScale = d3
+      .scaleBand()
+      .domain(data.map(d => d.label))
+      .range([0, width])
+      .padding(0.3)
+
+    // Calculate y-axis domain with padding
+    const minValue = Math.min(0, d3.min(data, d => d.value) as number)
+    const maxValue = Math.max(0, d3.max(data, d => d.value) as number)
+    const padding = Math.max(Math.abs(minValue), Math.abs(maxValue)) * 0.2 // Add 20% padding
+
+    const yScale = d3
+      .scaleLinear()
+      .domain([
+        minValue - padding,
+        maxValue + padding
+      ])
+      .nice()
+      .range([height, 0])
+
+    // Add grid lines
+    g.append("g")
+      .attr("class", "grid")
+      .attr("transform", `translate(0,${height})`)
+      .call(
+        d3
+          .axisBottom(xScale)
+          .tickSize(-height)
+          .tickFormat(() => ""),
+      )
+      .style("stroke-dasharray", "3,3")
+      .style("opacity", 0.3)
+
+    g.append("g")
+      .attr("class", "grid")
+      .call(
+        d3
+          .axisLeft(yScale)
+          .tickSize(-width)
+          .tickFormat(() => ""),
+      )
+      .style("stroke-dasharray", "3,3")
+      .style("opacity", 0.3)
+
+    // Add X axis
+    g.append("g")
+      .attr("transform", `translate(0,${height})`)
+      .call(d3.axisBottom(xScale))
+      .style("font-size", "12px")
+
+    // Add Y axis
+    g.append("g")
+      .call(d3.axisLeft(yScale).tickFormat(d => `${d}%`))
+      .style("font-size", "12px")
+
+    // Add zero line
+    g.append("line")
+      .attr("x1", 0)
+      .attr("x2", width)
+      .attr("y1", yScale(0))
+      .attr("y2", yScale(0))
+      .attr("stroke", "#666")
+      .attr("stroke-width", 1)
+      .attr("stroke-dasharray", "3,3")
+
+    // Add bars with animation
+    g.selectAll(".bar")
+      .data(data)
+      .enter()
+      .append("rect")
+      .attr("class", "bar")
+      .attr("x", d => xScale(d.label) as number)
+      .attr("width", xScale.bandwidth())
+      .attr("y", yScale(0)) // Start from zero line
+      .attr("height", 0) // Start with 0 height
+      .attr("fill", d => {
+        if (d.label === "Your Portfolio") {
+          return d.value >= 0 ? "#10b981" : "#ef4444" // Green for positive, red for negative
+        }
+        return "#3b82f6" // Blue for S&P 500
+      })
+      .on("mouseover", function(event, d) {
+        d3.select(this).attr("opacity", 0.8)
+      })
+      .on("mouseout", function() {
+        d3.select(this).attr("opacity", 1)
+      })
+      .transition()
+      .duration(2000)
+      .ease(d3.easeQuadInOut)
+      .attr("y", d => d.value >= 0 ? yScale(d.value) : yScale(0))
+      .attr("height", d => Math.abs(yScale(d.value) - yScale(0)))
+
+    // Add value labels with animation
+    g.selectAll(".value-label")
+      .data(data)
+      .enter()
+      .append("text")
+      .attr("class", "value-label")
+      .attr("x", d => (xScale(d.label) as number) + xScale.bandwidth() / 2)
+      .attr("y", yScale(0)) // Start from zero line
+      .attr("text-anchor", "middle")
+      .style("font-size", "12px")
+      .style("font-weight", "500")
+      .style("opacity", 0) // Start invisible
+      .text(d => `${d.value.toFixed(2)}%`)
+      .transition()
+      .duration(2000)
+      .ease(d3.easeQuadInOut)
+      .attr("y", d => d.value >= 0 ? yScale(d.value) - 10 : yScale(d.value) + 20) // Position label above or below bar
+      .style("opacity", 1)
   }
 
   // Draw charts on mount and resize
   useEffect(() => {
     const drawCharts = () => {
       drawComparisonChart()
-      drawHistogram(comparisonData)
+      drawHistogram(nvidiaComparisonData)
+      if (isCalculated) {
+        drawPortfolioChart()
+      }
     }
 
     drawCharts()
@@ -533,7 +795,7 @@ export default function OutperformingIndex() {
       d3.selectAll(".d3-tooltip").remove()
       d3.selectAll(".histogram-tooltip").remove()
     }
-  }, [comparisonData, returnsData])
+  }, [nvidiaComparisonData, returnsData, isCalculated, portfolioReturn, sp500Return])
 
   const addStock = (stock: string) => {
     if (!selectedStocks.includes(stock) && selectedStocks.length < 5) {
@@ -634,7 +896,7 @@ export default function OutperformingIndex() {
                 <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="text-center p-4 bg-red-50 rounded-lg">
                   <div className="text-2xl font-bold text-red-600">
-                    {returnsData && comparisonData
+                    {returnsData && nvidiaComparisonData
                       ? `${(
                           (returnsData.counts
                             .map((c, i) => (returnsData.bins[i] < returnsData.mean ? c : 0))
@@ -643,8 +905,8 @@ export default function OutperformingIndex() {
                           100
                         ).toFixed(0)}%`
                       : "--"}
-                </div>
-                <div className="text-sm text-gray-600">Underperformed Market</div>
+                  </div>
+                  <div className="text-sm text-gray-600">Underperformed Market</div>
                 </div>
                 <div className="text-center p-4 bg-blue-50 rounded-lg">
                   <div className="text-2xl font-bold text-blue-600">
@@ -654,7 +916,7 @@ export default function OutperformingIndex() {
                 </div>
                 <div className="text-center p-4 bg-green-50 rounded-lg">
                   <div className="text-2xl font-bold text-green-600">
-                    {returnsData && comparisonData
+                    {returnsData && nvidiaComparisonData
                       ? `${(
                           (returnsData.counts
                             .map((c, i) => (returnsData.bins[i] >= returnsData.mean ? c : 0))
@@ -674,7 +936,7 @@ export default function OutperformingIndex() {
       </section>
 
         {/* Section 4: Build Your Strategy */}
-        <section className="min-h-screen flex items-center justify-center px-4">
+        <section className="min-h-screen flex items-center justify-center px-4 pt-32">
           <div className="max-w-6xl w-full">
             <div className="text-center mb-12">
               <h2 className="text-4xl font-bold text-gray-900 mb-6">Build Your Strategy</h2>
@@ -686,37 +948,40 @@ export default function OutperformingIndex() {
                 <CardContent>
                   <h3 className="text-xl font-semibold mb-4">Stock Picker</h3>
                   <div className="space-y-4">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                      <Input
-                        placeholder="Search stocks (e.g., AAPL, TSLA, MSFT)"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                        onKeyPress={(e) => {
-                          if (e.key === "Enter" && searchTerm) {
-                            addStock(searchTerm.toUpperCase())
-                            setSearchTerm("")
-                          }
-                        }}
-                      />
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                      {selectedStocks.map((stock) => (
-                        <Badge
-                          key={stock}
-                          variant="secondary"
-                          className="cursor-pointer"
-                          onClick={() => removeStock(stock)}
-                        >
-                          {stock} ×
-                        </Badge>
-                      ))}
+                    <div className="space-y-4">
+                      {selectedStocks.length === 0 ? (
+                        <div className="text-center p-4 text-gray-500">
+                          Select a stock to begin
+                        </div>
+                      ) : (
+                        selectedStocks.map((stock) => (
+                          <div key={stock} className="flex items-center justify-between gap-4">
+                            <Badge
+                              variant="secondary"
+                              className="cursor-pointer"
+                              onClick={() => removeStock(stock)}
+                            >
+                              {stock} ×
+                            </Badge>
+                            <select
+                              className="border rounded p-2"
+                              value={portfolioStocks.find(s => s.symbol === stock)?.investment || 0}
+                              onChange={(e) => updateInvestment(stock, Number(e.target.value))}
+                            >
+                              <option value="0">Select investment</option>
+                              {Array.from({ length: 21 }, (_, i) => i * 100).map((amount) => (
+                                <option key={amount} value={amount}>
+                                  ${amount}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        ))
+                      )}
                     </div>
 
                     <div className="grid grid-cols-3 gap-2">
-                      {["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META"].map((stock) => (
+                      {["AAPL", "MSFT", "INTC", "AMZN", "TSLA", "MRNA", "PFE"].map((stock) => (
                         <Button
                           key={stock}
                           variant="outline"
@@ -728,6 +993,14 @@ export default function OutperformingIndex() {
                         </Button>
                       ))}
                     </div>
+
+                    <Button 
+                      className="w-full mt-4" 
+                      onClick={calculatePortfolioReturns}
+                      disabled={portfolioStocks.length === 0}
+                    >
+                      Calculate Returns
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -736,26 +1009,56 @@ export default function OutperformingIndex() {
                 <CardContent>
                   <h3 className="text-xl font-semibold mb-4">Your Results</h3>
                   <div className="space-y-4">
-                    <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                      <span>Your Portfolio</span>
-                      <span className="font-bold text-green-600">+14.2%</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-                      <span>S&P 500 Index</span>
-                      <span className="font-bold text-blue-600">+10.1%</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span>Difference</span>
-                      <span className="font-bold text-gray-900">+4.1%</span>
-                    </div>
+                    {isCalculated ? (
+                      <>
+                        <div ref={portfolioChartRef} className="w-full border rounded-lg bg-white mb-4" />
+                        <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                          <span>Your Portfolio Return</span>
+                          <span className="font-bold text-green-600">{portfolioReturn.toFixed(2)}%</span>
+                        </div>
+                        <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                          <span>S&P 500 Return</span>
+                          <span className="font-bold text-blue-600">{sp500Return.toFixed(2)}%</span>
+                        </div>
+                        <div className={`flex justify-between items-center p-3 rounded-lg ${
+                          portfolioReturn > sp500Return 
+                            ? 'bg-gray-50' 
+                            : 'bg-red-100'
+                        }`}>
+                          <span>Difference</span>
+                          <span className={`font-bold ${portfolioReturn > sp500Return ? 'text-green-600' : 'text-red-600'}`}>
+                            {(portfolioReturn - sp500Return).toFixed(2)}%
+                          </span>
+                        </div>
 
-                    <div className="mt-6 p-4 bg-yellow-50 rounded-lg">
-                      <h4 className="font-semibold text-yellow-800 mb-2">Reality Check</h4>
-                      <p className="text-sm text-yellow-700">
-                        While your picks look good, remember that past performance doesn't guarantee future results. Most
-                        professional fund managers fail to beat the market consistently.
-                      </p>
-                    </div>
+                        <div className={`mt-6 p-4 rounded-lg ${
+                          portfolioReturn > sp500Return 
+                            ? 'bg-green-50' 
+                            : 'bg-yellow-50'
+                        }`}>
+                          <h4 className={`font-semibold mb-2 ${
+                            portfolioReturn > sp500Return 
+                              ? 'text-green-800' 
+                              : 'text-yellow-800'
+                          }`}>
+                            {portfolioReturn > sp500Return ? 'Nice job!' : 'Reality Check'}
+                          </h4>
+                          <p className={`text-sm ${
+                            portfolioReturn > sp500Return 
+                              ? 'text-green-700' 
+                              : 'text-yellow-700'
+                          }`}>
+                            {portfolioReturn > sp500Return 
+                              ? "You've outperformed the market this time! But remember, even the best investors can't consistently beat the market. This might be luck rather than skill - most professional fund managers fail to beat the market over the long term."
+                              : "While your picks didn't beat the market this time, that's actually quite normal. Most professional fund managers fail to beat the market consistently. This is why many experts recommend index investing for long-term success."}
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-center p-8 text-gray-500">
+                        Select stocks and investment amounts, then click "Calculate Returns" to see your results
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
