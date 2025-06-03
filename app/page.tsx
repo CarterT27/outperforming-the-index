@@ -831,9 +831,9 @@ export default function OutperformingIndex() {
       </header>
 
       {/* Add padding to account for fixed header */}
-      <div className="pt-32">
+      <div className="pt-0">
         {/* Section 1: Hero Introduction */}
-        <section className="min-h-screen flex items-center justify-center px-4">
+        <section className="min-h-screen flex items-center justify-center px-4 pt-0">
           <div className="text-center max-w-4xl">
             <div className="mb-8">
               <div className="inline-flex items-center gap-4 mb-6">
