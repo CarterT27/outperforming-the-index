@@ -548,7 +548,7 @@ export default function OutperformingIndex() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header Section */}
-      <header className="absolute top-0 left-0 right-0 bg-green-600 border-b border-green-700 z-50">
+      <header className="bg-green-600 border-b border-green-700">
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col items-center text-center">
             <h1 className="text-2xl font-bold text-black mb-2">
@@ -568,56 +568,58 @@ export default function OutperformingIndex() {
         </div>
       </header>
 
-      {/* Section 1: Hero Introduction */}
-      <section className="min-h-screen flex items-center justify-center px-4 pt-32">
-        <div className="text-center max-w-4xl py-12">
-          <div className="mb-8">
-            <div className="inline-flex items-center gap-4 mb-6">
-              <div className="w-16 h-16 bg-green-600 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-8 h-8 text-white" />
-              </div>
-              <div className="text-left">
-                <h1 className="text-6xl font-bold text-gray-900">NVIDIA</h1>
-                <p className="text-xl text-gray-600">NVDA</p>
+      {/* Add padding to account for fixed header */}
+      <div className="pt-32">
+        {/* Section 1: Hero Introduction */}
+        <section className="min-h-screen flex items-center justify-center px-4">
+          <div className="text-center max-w-4xl">
+            <div className="mb-8">
+              <div className="inline-flex items-center gap-4 mb-6">
+                <div className="w-16 h-16 bg-green-600 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="w-8 h-8 text-white" />
+                </div>
+                <div className="text-left">
+                  <h1 className="text-6xl font-bold text-gray-900">NVIDIA</h1>
+                  <p className="text-xl text-gray-600">NVDA</p>
+                </div>
               </div>
             </div>
+            <h2 className="text-4xl font-bold text-gray-900 mb-6">Meet NVIDIA: A remarkable investment story</h2>
+            <p className="text-xl text-gray-600 mb-8">
+              From AI chips to autonomous vehicles, NVIDIA has transformed computing
+            </p>
+            <div className="text-6xl font-bold text-green-600 mb-4">+2,847%</div>
+            <p className="text-lg text-gray-600">$1,000 invested in 2020 became $29,470</p>
           </div>
-          <h2 className="text-4xl font-bold text-gray-900 mb-6">Meet NVIDIA: A remarkable investment story</h2>
-          <p className="text-xl text-gray-600 mb-8">
-            From AI chips to autonomous vehicles, NVIDIA has transformed computing
-          </p>
-          <div className="text-6xl font-bold text-green-600 mb-4">+2,847%</div>
-          <p className="text-lg text-gray-600">$1,000 invested in 2020 became $29,470</p>
-        </div>
-      </section>
+        </section>
 
-      {/* Section 2: The Impressive Climb */}
-      <section className="min-h-screen flex items-center justify-center px-4">
-        <div className="max-w-6xl w-full">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">The Comparison</h2>
-            <p className="text-xl text-gray-600">NVIDIA vs S&P 500: A side-by-side performance comparison</p>
-          </div>
-          <Card className="p-6">
-            <CardContent>
-              <div ref={chartRef} className="w-full border rounded-lg bg-white" />
-              <div className="mt-4 flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-green-500 rounded"></div>
-                    <span>NVIDIA (Normalized)</span>
+        {/* Section 2: The Impressive Climb */}
+        <section className="min-h-screen flex items-center justify-center px-4">
+          <div className="max-w-6xl w-full">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-bold text-gray-900 mb-6">The Comparison</h2>
+              <p className="text-xl text-gray-600">NVIDIA vs S&P 500: A side-by-side performance comparison</p>
+            </div>
+            <Card className="p-6">
+              <CardContent>
+                <div ref={chartRef} className="w-full border rounded-lg bg-white" />
+                <div className="mt-4 flex justify-between items-center">
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-green-500 rounded"></div>
+                      <span>NVIDIA (Normalized)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-blue-500 rounded"></div>
+                      <span>S&P 500 (Normalized)</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-blue-500 rounded"></div>
-                    <span>S&P 500 (Normalized)</span>
-                  </div>
+                  <div className="text-sm text-gray-500">Hover for details • Both normalized to 100 at start</div>
                 </div>
-                <div className="text-sm text-gray-500">Hover for details • Both normalized to 100 at start</div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
 
       {/* Section 3: One of the Few */}
       <section className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
@@ -671,143 +673,144 @@ export default function OutperformingIndex() {
         </div>
       </section>
 
-      {/* Section 4: Build Your Strategy */}
-      <section className="min-h-screen flex items-center justify-center px-4">
-        <div className="max-w-6xl w-full">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">Build Your Strategy</h2>
-            <p className="text-xl text-gray-600">Try picking your own stocks and see how you'd perform</p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <Card className="p-6">
-              <CardContent>
-                <h3 className="text-xl font-semibold mb-4">Stock Picker</h3>
-                <div className="space-y-4">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                    <Input
-                      placeholder="Search stocks (e.g., AAPL, TSLA, MSFT)"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                      onKeyPress={(e) => {
-                        if (e.key === "Enter" && searchTerm) {
-                          addStock(searchTerm.toUpperCase())
-                          setSearchTerm("")
-                        }
-                      }}
-                    />
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    {selectedStocks.map((stock) => (
-                      <Badge
-                        key={stock}
-                        variant="secondary"
-                        className="cursor-pointer"
-                        onClick={() => removeStock(stock)}
-                      >
-                        {stock} ×
-                      </Badge>
-                    ))}
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2">
-                    {["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META"].map((stock) => (
-                      <Button
-                        key={stock}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => addStock(stock)}
-                        disabled={selectedStocks.includes(stock)}
-                      >
-                        {stock}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="p-6">
-              <CardContent>
-                <h3 className="text-xl font-semibold mb-4">Your Results</h3>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                    <span>Your Portfolio</span>
-                    <span className="font-bold text-green-600">+14.2%</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-                    <span>S&P 500 Index</span>
-                    <span className="font-bold text-blue-600">+10.1%</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <span>Difference</span>
-                    <span className="font-bold text-gray-900">+4.1%</span>
-                  </div>
-
-                  <div className="mt-6 p-4 bg-yellow-50 rounded-lg">
-                    <h4 className="font-semibold text-yellow-800 mb-2">Reality Check</h4>
-                    <p className="text-sm text-yellow-700">
-                      While your picks look good, remember that past performance doesn't guarantee future results. Most
-                      professional fund managers fail to beat the market consistently.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Section 5: The Lesson */}
-      <section className="min-h-screen flex items-center justify-center px-4 bg-gray-900 text-white">
-        <div className="max-w-4xl text-center">
-          <h2 className="text-4xl font-bold mb-6">The Lesson</h2>
-          <p className="text-xl mb-8 text-gray-300">
-            While individual stocks can deliver spectacular returns, the majority underperform the market. Index
-            investing offers consistent, diversified growth without the need to pick winners.
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
-            <div className="p-6 bg-gray-800 rounded-lg">
-              <TrendingUp className="w-12 h-12 text-green-500 mb-4 mx-auto" />
-              <h3 className="text-xl font-semibold mb-2">Index Investing</h3>
-              <p className="text-gray-300">Consistent returns, low fees, automatic diversification</p>
+        {/* Section 4: Build Your Strategy */}
+        <section className="min-h-screen flex items-center justify-center px-4">
+          <div className="max-w-6xl w-full">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-bold text-gray-900 mb-6">Build Your Strategy</h2>
+              <p className="text-xl text-gray-600">Try picking your own stocks and see how you'd perform</p>
             </div>
-            <div className="p-6 bg-gray-800 rounded-lg">
-              <TrendingDown className="w-12 h-12 text-red-500 mb-4 mx-auto" />
-              <h3 className="text-xl font-semibold mb-2">Stock Picking</h3>
-              <p className="text-gray-300">High risk, requires expertise, most fail to beat the market</p>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <Card className="p-6">
+                <CardContent>
+                  <h3 className="text-xl font-semibold mb-4">Stock Picker</h3>
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                      <Input
+                        placeholder="Search stocks (e.g., AAPL, TSLA, MSFT)"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                        onKeyPress={(e) => {
+                          if (e.key === "Enter" && searchTerm) {
+                            addStock(searchTerm.toUpperCase())
+                            setSearchTerm("")
+                          }
+                        }}
+                      />
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {selectedStocks.map((stock) => (
+                        <Badge
+                          key={stock}
+                          variant="secondary"
+                          className="cursor-pointer"
+                          onClick={() => removeStock(stock)}
+                        >
+                          {stock} ×
+                        </Badge>
+                      ))}
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2">
+                      {["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META"].map((stock) => (
+                        <Button
+                          key={stock}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => addStock(stock)}
+                          disabled={selectedStocks.includes(stock)}
+                        >
+                          {stock}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="p-6">
+                <CardContent>
+                  <h3 className="text-xl font-semibold mb-4">Your Results</h3>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                      <span>Your Portfolio</span>
+                      <span className="font-bold text-green-600">+14.2%</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                      <span>S&P 500 Index</span>
+                      <span className="font-bold text-blue-600">+10.1%</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                      <span>Difference</span>
+                      <span className="font-bold text-gray-900">+4.1%</span>
+                    </div>
+
+                    <div className="mt-6 p-4 bg-yellow-50 rounded-lg">
+                      <h4 className="font-semibold text-yellow-800 mb-2">Reality Check</h4>
+                      <p className="text-sm text-yellow-700">
+                        While your picks look good, remember that past performance doesn't guarantee future results. Most
+                        professional fund managers fail to beat the market consistently.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
+        </section>
 
-          <div className="mt-12">
-            <p className="text-lg text-gray-400">
-              This is not investment advice. Always consult with a financial advisor.
+        {/* Section 5: The Lesson */}
+        <section className="min-h-screen flex items-center justify-center px-4 bg-gray-900 text-white">
+          <div className="max-w-4xl text-center">
+            <h2 className="text-4xl font-bold mb-6">The Lesson</h2>
+            <p className="text-xl mb-8 text-gray-300">
+              While individual stocks can deliver spectacular returns, the majority underperform the market. Index
+              investing offers consistent, diversified growth without the need to pick winners.
             </p>
-          </div>
-        </div>
-      </section>
 
-      {/* Footer with dataset reference */}
-      <footer className="border-t mt-8 py-6">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-center text-sm text-muted-foreground">
-            <span>Data source: </span>
-            <a
-              href="https://www.kaggle.com/datasets/andrewmvd/sp-500-stocks/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 ml-1 text-primary hover:underline"
-            >
-              S&P 500 Stocks Dataset
-              <ExternalLink className="h-3 w-3" />
-            </a>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
+              <div className="p-6 bg-gray-800 rounded-lg">
+                <TrendingUp className="w-12 h-12 text-green-500 mb-4 mx-auto" />
+                <h3 className="text-xl font-semibold mb-2">Index Investing</h3>
+                <p className="text-gray-300">Consistent returns, low fees, automatic diversification</p>
+              </div>
+              <div className="p-6 bg-gray-800 rounded-lg">
+                <TrendingDown className="w-12 h-12 text-red-500 mb-4 mx-auto" />
+                <h3 className="text-xl font-semibold mb-2">Stock Picking</h3>
+                <p className="text-gray-300">High risk, requires expertise, most fail to beat the market</p>
+              </div>
+            </div>
+
+            <div className="mt-12">
+              <p className="text-lg text-gray-400">
+                This is not investment advice. Always consult with a financial advisor.
+              </p>
+            </div>
           </div>
-        </div>
-      </footer>
+        </section>
+
+        {/* Footer with dataset reference */}
+        <footer className="border-t mt-8 py-6">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-center text-sm text-muted-foreground">
+              <span>Data source: </span>
+              <a
+                href="https://www.kaggle.com/datasets/andrewmvd/sp-500-stocks/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 ml-1 text-primary hover:underline"
+              >
+                S&P 500 Stocks Dataset
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+          </div>
+        </footer>
+      </div>
     </div>
   )
 }
