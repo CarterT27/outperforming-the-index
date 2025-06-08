@@ -294,7 +294,7 @@ export default function OutperformingIndex() {
       .style("stroke-dasharray", "3,3")
       .style("opacity", 0.3)
 
-    g.append("g")
+    const yAxis = g.append("g")
       .attr("class", "grid")
       .call(
         d3
@@ -319,7 +319,7 @@ export default function OutperformingIndex() {
       .style("font-size", "12px")
 
     // Add Y axis
-    g.append("g").call(d3.axisLeft(yScale)).style("font-size", "12px")
+    const yAxisMain = g.append("g").call(d3.axisLeft(yScale)).style("font-size", "12px")
 
     // Add X axis label
     g.append("text")
@@ -327,7 +327,7 @@ export default function OutperformingIndex() {
       .style("text-anchor", "middle")
       .style("font-size", "14px")
       .style("font-weight", "500")
-      .text("Year")
+      .text("Date")
 
     // Add Y axis label
     g.append("text")
@@ -337,7 +337,7 @@ export default function OutperformingIndex() {
       .style("text-anchor", "middle")
       .style("font-size", "14px")
       .style("font-weight", "500")
-      .text("Price Index (Normalized to 100)")
+      .text("Price ($)")
 
     // Create the line group with clipping
     const lineGroup = g.append('g')
@@ -361,23 +361,9 @@ export default function OutperformingIndex() {
       .attr("stroke-width", 3)
       .attr("d", line)
 
-    // Add final value points
+    // Get final data points for labels
     const targetFinal = targetData[targetData.length - 1]
     const sp500Final = sp500Data[sp500Data.length - 1]
-
-    const targetPoint = lineGroup.append("circle")
-      .attr("class", "target-point")
-      .attr("cx", xScale(targetFinal.date))
-      .attr("cy", yScale(targetFinal.normalizedPrice))
-      .attr("r", 6)
-      .attr("fill", "#10b981")
-
-    const sp500Point = lineGroup.append("circle")
-      .attr("class", "sp500-point")
-      .attr("cx", xScale(sp500Final.date))
-      .attr("cy", yScale(sp500Final.normalizedPrice))
-      .attr("r", 6)
-      .attr("fill", "#3b82f6")
 
     // Add value labels to the right
     const targetLabel = g.append("text")
@@ -449,19 +435,54 @@ export default function OutperformingIndex() {
         isBrushing = false
       }
 
+      // Filter data based on current x-axis domain for y-axis scaling
+      const currentDomain = xScale.domain()
+      const visibleTargetData = targetData.filter(d => d.date >= currentDomain[0] && d.date <= currentDomain[1])
+      const visibleSp500Data = sp500Data.filter(d => d.date >= currentDomain[0] && d.date <= currentDomain[1])
+      const visiblePrices = [...visibleTargetData, ...visibleSp500Data].map(d => d.normalizedPrice)
+
+      // Update y-axis domain based on visible data
+      if (visiblePrices.length > 0) {
+        yScale.domain(d3.extent(visiblePrices) as [number, number]).nice()
+      }
+
+      // Determine appropriate date format based on time span
+      const timeSpan = currentDomain[1].getTime() - currentDomain[0].getTime()
+      const dayInMs = 24 * 60 * 60 * 1000
+      const monthInMs = dayInMs * 30
+      const yearInMs = dayInMs * 365
+
+      let dateFormatter: (d: Date) => string
+      if (timeSpan > 2 * yearInMs) {
+        dateFormatter = d3.timeFormat("%Y")
+      } else if (timeSpan > 6 * monthInMs) {
+        dateFormatter = d3.timeFormat("%b %Y")
+      } else if (timeSpan > monthInMs) {
+        dateFormatter = d3.timeFormat("%b %d")
+      } else {
+        dateFormatter = d3.timeFormat("%m/%d")
+      }
+
       // Update axis and line positions with smooth transition
       xAxisMain.transition().duration(1000).call(
         d3.axisBottom(xScale).tickFormat((d: Date | d3.NumberValue) => {
           if (d instanceof Date) {
-            return d3.timeFormat("%Y")(d)
+            return dateFormatter(d)
           }
           return ""
         })
       )
 
+      // Update y-axis
+      yAxisMain.transition().duration(1000).call(d3.axisLeft(yScale))
+
       // Update grid
       xAxis.transition().duration(1000).call(
         d3.axisBottom(xScale).tickSize(-height).tickFormat(() => "")
+      )
+
+      yAxis.transition().duration(1000).call(
+        d3.axisLeft(yScale).tickSize(-width).tickFormat(() => "")
       )
 
       // Update lines
@@ -475,27 +496,23 @@ export default function OutperformingIndex() {
         .duration(1000)
         .attr("d", line)
 
-      // Update points
-      targetPoint
-        .transition()
-        .duration(1000)
-        .attr("cx", xScale(targetFinal.date))
+      // Update labels - only show if they're within the current domain
+      const targetInView = targetFinal.date >= currentDomain[0] && targetFinal.date <= currentDomain[1]
+      const sp500InView = sp500Final.date >= currentDomain[0] && sp500Final.date <= currentDomain[1]
 
-      sp500Point
-        .transition()
-        .duration(1000)
-        .attr("cx", xScale(sp500Final.date))
-
-      // Update labels
       targetLabel
         .transition()
         .duration(1000)
         .attr("x", xScale(targetFinal.date) + 10)
+        .attr("y", yScale(targetFinal.normalizedPrice))
+        .style("opacity", targetInView ? 1 : 0)
 
       sp500Label
         .transition()
         .duration(1000)
         .attr("x", xScale(sp500Final.date) + 10)
+        .attr("y", yScale(sp500Final.normalizedPrice))
+        .style("opacity", sp500InView ? 1 : 0)
     }
 
     const brush = d3.brushX()
@@ -575,6 +592,8 @@ export default function OutperformingIndex() {
     // Add double-click to reset
     svg.on("dblclick", () => {
       xScale.domain(originalXDomain)
+      // Reset y-axis to original domain
+      yScale.domain(d3.extent(allPrices) as [number, number]).nice()
       
       xAxisMain.transition().call(
         d3.axisBottom(xScale).tickFormat((d: Date | d3.NumberValue) => {
@@ -585,8 +604,16 @@ export default function OutperformingIndex() {
         })
       )
 
+      // Reset y-axis
+      yAxisMain.transition().call(d3.axisLeft(yScale))
+
+      // Reset grids
       xAxis.transition().call(
         d3.axisBottom(xScale).tickSize(-height).tickFormat(() => "")
+      )
+
+      yAxis.transition().call(
+        d3.axisLeft(yScale).tickSize(-width).tickFormat(() => "")
       )
 
       targetLine
@@ -597,21 +624,17 @@ export default function OutperformingIndex() {
         .transition()
         .attr("d", line)
 
-      targetPoint
-        .transition()
-        .attr("cx", xScale(targetFinal.date))
-
-      sp500Point
-        .transition()
-        .attr("cx", xScale(sp500Final.date))
-
       targetLabel
         .transition()
         .attr("x", xScale(targetFinal.date) + 10)
+        .attr("y", yScale(targetFinal.normalizedPrice))
+        .style("opacity", 1)
 
       sp500Label
         .transition()
         .attr("x", xScale(sp500Final.date) + 10)
+        .attr("y", yScale(sp500Final.normalizedPrice))
+        .style("opacity", 1)
     })
   }
 
@@ -1085,7 +1108,7 @@ export default function OutperformingIndex() {
                           <span>S&P 500 (Normalized)</span>
                         </div>
                       </div>
-                      <div className="text-sm text-gray-500">Hover for details • Drag to zoom • Double-click to reset • Both normalized to 100 at start</div>
+                      <div className="text-sm text-gray-500">Drag to zoom • Double-click to reset • Both normalized to 100 at start</div>
                     </div>
                   </>
                 )}
