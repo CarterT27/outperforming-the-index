@@ -250,10 +250,13 @@ export default function OutperformingIndex() {
     const allData = [...targetData, ...sp500Data]
     const allPrices = allData.map(d => d.normalizedPrice)
 
+    // Store original domain for reset functionality
+    const originalXDomain = d3.extent(targetData, d => d.date) as [Date, Date]
+
     // Scales
     const xScale = d3
       .scaleTime()
-      .domain(d3.extent(targetData, d => d.date) as [Date, Date])
+      .domain(originalXDomain)
       .range([0, width])
 
     const yScale = d3
@@ -269,8 +272,17 @@ export default function OutperformingIndex() {
       .y(d => yScale(d.normalizedPrice))
       .curve(d3.curveMonotoneX)
 
+    // Add clipPath for brushing
+    const clip = svg.append("defs").append("svg:clipPath")
+      .attr("id", "clip")
+      .append("svg:rect")
+      .attr("width", width)
+      .attr("height", height)
+      .attr("x", 0)
+      .attr("y", 0)
+
     // Add grid lines
-    g.append("g")
+    const xAxis = g.append("g")
       .attr("class", "grid")
       .attr("transform", `translate(0,${height})`)
       .call(
@@ -294,7 +306,7 @@ export default function OutperformingIndex() {
       .style("opacity", 0.3)
 
     // Add X axis
-    g.append("g")
+    const xAxisMain = g.append("g")
       .attr("transform", `translate(0,${height})`)
       .call(
         d3.axisBottom(xScale).tickFormat((d: Date | d3.NumberValue) => {
@@ -327,17 +339,23 @@ export default function OutperformingIndex() {
       .style("font-weight", "500")
       .text("Price Index (Normalized to 100)")
 
+    // Create the line group with clipping
+    const lineGroup = g.append('g')
+      .attr("clip-path", "url(#clip)")
+
     // Add target stock line
-    g.append("path")
+    const targetLine = lineGroup.append("path")
       .datum(targetData)
+      .attr("class", "target-line")
       .attr("fill", "none")
       .attr("stroke", "#10b981")
       .attr("stroke-width", 3)
       .attr("d", line)
 
     // Add S&P 500 line
-    g.append("path")
+    const sp500Line = lineGroup.append("path")
       .datum(sp500Data)
+      .attr("class", "sp500-line")
       .attr("fill", "none")
       .attr("stroke", "#3b82f6")
       .attr("stroke-width", 3)
@@ -347,20 +365,23 @@ export default function OutperformingIndex() {
     const targetFinal = targetData[targetData.length - 1]
     const sp500Final = sp500Data[sp500Data.length - 1]
 
-    g.append("circle")
+    const targetPoint = lineGroup.append("circle")
+      .attr("class", "target-point")
       .attr("cx", xScale(targetFinal.date))
       .attr("cy", yScale(targetFinal.normalizedPrice))
       .attr("r", 6)
       .attr("fill", "#10b981")
 
-    g.append("circle")
+    const sp500Point = lineGroup.append("circle")
+      .attr("class", "sp500-point")
       .attr("cx", xScale(sp500Final.date))
       .attr("cy", yScale(sp500Final.normalizedPrice))
       .attr("r", 6)
       .attr("fill", "#3b82f6")
 
     // Add value labels to the right
-    g.append("text")
+    const targetLabel = g.append("text")
+      .attr("class", "target-label")
       .attr("x", xScale(targetFinal.date) + 10)
       .attr("y", yScale(targetFinal.normalizedPrice))
       .attr("dy", "0.35em")
@@ -369,7 +390,8 @@ export default function OutperformingIndex() {
       .style("fill", "#10b981")
       .text(`${targetFinal.normalizedPrice.toFixed(0)}`)
 
-    g.append("text")
+    const sp500Label = g.append("text")
+      .attr("class", "sp500-label")
       .attr("x", xScale(sp500Final.date) + 10)
       .attr("y", yScale(sp500Final.normalizedPrice))
       .attr("dy", "0.35em")
@@ -403,6 +425,84 @@ export default function OutperformingIndex() {
 
     legend.append("text").attr("x", 25).attr("y", 20).attr("dy", "0.35em").style("font-size", "12px").text("S&P 500")
 
+        // Add brushing functionality
+    let idleTimeout: NodeJS.Timeout | null = null
+    let isBrushing = false
+    const idled = () => { idleTimeout = null }
+
+    const updateChart = (event: any) => {
+      const extent = event.selection
+
+      // If no selection, back to initial coordinate. Otherwise, update X axis domain
+      if (!extent) {
+        if (!idleTimeout) {
+          idleTimeout = setTimeout(idled, 350)
+          return
+        }
+        xScale.domain(originalXDomain)
+        isBrushing = false
+      } else {
+        xScale.domain([xScale.invert(extent[0]), xScale.invert(extent[1])])
+        // Remove brush selection
+        const brushGroup = lineGroup.select(".brush") as d3.Selection<SVGGElement, unknown, any, any>
+        brushGroup.call(brush.move, null)
+        isBrushing = false
+      }
+
+      // Update axis and line positions with smooth transition
+      xAxisMain.transition().duration(1000).call(
+        d3.axisBottom(xScale).tickFormat((d: Date | d3.NumberValue) => {
+          if (d instanceof Date) {
+            return d3.timeFormat("%Y")(d)
+          }
+          return ""
+        })
+      )
+
+      // Update grid
+      xAxis.transition().duration(1000).call(
+        d3.axisBottom(xScale).tickSize(-height).tickFormat(() => "")
+      )
+
+      // Update lines
+      targetLine
+        .transition()
+        .duration(1000)
+        .attr("d", line)
+
+      sp500Line
+        .transition()
+        .duration(1000)
+        .attr("d", line)
+
+      // Update points
+      targetPoint
+        .transition()
+        .duration(1000)
+        .attr("cx", xScale(targetFinal.date))
+
+      sp500Point
+        .transition()
+        .duration(1000)
+        .attr("cx", xScale(sp500Final.date))
+
+      // Update labels
+      targetLabel
+        .transition()
+        .duration(1000)
+        .attr("x", xScale(targetFinal.date) + 10)
+
+      sp500Label
+        .transition()
+        .duration(1000)
+        .attr("x", xScale(sp500Final.date) + 10)
+    }
+
+    const brush = d3.brushX()
+      .extent([[0, 0], [width, height]])
+      .on("start", () => { isBrushing = true })
+      .on("end", updateChart)
+
     // Add tooltip
     const tooltip = d3
       .select("body")
@@ -418,54 +518,101 @@ export default function OutperformingIndex() {
       .style("pointer-events", "none")
       .style("z-index", "1000")
 
-    // Add invisible overlay for mouse events
-    g.append("rect")
-      .attr("width", width)
-      .attr("height", height)
-      .attr("fill", "none")
-      .attr("pointer-events", "all")
+    // Add the brush with integrated tooltip functionality
+    const brushGroup = lineGroup
+      .append("g")
+      .attr("class", "brush")
+      .call(brush)
+
+    // Add tooltip functionality to the brush overlay
+    brushGroup.select(".overlay")
       .on("mousemove", (event: MouseEvent) => {
-        const [mouseX] = d3.pointer(event)
-        const date = xScale.invert(mouseX)
+        // Only show tooltip when not actively brushing
+        if (!isBrushing) {
+          const [mouseX] = d3.pointer(event)
+          const date = xScale.invert(mouseX)
 
-        // Find closest data points with proper bounds checking
-        const bisect = d3.bisector((d: StockDataWithDate) => d.date).left
-        const i = bisect(targetData, date, 1)
+          // Find closest data points with proper bounds checking
+          const bisect = d3.bisector((d: StockDataWithDate) => d.date).left
+          const i = bisect(targetData, date, 1)
 
-        // Ensure we have valid indices
-        const i0 = Math.max(0, i - 1)
-        const i1 = Math.min(targetData.length - 1, i)
+          // Ensure we have valid indices
+          const i0 = Math.max(0, i - 1)
+          const i1 = Math.min(targetData.length - 1, i)
 
-        const d0 = targetData[i0]
-        const d1 = targetData[i1]
+          const d0 = targetData[i0]
+          const d1 = targetData[i1]
 
-        // Choose the closest point
-        let targetPoint: StockDataWithDate
-        if (i0 === i1) {
-          targetPoint = d0
-        } else {
-          targetPoint = date.getTime() - d0.date.getTime() > d1.date.getTime() - date.getTime() ? d1 : d0
-        }
+          // Choose the closest point
+          let targetPoint: StockDataWithDate
+          if (i0 === i1) {
+            targetPoint = d0
+          } else {
+            targetPoint = date.getTime() - d0.date.getTime() > d1.date.getTime() - date.getTime() ? d1 : d0
+          }
 
-        // Find corresponding S&P 500 point
-        const targetIndex = targetData.indexOf(targetPoint)
-        const sp500Point = sp500Data[targetIndex]
+          // Find corresponding S&P 500 point
+          const targetIndex = targetData.indexOf(targetPoint)
+          const sp500Point = sp500Data[targetIndex]
 
-        if (targetPoint && sp500Point) {
-          tooltip
-            .style("visibility", "visible")
-            .html(`
-              <div><strong>${d3.timeFormat("%b %Y")(targetPoint.date)}</strong></div>
-              <div>${nvidiaComparisonData.target_stock.name}: ${targetPoint.normalizedPrice.toFixed(1)}</div>
-              <div>S&P 500: ${sp500Point.normalizedPrice.toFixed(1)}</div>
-            `)
-            .style("left", event.pageX + 10 + "px")
-            .style("top", event.pageY - 10 + "px")
+          if (targetPoint && sp500Point) {
+            tooltip
+              .style("visibility", "visible")
+              .html(`
+                <div><strong>${d3.timeFormat("%b %Y")(targetPoint.date)}</strong></div>
+                <div>${nvidiaComparisonData.target_stock.name}: ${targetPoint.normalizedPrice.toFixed(1)}</div>
+                <div>S&P 500: ${sp500Point.normalizedPrice.toFixed(1)}</div>
+              `)
+              .style("left", event.pageX + 10 + "px")
+              .style("top", event.pageY - 10 + "px")
+          }
         }
       })
       .on("mouseout", () => {
         tooltip.style("visibility", "hidden")
       })
+
+    // Add double-click to reset
+    svg.on("dblclick", () => {
+      xScale.domain(originalXDomain)
+      
+      xAxisMain.transition().call(
+        d3.axisBottom(xScale).tickFormat((d: Date | d3.NumberValue) => {
+          if (d instanceof Date) {
+            return d3.timeFormat("%Y")(d)
+          }
+          return ""
+        })
+      )
+
+      xAxis.transition().call(
+        d3.axisBottom(xScale).tickSize(-height).tickFormat(() => "")
+      )
+
+      targetLine
+        .transition()
+        .attr("d", line)
+
+      sp500Line
+        .transition()
+        .attr("d", line)
+
+      targetPoint
+        .transition()
+        .attr("cx", xScale(targetFinal.date))
+
+      sp500Point
+        .transition()
+        .attr("cx", xScale(sp500Final.date))
+
+      targetLabel
+        .transition()
+        .attr("x", xScale(targetFinal.date) + 10)
+
+      sp500Label
+        .transition()
+        .attr("x", xScale(sp500Final.date) + 10)
+    })
   }
 
   const drawHistogram = (comparisonData: NvidiaComparisonData | null) => {
@@ -938,7 +1085,7 @@ export default function OutperformingIndex() {
                           <span>S&P 500 (Normalized)</span>
                         </div>
                       </div>
-                      <div className="text-sm text-gray-500">Hover for details • Both normalized to 100 at start</div>
+                      <div className="text-sm text-gray-500">Hover for details • Drag to zoom • Double-click to reset • Both normalized to 100 at start</div>
                     </div>
                   </>
                 )}
