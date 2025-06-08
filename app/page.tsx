@@ -1349,11 +1349,11 @@ export default function OutperformingIndex() {
           </div>
         </section>
 
-        {/* Section 2: The Impressive Climb */}
+        {/* Section 2: The Allure of Stock Picking */}
         <section id="comparison-section" className="min-h-screen flex items-center justify-center px-4">
           <div className="max-w-6xl w-full">
             <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">The Comparison</h2>
+              <h2 className="text-4xl font-bold text-gray-900 mb-6">The Allure of Stock Picking</h2>
               <p className="text-xl text-gray-600 mb-8">
                 Imagine you had perfect foresight. You invest in NVIDIA back in{" "}
                 {nvidiaComparisonData ? (
@@ -1411,12 +1411,19 @@ export default function OutperformingIndex() {
           </div>
         </section>
 
-      {/* Section 3: One of the Few */}
+      {/* Section 3: The Harsh Reality */}
       <section className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
         <div className="max-w-6xl w-full">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">But NVIDIA was one of the few</h2>
-            <p className="text-xl text-gray-600">Distribution of S&P 500 stock returns shows most underperform</p>
+            <h2 className="text-4xl font-bold text-gray-900 mb-6">📉 The Harsh Reality</h2>
+            <p className="text-xl text-gray-600 mb-8">
+              But here's the catch: most stocks don't beat the market. In fact, research shows that 66% of S&P 500 stocks underperform the index over time.
+            </p>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 max-w-2xl mx-auto">
+              <p className="text-xl font-semibold text-yellow-800">
+                "The few big winners carry the whole index."
+              </p>
+            </div>
           </div>
           <Card className="p-6">
             <CardContent>
@@ -1471,12 +1478,19 @@ export default function OutperformingIndex() {
         </div>
       </section>
 
-        {/* Section 4: Build Your Strategy */}
+        {/* Section 4: Try Your Luck */}
         <section className="min-h-screen flex items-center justify-center px-4 pt-32">
           <div className="max-w-6xl w-full">
             <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">Build Your Strategy</h2>
-              <p className="text-xl text-gray-600">Try picking your own stocks and see how you'd perform</p>
+              <h2 className="text-4xl font-bold text-gray-900 mb-6">🎯 Try Your Luck</h2>
+              <p className="text-xl text-gray-600 mb-8">
+                Think you can beat the odds? Pick any stock and see how it would've performed.
+              </p>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-2xl mx-auto">
+                <p className="text-xl font-semibold text-red-800">
+                  "Would you bet your retirement on one guess?"
+                </p>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
