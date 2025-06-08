@@ -213,6 +213,39 @@ export default function OutperformingIndex() {
     })
   }
 
+  // Key events data
+  const keyEvents = [
+    { date: "2014-09-01", event: "NVIDIA launches Maxwell GPU architecture (GTX 970/980)", impact: "NVIDIA", description: "Major efficiency gains" },
+    { date: "2015-08-24", event: "China Black Monday", impact: "S&P 500", description: "China crash causes global selloff; S&P 500 enters correction" },
+    { date: "2016-01-15", event: "Market turmoil over oil and China growth fears", impact: "S&P 500", description: "Global oil price collapse led to market volatility" },
+    { date: "2016-05-15", event: "NVIDIA announces Pascal GPUs + blowout earnings", impact: "NVIDIA", description: "Stock surges on major GPU advancement" },
+    { date: "2016-06-24", event: "Brexit shock", impact: "S&P 500", description: "S&P 500 drops ~3.6%, then rebounds" },
+    { date: "2016-11-08", event: "Trump election win", impact: "S&P 500", description: "Triggers post-election rally" },
+    { date: "2017-05-10", event: "NVIDIA unveils Volta for AI", impact: "NVIDIA", description: "Massive AI performance gain (Tesla V100)" },
+    { date: "2017-12-22", event: "U.S. tax cuts enacted", impact: "S&P 500", description: "Boosts corporate earnings and market optimism" },
+    { date: "2018-02-05", event: "Volmageddon", impact: "S&P 500", description: "Inflation spike triggers correction in tech-heavy indices" },
+    { date: "2018-08-20", event: "NVIDIA unveils Turing architecture", impact: "NVIDIA", description: "Real-time ray tracing (RTX 2080)" },
+    { date: "2018-11-15", event: "NVIDIA crypto-mining crash", impact: "NVIDIA", description: "Reports excess inventory – stock drops ~28% in 2 days" },
+    { date: "2018-12-24", event: "Fed rate hikes and trade war fears", impact: "S&P 500", description: "Near-bear market (~20% S&P decline)" },
+    { date: "2019-03-11", event: "NVIDIA announces Mellanox acquisition", impact: "NVIDIA", description: "$6.9B acquisition – expands data center presence" },
+    { date: "2019-08-14", event: "Yield curve inverts", impact: "S&P 500", description: "Recession warning causes market pullback" },
+    { date: "2019-12-13", event: "U.S.–China Phase One trade deal", impact: "S&P 500", description: "Signed – boosts markets" },
+    { date: "2020-03-16", event: "COVID-19 crash", impact: "NVIDIA + S&P 500", description: "S&P 500 falls ~34% in 33 days" },
+    { date: "2020-03-23", event: "Fed emergency response", impact: "S&P 500", description: "Slashes rates to zero and launches $700B QE" },
+    { date: "2020-09-13", event: "NVIDIA announces ARM acquisition", impact: "NVIDIA", description: "$40B ARM acquisition plan" },
+    { date: "2020-11-09", event: "Pfizer vaccine announcement", impact: "S&P 500", description: "Huge rally across cyclical sectors" },
+    { date: "2021-07-20", event: "NVIDIA stock split", impact: "NVIDIA", description: "Executes 4-for-1 stock split" },
+    { date: "2021-11-10", event: "Inflation surge", impact: "S&P 500", description: "Inflation ~7%; Fed hints at tapering – market hits peak" },
+    { date: "2022-01-05", event: "Fed hawkish pivot", impact: "S&P 500", description: "Fed minutes reveal hawkish stance – S&P drops ~2%" },
+    { date: "2022-02-07", event: "NVIDIA ARM deal terminated", impact: "NVIDIA", description: "Terminated due to regulatory pressure" },
+    { date: "2022-02-24", event: "Russia invades Ukraine", impact: "NVIDIA + S&P 500", description: "Broad global selloff, energy prices spike" },
+    { date: "2022-08-31", event: "U.S. bans NVIDIA chip exports to China", impact: "NVIDIA", description: "Bans top AI chips – shares fall ~6–7%" },
+    { date: "2022-09-15", event: "Ethereum Merge", impact: "NVIDIA", description: "Kills GPU mining demand" },
+    { date: "2023-03-10", event: "SVB collapse", impact: "S&P 500", description: "Banking mini-crisis – brief S&P dip" },
+    { date: "2023-05-25", event: "NVIDIA shatters earnings forecasts", impact: "NVIDIA + S&P 500", description: "AI demand drives stock up +24% in one day" },
+    { date: "2023-06-08", event: "S&P 500 enters bull market", impact: "S&P 500", description: "20% off Oct 2022 lows" }
+  ]
+
   const drawComparisonChart = () => {
     if (!chartRef.current || !nvidiaComparisonData) return
 
@@ -342,6 +375,10 @@ export default function OutperformingIndex() {
     // Create the line group with clipping
     const lineGroup = g.append('g')
       .attr("clip-path", "url(#clip)")
+    
+    // Create a separate group for event markers (above brush overlay)
+    const markerGroup = g.append('g')
+      .attr("clip-path", "url(#clip)")
 
     // Add target stock line
     const targetLine = lineGroup.append("path")
@@ -410,6 +447,141 @@ export default function OutperformingIndex() {
       .attr("stroke-width", 3)
 
     legend.append("text").attr("x", 25).attr("y", 20).attr("dy", "0.35em").style("font-size", "12px").text("S&P 500")
+
+    // Add event markers
+    const parseEventDate = d3.timeParse("%Y-%m-%d")
+    const validEvents = keyEvents
+      .map(event => ({
+        ...event,
+        parsedDate: parseEventDate(event.date)
+      }))
+      .filter(event => {
+        if (!event.parsedDate) return false
+        const eventDate = event.parsedDate
+        const dataStart = targetData[0]?.date
+        const dataEnd = targetData[targetData.length - 1]?.date
+        return eventDate >= dataStart && eventDate <= dataEnd
+      })
+
+    // Add event markers for each line
+    validEvents.forEach(event => {
+      const eventDate = event.parsedDate!
+      
+      // Find closest data point for positioning
+      const bisect = d3.bisector((d: StockDataWithDate) => d.date).left
+      const i = bisect(targetData, eventDate, 1)
+      const i0 = Math.max(0, i - 1)
+      const i1 = Math.min(targetData.length - 1, i)
+      
+      const d0 = targetData[i0]
+      const d1 = targetData[i1]
+      let targetPoint = d0
+      if (i0 !== i1) {
+        targetPoint = eventDate.getTime() - d0.date.getTime() > d1.date.getTime() - eventDate.getTime() ? d1 : d0
+      }
+      
+      const sp500Point = sp500Data[targetData.indexOf(targetPoint)]
+      
+      if (targetPoint && sp500Point) {
+        // Determine which line(s) to mark based on impact
+        const shouldMarkNvidia = event.impact.includes("NVIDIA")
+        const shouldMarkSP500 = event.impact.includes("S&P 500")
+        
+        // Add markers - always place them on their respective lines
+        if (shouldMarkNvidia) {
+          const marker = markerGroup.append("circle")
+            .attr("class", "event-marker nvidia-event")
+            .attr("data-event-date", event.date) // Store original date for filtering
+            .attr("cx", xScale(targetPoint.date))
+            .attr("cy", yScale(targetPoint.normalizedPrice))
+            .attr("r", shouldMarkNvidia && shouldMarkSP500 ? 4 : 5) // Slightly smaller if both
+            .style("fill", "#10b981")
+            .style("stroke", "white")
+            .style("stroke-width", 2)
+            .style("opacity", 0.8)
+            .style("cursor", "pointer")
+        }
+        
+        if (shouldMarkSP500) {
+          const marker = markerGroup.append("circle")
+            .attr("class", "event-marker sp500-event")
+            .attr("data-event-date", event.date) // Store original date for filtering
+            .attr("cx", xScale(sp500Point.date))
+            .attr("cy", yScale(sp500Point.normalizedPrice))
+            .attr("r", shouldMarkNvidia && shouldMarkSP500 ? 4 : 5) // Slightly smaller if both
+            .style("fill", "#3b82f6")
+            .style("stroke", "white")
+            .style("stroke-width", 2)
+            .style("opacity", 0.8)
+            .style("cursor", "pointer")
+        }
+      }
+    })
+
+    // Add event tooltip
+    const eventTooltip = d3
+      .select("body")
+      .append("div")
+      .attr("class", "event-tooltip")
+      .style("position", "absolute")
+      .style("visibility", "hidden")
+      .style("background", "rgba(0, 0, 0, 0.9)")
+      .style("color", "white")
+      .style("padding", "12px")
+      .style("border-radius", "6px")
+      .style("font-size", "12px")
+      .style("pointer-events", "none")
+      .style("z-index", "1001")
+      .style("max-width", "300px")
+      .style("box-shadow", "0 4px 6px rgba(0, 0, 0, 0.1)")
+
+    // Add hover events to markers
+    markerGroup.selectAll(".event-marker")
+      .on("mouseover", function(event, d) {
+        // Only show tooltip when not actively brushing
+        if (!isBrushing) {
+          // Find the event data for this marker
+          const marker = d3.select(this)
+          const cx = parseFloat(marker.attr("cx"))
+          const markerDate = xScale.invert(cx)
+          
+          // Find closest event
+          const closestEvent = validEvents.reduce((closest, current) => {
+            const currentDiff = Math.abs(current.parsedDate!.getTime() - markerDate.getTime())
+            const closestDiff = Math.abs(closest.parsedDate!.getTime() - markerDate.getTime())
+            return currentDiff < closestDiff ? current : closest
+          })
+          
+          marker.style("opacity", 1).attr("r", parseFloat(marker.attr("r")) + 2)
+          
+          eventTooltip
+            .style("visibility", "visible")
+            .html(`
+              <div style="font-weight: bold; margin-bottom: 8px; color: #f59e0b;">${d3.timeFormat("%B %d, %Y")(closestEvent.parsedDate!)}</div>
+              <div style="font-weight: bold; margin-bottom: 6px;">${closestEvent.event}</div>
+              <div style="margin-bottom: 6px; color: #d1d5db;">${closestEvent.description}</div>
+              <div style="font-size: 11px; color: #9ca3af;">Impact: ${closestEvent.impact}</div>
+            `)
+            .style("left", event.pageX + 15 + "px")
+            .style("top", event.pageY - 10 + "px")
+        }
+      })
+      .on("mouseout", function() {
+        const marker = d3.select(this)
+        const isNvidia = marker.classed("nvidia-event")
+        const isSP500 = marker.classed("sp500-event")
+        
+        // Get the original radius by checking the event data
+        const eventDate = marker.attr("data-event-date")
+        const eventData = validEvents.find(e => e.date === eventDate)
+        const shouldBeBoth = eventData ? eventData.impact.includes("NVIDIA") && eventData.impact.includes("S&P 500") : false
+        
+        marker
+          .style("opacity", 0.8)
+          .attr("r", shouldBeBoth ? 4 : 5)
+        
+        eventTooltip.style("visibility", "hidden")
+      })
 
         // Add brushing functionality
     let idleTimeout: NodeJS.Timeout | null = null
@@ -513,6 +685,72 @@ export default function OutperformingIndex() {
         .attr("x", xScale(sp500Final.date) + 10)
         .attr("y", yScale(sp500Final.normalizedPrice))
         .style("opacity", sp500InView ? 1 : 0)
+
+      // Update event markers with smooth animation
+      validEvents.forEach(event => {
+        const eventDate = event.parsedDate!
+        const eventInView = eventDate >= currentDomain[0] && eventDate <= currentDomain[1]
+        
+        // Find closest data point for positioning
+        const bisect = d3.bisector((d: StockDataWithDate) => d.date).left
+        const i = bisect(targetData, eventDate, 1)
+        const i0 = Math.max(0, i - 1)
+        const i1 = Math.min(targetData.length - 1, i)
+        
+        const d0 = targetData[i0]
+        const d1 = targetData[i1]
+        let targetPoint = d0
+        if (i0 !== i1) {
+          targetPoint = eventDate.getTime() - d0.date.getTime() > d1.date.getTime() - eventDate.getTime() ? d1 : d0
+        }
+        
+        const sp500Point = sp500Data[targetData.indexOf(targetPoint)]
+        
+        if (targetPoint && sp500Point) {
+          const shouldMarkNvidia = event.impact.includes("NVIDIA")
+          const shouldMarkSP500 = event.impact.includes("S&P 500")
+          
+          // Update NVIDIA markers for this specific event
+          if (shouldMarkNvidia) {
+            markerGroup.selectAll(`.nvidia-event`)
+              .filter(function() {
+                return d3.select(this).attr("data-event-date") === event.date
+              })
+              .transition()
+              .duration(1000)
+              .ease(d3.easeQuadInOut)
+              .attr("cx", xScale(targetPoint.date))
+              .attr("cy", yScale(targetPoint.normalizedPrice))
+              .attr("r", shouldMarkNvidia && shouldMarkSP500 ? 4 : 5)
+              .style("opacity", eventInView ? 0.8 : 0)
+          }
+          
+          // Update S&P 500 markers for this specific event  
+          if (shouldMarkSP500) {
+            markerGroup.selectAll(`.sp500-event`)
+              .filter(function() {
+                return d3.select(this).attr("data-event-date") === event.date
+              })
+              .transition()
+              .duration(1000)
+              .ease(d3.easeQuadInOut)
+              .attr("cx", xScale(sp500Point.date))
+              .attr("cy", yScale(sp500Point.normalizedPrice))
+              .attr("r", shouldMarkNvidia && shouldMarkSP500 ? 4 : 5)
+              .style("opacity", eventInView ? 0.8 : 0)
+          }
+        } else {
+          // If we can't find proper data points, just hide the markers
+          markerGroup.selectAll(`.event-marker`)
+            .filter(function() {
+              return d3.select(this).attr("data-event-date") === event.date
+            })
+            .transition()
+            .duration(1000)
+            .ease(d3.easeQuadInOut)
+            .style("opacity", 0)
+        }
+      })
     }
 
     const brush = d3.brushX()
@@ -635,6 +873,61 @@ export default function OutperformingIndex() {
         .attr("x", xScale(sp500Final.date) + 10)
         .attr("y", yScale(sp500Final.normalizedPrice))
         .style("opacity", 1)
+
+      // Reset event markers with smooth animation
+      validEvents.forEach(event => {
+        const eventDate = event.parsedDate!
+        
+        // Find closest data point for positioning
+        const bisect = d3.bisector((d: StockDataWithDate) => d.date).left
+        const i = bisect(targetData, eventDate, 1)
+        const i0 = Math.max(0, i - 1)
+        const i1 = Math.min(targetData.length - 1, i)
+        
+        const d0 = targetData[i0]
+        const d1 = targetData[i1]
+        let targetPoint = d0
+        if (i0 !== i1) {
+          targetPoint = eventDate.getTime() - d0.date.getTime() > d1.date.getTime() - eventDate.getTime() ? d1 : d0
+        }
+        
+        const sp500Point = sp500Data[targetData.indexOf(targetPoint)]
+        
+        if (targetPoint && sp500Point) {
+          const shouldMarkNvidia = event.impact.includes("NVIDIA")
+          const shouldMarkSP500 = event.impact.includes("S&P 500")
+          
+          // Reset NVIDIA markers with smooth animation
+          if (shouldMarkNvidia) {
+            markerGroup.selectAll(`.nvidia-event`)
+              .filter(function() {
+                return d3.select(this).attr("data-event-date") === event.date
+              })
+              .transition()
+              .duration(750)
+              .ease(d3.easeQuadInOut)
+              .attr("cx", xScale(targetPoint.date))
+              .attr("cy", yScale(targetPoint.normalizedPrice))
+              .attr("r", shouldMarkNvidia && shouldMarkSP500 ? 4 : 5)
+              .style("opacity", 0.8)
+          }
+          
+          // Reset S&P 500 markers with smooth animation
+          if (shouldMarkSP500) {
+            markerGroup.selectAll(`.sp500-event`)
+              .filter(function() {
+                return d3.select(this).attr("data-event-date") === event.date
+              })
+              .transition()
+              .duration(750)
+              .ease(d3.easeQuadInOut)
+              .attr("cx", xScale(sp500Point.date))
+              .attr("cy", yScale(sp500Point.normalizedPrice))
+              .attr("r", shouldMarkNvidia && shouldMarkSP500 ? 4 : 5)
+              .style("opacity", 0.8)
+          }
+        }
+      })
     })
   }
 
@@ -982,7 +1275,8 @@ export default function OutperformingIndex() {
       window.removeEventListener("resize", drawCharts)
       // Clean up tooltips
       d3.selectAll(".d3-tooltip").remove()
-      d3.selectAll(".histogram-tooltip").remove()
+      d3.selectAll(".histogram-tooltip").remove() 
+      d3.selectAll(".event-tooltip").remove()
     }
   }, [nvidiaComparisonData, returnsData, isCalculated, portfolioReturn, sp500Return])
 
@@ -1108,7 +1402,7 @@ export default function OutperformingIndex() {
                           <span>S&P 500 (Normalized)</span>
                         </div>
                       </div>
-                      <div className="text-sm text-gray-500">Drag to zoom • Double-click to reset • Both normalized to 100 at start</div>
+                      <div className="text-sm text-gray-500">Drag to zoom • Double-click to reset • Hover markers for key events • Both normalized to 100 at start</div>
                     </div>
                   </>
                 )}
