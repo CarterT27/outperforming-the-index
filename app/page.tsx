@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { TrendingUp, TrendingDown, Search, ExternalLink } from "lucide-react"
+import { TrendingUp, TrendingDown, Search, ExternalLink, ChevronDown } from "lucide-react"
 import * as d3 from "d3"
 import Link from "next/link"
 
@@ -65,6 +65,8 @@ export default function OutperformingIndex() {
   const [portfolioReturn, setPortfolioReturn] = useState<number>(0)
   const [sp500Return, setSp500Return] = useState<number>(0)
   const [isCalculated, setIsCalculated] = useState<boolean>(false)
+  const [showScrollArrow, setShowScrollArrow] = useState<boolean>(true)
+  const [isLoading, setIsLoading] = useState<boolean>(true)
 
   const chartRef = useRef<HTMLDivElement>(null)
   const histogramRef = useRef<HTMLDivElement>(null)
@@ -74,6 +76,7 @@ export default function OutperformingIndex() {
   useEffect(() => {
     const loadData = async () => {
       try {
+        setIsLoading(true)
         console.log('Attempting to load data...');
         const basePath = process.env.NODE_ENV === 'production' ? '.' : '';
         const [comparisonResponse, nvidiaResponse, returnsResponse] = await Promise.all([
@@ -107,6 +110,8 @@ export default function OutperformingIndex() {
         setReturnsData(returns);
       } catch (error) {
         console.error('Error loading data:', error);
+      } finally {
+        setIsLoading(false)
       }
     }
     
@@ -185,6 +190,18 @@ export default function OutperformingIndex() {
   useEffect(() => {
     setIsCalculated(false)
   }, [portfolioStocks])
+
+  // Hide scroll arrow when user starts scrolling
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        setShowScrollArrow(false)
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const updateInvestment = (symbol: string, investment: number) => {
     setPortfolioStocks(prev => {
@@ -342,22 +359,24 @@ export default function OutperformingIndex() {
       .attr("r", 6)
       .attr("fill", "#3b82f6")
 
-    // Add value labels
+    // Add value labels to the right
     g.append("text")
-      .attr("x", xScale(targetFinal.date))
-      .attr("y", yScale(targetFinal.normalizedPrice) - 15)
-      .attr("text-anchor", "middle")
+      .attr("x", xScale(targetFinal.date) + 10)
+      .attr("y", yScale(targetFinal.normalizedPrice))
+      .attr("dy", "0.35em")
       .style("font-size", "12px")
       .style("font-weight", "500")
-      .text(targetFinal.normalizedPrice.toFixed(0))
+      .style("fill", "#10b981")
+      .text(`${targetFinal.normalizedPrice.toFixed(0)}`)
 
     g.append("text")
-      .attr("x", xScale(sp500Final.date))
-      .attr("y", yScale(sp500Final.normalizedPrice) - 15)
-      .attr("text-anchor", "middle")
+      .attr("x", xScale(sp500Final.date) + 10)
+      .attr("y", yScale(sp500Final.normalizedPrice))
+      .attr("dy", "0.35em")
       .style("font-size", "12px")
       .style("font-weight", "500")
-      .text(sp500Final.normalizedPrice.toFixed(0))
+      .style("fill", "#3b82f6")
+      .text(`${sp500Final.normalizedPrice.toFixed(0)}`)
 
     // Add legend
     const legend = g.append("g").attr("transform", `translate(${width - 120}, 20)`)
@@ -809,75 +828,120 @@ export default function OutperformingIndex() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header Section */}
-      <header className="bg-green-600 border-b border-green-700">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-col items-center text-center">
-            <h1 className="text-2xl font-bold text-black mb-2">
-              The Illusion of Outperformance: What Looks Like a Win, Rarely Lasts
-            </h1>
-            <p className="text-sm text-green-100 mb-4 font-semibold">
-              By Carter Tran, April Huang, and Cheryl Xiang
-            </p>
-            <Button
-              variant="outline"
-              className="text-sm border-white text-green-600 hover:bg-white hover:text-green-600"
-              asChild
-            >
-              <Link href="/about">Writeup</Link>
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      {/* Add padding to account for fixed header */}
       <div className="pt-0">
         {/* Section 1: Hero Introduction */}
-        <section className="min-h-screen flex items-center justify-center px-4 pt-0">
+        <section className="relative min-h-screen flex items-center justify-center px-4 pt-0">
           <div className="text-center max-w-4xl">
             <div className="mb-8">
-              <div className="inline-flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 bg-green-600 rounded-lg flex items-center justify-center">
+              <div className="inline-flex items-center justify-center gap-4 mb-6">
+                <div className="w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center">
                   <TrendingUp className="w-8 h-8 text-white" />
-                </div>
-                <div className="text-left">
-                  <h1 className="text-6xl font-bold text-gray-900">NVIDIA</h1>
-                  <p className="text-xl text-gray-600">NVDA</p>
                 </div>
               </div>
             </div>
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">Meet NVIDIA: A remarkable investment story</h2>
-            <p className="text-xl text-gray-600 mb-8">
-              From AI chips to autonomous vehicles, NVIDIA has transformed computing
+            <h1 className="text-6xl font-bold text-gray-900 mb-6">The Illusion of Outperformance: What Looks Like a Win, Rarely Lasts</h1>
+            <p className="text-xl text-gray-600 mb-4">
+              Explore real S&P 500 data and see why index investing is often the smartest choice.
             </p>
-            <div className="text-6xl font-bold text-green-600 mb-4">+2,847%</div>
-            <p className="text-lg text-gray-600">$1,000 invested in 2020 became $29,470</p>
+            <p className="text-lg text-gray-500 mb-12 font-medium">
+              By Carter Tran, April Huang, and Cheryl Xiang
+            </p>
+            <div className="flex items-center justify-center gap-4">
+              <Button 
+                size="lg" 
+                className="text-lg px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={() => {
+                  const nextSection = document.querySelector('#comparison-section');
+                  nextSection?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                Start Exploring
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="text-lg px-8 py-4 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
+                asChild
+              >
+                <Link href="/about">View Writeup</Link>
+              </Button>
+            </div>
+            
+            {/* Bouncing scroll arrow */}
+            {showScrollArrow && (
+              <div 
+                className="fixed bottom-8 left-0 right-0 flex justify-center cursor-pointer animate-bounce"
+                onClick={() => {
+                  const nextSection = document.querySelector('#comparison-section');
+                  nextSection?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                <div className="flex flex-col items-center text-gray-400 hover:text-gray-600 transition-colors">
+                  <span className="text-sm mb-2">Scroll to explore</span>
+                  <ChevronDown className="w-6 h-6" />
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
         {/* Section 2: The Impressive Climb */}
-        <section className="min-h-screen flex items-center justify-center px-4">
+        <section id="comparison-section" className="min-h-screen flex items-center justify-center px-4">
           <div className="max-w-6xl w-full">
             <div className="text-center mb-12">
               <h2 className="text-4xl font-bold text-gray-900 mb-6">The Comparison</h2>
-              <p className="text-xl text-gray-600">NVIDIA vs S&P 500: A side-by-side performance comparison</p>
+              <p className="text-xl text-gray-600 mb-8">
+                Imagine you had perfect foresight. You invest in NVIDIA back in{" "}
+                {nvidiaComparisonData ? (
+                  <span className="font-semibold">
+                    {(() => {
+                      const nvidiaStart = new Date(nvidiaComparisonData.target_stock.data[0].date);
+                      const sp500Start = new Date(nvidiaComparisonData.sp500.data[0].date);
+                      return new Date(Math.max(nvidiaStart.getTime(), sp500Start.getTime())).getFullYear();
+                    })()}
+                  </span>
+                ) : (
+                  "--"
+                )} and your money grows by more than{" "}
+                {nvidiaComparisonData ? (
+                  <span className="font-semibold text-green-600">
+                    {((nvidiaComparisonData.target_stock.data[nvidiaComparisonData.target_stock.data.length - 1].normalizedPrice - 100) / 100 * 100).toFixed(0)}%
+                  </span>
+                ) : (
+                  "--"
+                )}. 
+                It's a dream outcome — and it really happened.
+              </p>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-2xl mx-auto">
+                <p className="text-xl font-semibold text-blue-800">
+                  "Wouldn't it be great to pick the next NVIDIA?"
+                </p>
+              </div>
             </div>
             <Card className="p-6">
               <CardContent>
-                <div ref={chartRef} className="w-full border rounded-lg bg-white" />
-                <div className="mt-4 flex justify-between items-center">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-green-500 rounded"></div>
-                      <span>NVIDIA (Normalized)</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-blue-500 rounded"></div>
-                      <span>S&P 500 (Normalized)</span>
-                    </div>
+                {isLoading ? (
+                  <div className="w-full h-[400px] bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
+                    <div className="text-gray-400">Loading chart data...</div>
                   </div>
-                  <div className="text-sm text-gray-500">Hover for details • Both normalized to 100 at start</div>
-                </div>
+                ) : (
+                  <>
+                    <div ref={chartRef} className="w-full border rounded-lg bg-white" />
+                    <div className="mt-4 flex justify-between items-center">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-green-500 rounded"></div>
+                          <span>NVIDIA (Normalized)</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-blue-500 rounded"></div>
+                          <span>S&P 500 (Normalized)</span>
+                        </div>
+                      </div>
+                      <div className="text-sm text-gray-500">Hover for details • Both normalized to 100 at start</div>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -892,44 +956,52 @@ export default function OutperformingIndex() {
           </div>
           <Card className="p-6">
             <CardContent>
-              <div ref={histogramRef} className="w-full border rounded-lg bg-white" />
-                <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-red-50 rounded-lg">
-                  <div className="text-2xl font-bold text-red-600">
-                    {returnsData && nvidiaComparisonData
-                      ? `${(
-                          (returnsData.counts
-                            .map((c, i) => (returnsData.bins[i] < returnsData.mean ? c : 0))
-                            .reduce((a, b) => a + b, 0) /
-                          returnsData.counts.reduce((a, b) => a + b, 0)) *
-                          100
-                        ).toFixed(0)}%`
-                      : "--"}
-                  </div>
-                  <div className="text-sm text-gray-600">Underperformed Market</div>
+              {isLoading ? (
+                <div className="w-full h-[400px] bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
+                  <div className="text-gray-400">Loading distribution data...</div>
                 </div>
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">
-                    {returnsData ? `${(returnsData.mean * 100).toFixed(1)}%` : "--"}
+              ) : (
+                <>
+                  <div ref={histogramRef} className="w-full border rounded-lg bg-white" />
+                  <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="text-center p-4 bg-red-50 rounded-lg">
+                      <div className="text-2xl font-bold text-red-600">
+                        {returnsData && nvidiaComparisonData
+                          ? `${(
+                              (returnsData.counts
+                                .map((c, i) => (returnsData.bins[i] < returnsData.mean ? c : 0))
+                                .reduce((a, b) => a + b, 0) /
+                              returnsData.counts.reduce((a, b) => a + b, 0)) *
+                              100
+                            ).toFixed(0)}%`
+                          : "--"}
+                      </div>
+                      <div className="text-sm text-gray-600">Underperformed Market</div>
+                    </div>
+                    <div className="text-center p-4 bg-blue-50 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">
+                        {returnsData ? `${(returnsData.mean * 100).toFixed(1)}%` : "--"}
+                      </div>
+                      <div className="text-sm text-gray-600">Market Average Return</div>
+                    </div>
+                    <div className="text-center p-4 bg-green-50 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">
+                        {returnsData && nvidiaComparisonData
+                          ? `${(
+                              (returnsData.counts
+                                .map((c, i) => (returnsData.bins[i] >= returnsData.mean ? c : 0))
+                                .reduce((a, b) => a + b, 0) /
+                              returnsData.counts.reduce((a, b) => a + b, 0)) *
+                              100
+                            ).toFixed(0)}%`
+                          : "--"}
+                      </div>
+                      <div className="text-sm text-gray-600">Outperformed Market</div>
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-600">Market Average Return</div>
-                </div>
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">
-                    {returnsData && nvidiaComparisonData
-                      ? `${(
-                          (returnsData.counts
-                            .map((c, i) => (returnsData.bins[i] >= returnsData.mean ? c : 0))
-                            .reduce((a, b) => a + b, 0) /
-                          returnsData.counts.reduce((a, b) => a + b, 0)) *
-                          100
-                        ).toFixed(0)}%`
-                      : "--"}
-                  </div>
-                  <div className="text-sm text-gray-600">Outperformed Market</div>
-                </div>
-              </div>
-              <div className="mt-4 text-center text-sm text-gray-500">Hover over bars for detailed information</div>
+                  <div className="mt-4 text-center text-sm text-gray-500">Hover over bars for detailed information</div>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -1011,48 +1083,56 @@ export default function OutperformingIndex() {
                   <div className="space-y-4">
                     {isCalculated ? (
                       <>
-                        <div ref={portfolioChartRef} className="w-full border rounded-lg bg-white mb-4" />
-                        <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                          <span>Your Portfolio Return</span>
-                          <span className="font-bold text-green-600">{portfolioReturn.toFixed(2)}%</span>
-                        </div>
-                        <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-                          <span>S&P 500 Return</span>
-                          <span className="font-bold text-blue-600">{sp500Return.toFixed(2)}%</span>
-                        </div>
-                        <div className={`flex justify-between items-center p-3 rounded-lg ${
-                          portfolioReturn > sp500Return 
-                            ? 'bg-gray-50' 
-                            : 'bg-red-100'
-                        }`}>
-                          <span>Difference</span>
-                          <span className={`font-bold ${portfolioReturn > sp500Return ? 'text-green-600' : 'text-red-600'}`}>
-                            {(portfolioReturn - sp500Return).toFixed(2)}%
-                          </span>
-                        </div>
+                        {isLoading ? (
+                          <div className="w-full h-[300px] bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
+                            <div className="text-gray-400">Loading portfolio data...</div>
+                          </div>
+                        ) : (
+                          <>
+                            <div ref={portfolioChartRef} className="w-full border rounded-lg bg-white mb-4" />
+                            <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                              <span>Your Portfolio Return</span>
+                              <span className="font-bold text-green-600">{portfolioReturn.toFixed(2)}%</span>
+                            </div>
+                            <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                              <span>S&P 500 Return</span>
+                              <span className="font-bold text-blue-600">{sp500Return.toFixed(2)}%</span>
+                            </div>
+                            <div className={`flex justify-between items-center p-3 rounded-lg ${
+                              portfolioReturn > sp500Return 
+                                ? 'bg-gray-50' 
+                                : 'bg-red-100'
+                            }`}>
+                              <span>Difference</span>
+                              <span className={`font-bold ${portfolioReturn > sp500Return ? 'text-green-600' : 'text-red-600'}`}>
+                                {(portfolioReturn - sp500Return).toFixed(2)}%
+                              </span>
+                            </div>
 
-                        <div className={`mt-6 p-4 rounded-lg ${
-                          portfolioReturn > sp500Return 
-                            ? 'bg-green-50' 
-                            : 'bg-yellow-50'
-                        }`}>
-                          <h4 className={`font-semibold mb-2 ${
-                            portfolioReturn > sp500Return 
-                              ? 'text-green-800' 
-                              : 'text-yellow-800'
-                          }`}>
-                            {portfolioReturn > sp500Return ? 'Nice job!' : 'Reality Check'}
-                          </h4>
-                          <p className={`text-sm ${
-                            portfolioReturn > sp500Return 
-                              ? 'text-green-700' 
-                              : 'text-yellow-700'
-                          }`}>
-                            {portfolioReturn > sp500Return 
-                              ? "You've outperformed the market this time! But remember, even the best investors can't consistently beat the market. This might be luck rather than skill - most professional fund managers fail to beat the market over the long term."
-                              : "While your picks didn't beat the market this time, that's actually quite normal. Most professional fund managers fail to beat the market consistently. This is why many experts recommend index investing for long-term success."}
-                          </p>
-                        </div>
+                            <div className={`mt-6 p-4 rounded-lg ${
+                              portfolioReturn > sp500Return 
+                                ? 'bg-green-50' 
+                                : 'bg-yellow-50'
+                            }`}>
+                              <h4 className={`font-semibold mb-2 ${
+                                portfolioReturn > sp500Return 
+                                  ? 'text-green-800' 
+                                  : 'text-yellow-800'
+                              }`}>
+                                {portfolioReturn > sp500Return ? 'Nice job!' : 'Reality Check'}
+                              </h4>
+                              <p className={`text-sm ${
+                                portfolioReturn > sp500Return 
+                                  ? 'text-green-700' 
+                                  : 'text-yellow-700'
+                              }`}>
+                                {portfolioReturn > sp500Return 
+                                  ? "You've outperformed the market this time! But remember, even the best investors can't consistently beat the market. This might be luck rather than skill - most professional fund managers fail to beat the market over the long term."
+                                  : "While your picks didn't beat the market this time, that's actually quite normal. Most professional fund managers fail to beat the market consistently. This is why many experts recommend index investing for long-term success."}
+                              </p>
+                            </div>
+                          </>
+                        )}
                       </>
                     ) : (
                       <div className="text-center p-8 text-gray-500">
