@@ -168,7 +168,8 @@ export default function OutperformingIndex() {
 
   // Generate random candlestick data with fat-tailed distribution
   const generateCandlestickData = () => {
-    const numCandles = 300 // More candles for full page scroll
+    // Reduce candles on low-end devices for better performance
+    const numCandles = isLowEndDevice ? 150 : 300
     const data = []
     let currentPrice = 150 + Math.random() * 100 // Start between 150-250
     
@@ -366,18 +367,20 @@ export default function OutperformingIndex() {
       .attr("stroke-width", 1)
       .attr("rx", candleWidth * 0.08)
 
-    // Add glow effect for better visibility
-    candles.append("rect")
-      .attr("x", candleWidth * 0.05)
-      .attr("y", d => yScale(Math.max(d.open, d.close)))
-      .attr("width", candleWidth * 0.9)
-      .attr("height", d => Math.max(2, Math.abs(yScale(d.open) - yScale(d.close))))
-      .attr("fill", "none")
-      .attr("stroke", d => d.isGreen ? "#22c55e" : "#ef4444")
-      .attr("stroke-width", 3)
-      .attr("opacity", 0.15)
-      .attr("rx", candleWidth * 0.08)
-      .style("filter", "blur(1px)")
+    // Add glow effect for better visibility (skip on low-end devices)
+    if (!isLowEndDevice) {
+      candles.append("rect")
+        .attr("x", candleWidth * 0.05)
+        .attr("y", d => yScale(Math.max(d.open, d.close)))
+        .attr("width", candleWidth * 0.9)
+        .attr("height", d => Math.max(2, Math.abs(yScale(d.open) - yScale(d.close))))
+        .attr("fill", "none")
+        .attr("stroke", d => d.isGreen ? "#22c55e" : "#ef4444")
+        .attr("stroke-width", 3)
+        .attr("opacity", 0.15)
+        .attr("rx", candleWidth * 0.08)
+        .style("filter", "blur(1px)")
+    }
 
     // Current price indicator removed for less distraction
 
@@ -546,21 +549,72 @@ export default function OutperformingIndex() {
     setIsCalculated(false)
   }, [portfolioStocks])
 
-  // Show scroll arrow only when at the very top of the page and track scroll progress
+  // Performance detection
+  const [isLowEndDevice, setIsLowEndDevice] = useState(false)
+  
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop
-      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight
-      const progress = Math.min(scrollTop / scrollHeight, 1)
+    // Detect low-end devices
+    const detectPerformance = () => {
+      const canvas = document.createElement('canvas')
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl')
       
-      // Show arrow only when at the very top (within 10px to account for small variations)
-      setShowScrollArrow(scrollTop < 10)
-      setScrollProgress(progress)
+      let isLowEnd = false
+      
+      // Check for various performance indicators
+      if (!gl) isLowEnd = true
+      if (navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4) isLowEnd = true
+      
+      // Check device memory if available (experimental API)
+      try {
+        const deviceMemory = (navigator as any).deviceMemory
+        if (deviceMemory && deviceMemory < 4) isLowEnd = true
+      } catch (e) {
+        // deviceMemory not supported, continue
+      }
+      
+      // Check for mobile devices
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+      if (isMobile) isLowEnd = true
+      
+      setIsLowEndDevice(isLowEnd)
+    }
+    
+    detectPerformance()
+  }, [])
+
+  // Throttled scroll handler with requestAnimationFrame
+  useEffect(() => {
+    let ticking = false
+    let lastScrollTime = 0
+    
+    const handleScroll = () => {
+      const now = performance.now()
+      
+      // Throttle to 60fps max, or 30fps on low-end devices
+      const throttleDelay = isLowEndDevice ? 33 : 16
+      
+      if (now - lastScrollTime < throttleDelay) return
+      
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const scrollTop = window.pageYOffset || document.documentElement.scrollTop
+          const scrollHeight = document.documentElement.scrollHeight - window.innerHeight
+          const progress = Math.min(scrollTop / scrollHeight, 1)
+          
+          // Show arrow only when at the very top (within 10px to account for small variations)
+          setShowScrollArrow(scrollTop < 10)
+          setScrollProgress(progress)
+          
+          ticking = false
+          lastScrollTime = now
+        })
+        ticking = true
+      }
     }
 
-    window.addEventListener('scroll', handleScroll)
+    window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  }, [isLowEndDevice])
 
     // Animate harsh reality statistics when they come into view
   useEffect(() => {
@@ -577,12 +631,15 @@ export default function OutperformingIndex() {
           if (entry.isIntersecting) {
             const target = entry.target as HTMLElement
             
+            // Reduce animation duration on low-end devices
+            const animationDuration = isLowEndDevice ? 1 : 2
+            
             // Animate underperformance percentage
             if (target === underperformanceRef.current && underperformancePercentage !== null) {
               const countUp1 = new CountUp(target, underperformancePercentage, {
-                duration: 2,
+                duration: animationDuration,
                 suffix: '%',
-                useEasing: true,
+                useEasing: !isLowEndDevice, // Disable easing on low-end devices
                 useGrouping: false
               })
               countUp1.start()
@@ -592,9 +649,9 @@ export default function OutperformingIndex() {
             // Animate S&P 500 return
             if (target === sp500ReturnRef.current) {
               const countUp2 = new CountUp(target, sp500AnnualizedReturn, {
-                duration: 2,
+                duration: animationDuration,
                 suffix: '%',
-                useEasing: true,
+                useEasing: !isLowEndDevice,
                 useGrouping: false,
                 decimalPlaces: 1
               })
@@ -605,9 +662,9 @@ export default function OutperformingIndex() {
             // Animate outperformance percentage
             if (target === outperformanceRef.current) {
               const countUp3 = new CountUp(target, outperformancePercentage, {
-                duration: 2,
+                duration: animationDuration,
                 suffix: '%',
-                useEasing: true,
+                useEasing: !isLowEndDevice,
                 useGrouping: false
               })
               countUp3.start()
@@ -617,8 +674,8 @@ export default function OutperformingIndex() {
         })
       },
       {
-        threshold: 0.5, // Trigger when 50% of element is visible
-        rootMargin: '0px 0px -100px 0px' // Start animation a bit before element is fully visible
+        threshold: isLowEndDevice ? 0.3 : 0.5, // Lower threshold for low-end devices
+        rootMargin: isLowEndDevice ? '0px 0px -50px 0px' : '0px 0px -100px 0px'
       }
     )
 
@@ -637,7 +694,7 @@ export default function OutperformingIndex() {
     return () => {
       observer.disconnect()
     }
-  }, [comparisonData, isLoading])
+  }, [comparisonData, isLoading, isLowEndDevice])
 
   // Animate portfolio results when calculated and when they come into view
   useEffect(() => {
@@ -659,12 +716,15 @@ export default function OutperformingIndex() {
           if (entry.isIntersecting) {
             const target = entry.target as HTMLElement
             
+            // Reduce animation duration on low-end devices
+            const animationDuration = isLowEndDevice ? 1 : 2
+
             // Animate portfolio return
             if (target === portfolioReturnValueRef.current) {
               const countUp1 = new CountUp(target, portfolioReturn, {
-                duration: 2,
+                duration: animationDuration,
                 suffix: '%',
-                useEasing: true,
+                useEasing: !isLowEndDevice,
                 useGrouping: false,
                 decimalPlaces: 2
               })
@@ -675,9 +735,9 @@ export default function OutperformingIndex() {
             // Animate S&P 500 return
             if (target === sp500ReturnValueRef.current) {
               const countUp2 = new CountUp(target, sp500Return, {
-                duration: 2,
+                duration: animationDuration,
                 suffix: '%',
-                useEasing: true,
+                useEasing: !isLowEndDevice,
                 useGrouping: false,
                 decimalPlaces: 2
               })
@@ -688,9 +748,9 @@ export default function OutperformingIndex() {
             // Animate difference
             if (target === differenceValueRef.current) {
               const countUp3 = new CountUp(target, difference, {
-                duration: 2,
+                duration: animationDuration,
                 suffix: '%',
-                useEasing: true,
+                useEasing: !isLowEndDevice,
                 useGrouping: false,
                 decimalPlaces: 2
               })
@@ -701,9 +761,9 @@ export default function OutperformingIndex() {
             // Animate total portfolio value
             if (target === totalPortfolioValueRef.current) {
               const countUp4 = new CountUp(target, totalValue, {
-                duration: 2,
+                duration: animationDuration,
                 prefix: '$',
-                useEasing: true,
+                useEasing: !isLowEndDevice,
                 useGrouping: true,
                 decimalPlaces: 0
               })
@@ -1271,8 +1331,11 @@ export default function OutperformingIndex() {
         dateFormatter = d3.timeFormat("%m/%d")
       }
 
+      // Use shorter animations on low-end devices
+      const transitionDuration = isLowEndDevice ? 300 : 1000
+
       // Update axis and line positions with smooth transition
-      xAxisMain.transition().duration(1000).call(
+      xAxisMain.transition().duration(transitionDuration).call(
         d3.axisBottom(xScale).tickFormat((d: Date | d3.NumberValue) => {
           if (d instanceof Date) {
             return dateFormatter(d)
@@ -1282,26 +1345,26 @@ export default function OutperformingIndex() {
       )
 
       // Update y-axis
-      yAxisMain.transition().duration(1000).call(d3.axisLeft(yScale))
+      yAxisMain.transition().duration(transitionDuration).call(d3.axisLeft(yScale))
 
       // Update grid
-      xAxis.transition().duration(1000).call(
+      xAxis.transition().duration(transitionDuration).call(
         d3.axisBottom(xScale).tickSize(-height).tickFormat(() => "")
       )
 
-      yAxis.transition().duration(1000).call(
+      yAxis.transition().duration(transitionDuration).call(
         d3.axisLeft(yScale).tickSize(-width).tickFormat(() => "")
       )
 
       // Update lines
       targetLine
         .transition()
-        .duration(1000)
+        .duration(transitionDuration)
         .attr("d", line)
 
       sp500Line
         .transition()
-        .duration(1000)
+        .duration(transitionDuration)
         .attr("d", line)
 
       // Update labels - only show if they're within the current domain
@@ -2287,8 +2350,8 @@ export default function OutperformingIndex() {
         d3.select(this).attr("opacity", 1)
       })
       .transition()
-      .duration(2000)
-      .ease(d3.easeQuadInOut)
+      .duration(isLowEndDevice ? 1000 : 2000)
+      .ease(isLowEndDevice ? d3.easeLinear : d3.easeQuadInOut)
       .attr("y", d => d.value >= 0 ? yScale(d.value) : yScale(0))
       .attr("height", d => Math.abs(yScale(d.value) - yScale(0)))
 
@@ -2306,8 +2369,8 @@ export default function OutperformingIndex() {
       .style("opacity", 0) // Start invisible
       .text(d => `${d.value.toFixed(2)}%`)
       .transition()
-      .duration(2000)
-      .ease(d3.easeQuadInOut)
+      .duration(isLowEndDevice ? 1000 : 2000)
+      .ease(isLowEndDevice ? d3.easeLinear : d3.easeQuadInOut)
       .attr("y", d => d.value >= 0 ? yScale(d.value) - 10 : yScale(d.value) + 20) // Position label above or below bar
       .style("opacity", 1)
   }
@@ -2437,7 +2500,7 @@ export default function OutperformingIndex() {
         tooltip.style("visibility", "hidden")
       })
       .transition()
-      .duration(1000)
+      .duration(isLowEndDevice ? 500 : 1000)
       .attrTween("d", function(d: any) {
         const interpolate = d3.interpolate({ startAngle: 0, endAngle: 0 }, d)
         return function(t: number) {
@@ -2500,18 +2563,27 @@ export default function OutperformingIndex() {
     }
   }, [isLoading])
 
-  // Update candlestick visibility based on scroll progress
+  // Update candlestick visibility based on scroll progress with performance optimization
   useEffect(() => {
     if (parallaxCandlestickRef.current && !isLoading) {
-      // Update clip path width to reveal candlesticks progressively
-      const svg = d3.select(parallaxCandlestickRef.current).select("svg")
-      const revealRect = svg.select("#revealClip rect")
-      if (!revealRect.empty()) {
-        const revealWidth = scrollProgress * window.innerWidth
-        revealRect.attr("width", revealWidth)
+      // Use requestAnimationFrame for smooth updates, or skip on low-end devices
+      const updateReveal = () => {
+        const svg = d3.select(parallaxCandlestickRef.current).select("svg")
+        const revealRect = svg.select("#revealClip rect")
+        if (!revealRect.empty()) {
+          const revealWidth = scrollProgress * window.innerWidth
+          revealRect.attr("width", revealWidth)
+        }
+      }
+      
+      if (isLowEndDevice) {
+        // On low-end devices, update less frequently
+        updateReveal()
+      } else {
+        requestAnimationFrame(updateReveal)
       }
     }
-  }, [scrollProgress, isLoading])
+  }, [scrollProgress, isLoading, isLowEndDevice])
 
   // Draw charts on mount and resize
   useEffect(() => {
@@ -2966,12 +3038,29 @@ export default function OutperformingIndex() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Performance optimizations for CSS animations */}
+      <style jsx>{`
+        .parallax-container {
+          will-change: transform;
+          transform: translateZ(0);
+        }
+        .chart-container {
+          will-change: auto;
+          contain: layout style paint;
+        }
+        .animate-element {
+          will-change: ${isLowEndDevice ? 'auto' : 'transform, opacity'};
+        }
+        .scroll-container {
+          overscroll-behavior: contain;
+        }
+      `}</style>
       {/* Progressive Candlestick Chart Background */}
       <div
         ref={parallaxCandlestickRef}
-        className="fixed inset-0 pointer-events-none z-0"
+        className="fixed inset-0 pointer-events-none z-0 parallax-container"
         style={{
-          opacity: 0.35,
+          opacity: isLowEndDevice ? 0.2 : 0.35,
           overflow: 'hidden'
         }}
       />
@@ -3002,7 +3091,7 @@ export default function OutperformingIndex() {
         </div>
       )}
 
-      <div className="pt-0 relative z-10">
+      <div className="pt-0 relative z-10 scroll-container">
         {/* Section 1: Hero Introduction */}
         <section className="relative min-h-screen flex items-center justify-center px-4 pt-0 overflow-hidden">
           {/* Scrolling Ticker Background */}
@@ -3176,7 +3265,7 @@ export default function OutperformingIndex() {
                   </div>
                 ) : (
                   <>
-                    <div ref={chartRef} className="w-full border rounded-lg bg-white" />
+                    <div ref={chartRef} className="w-full border rounded-lg bg-white chart-container" />
                     <div className="mt-4 flex justify-between items-center">
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
@@ -3223,7 +3312,7 @@ export default function OutperformingIndex() {
                 </div>
               ) : (
                 <>
-                  <div ref={histogramRef} className="w-full border rounded-lg bg-white" />
+                  <div ref={histogramRef} className="w-full border rounded-lg bg-white chart-container" />
                   <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="text-center p-4 bg-red-50 rounded-lg transition-all duration-200 hover:bg-red-100 hover:scale-105">
                       <div className="text-2xl font-bold text-red-600">
