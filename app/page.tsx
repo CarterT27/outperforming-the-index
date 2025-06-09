@@ -147,6 +147,19 @@ export default function OutperformingIndex() {
     }
   }
 
+  // Helper function to get percentage of stocks that underperformed the market
+  const getUnderperformancePercentage = () => {
+    if (!returnsData) return null
+    
+    const underperformingCount = returnsData.counts
+      .map((count, i) => (returnsData.bins[i] < returnsData.mean ? count : 0))
+      .reduce((a, b) => a + b, 0)
+    
+    const totalCount = returnsData.counts.reduce((a, b) => a + b, 0)
+    
+    return totalCount > 0 ? Math.round((underperformingCount / totalCount) * 100) : null
+  }
+
   // Load data
   useEffect(() => {
     const loadData = async () => {
@@ -2080,7 +2093,11 @@ export default function OutperformingIndex() {
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-6">📉 The Harsh Reality</h2>
             <p className="text-xl text-gray-600 mb-8">
-              But here's the catch: most stocks don't beat the market. In fact, research shows that 66% of S&P 500 stocks underperform the index over time.
+              But here's the catch: most stocks don't beat the market. In fact, our data shows that{" "}
+              {(() => {
+                const underperformanceRate = getUnderperformancePercentage();
+                return underperformanceRate !== null ? `${underperformanceRate}%` : "the majority";
+              })()} of S&P 500 stocks underperform the index over time.
             </p>
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 max-w-2xl mx-auto">
               <p className="text-xl font-semibold text-yellow-800">
