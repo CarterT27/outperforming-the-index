@@ -94,6 +94,59 @@ export default function OutperformingIndex() {
   const hindsightChartRef = useRef<HTMLDivElement>(null)
   const treemapRef = useRef<HTMLDivElement>(null)
 
+  // Helper function to get date range from data
+  const getDataDateRange = () => {
+    if (!comparisonData) return { startYear: null, endYear: null }
+    
+    let allDates: Date[] = []
+    
+    // Get dates from all stocks
+    Object.values(comparisonData.stocks).forEach(stock => {
+      stock.data.forEach(dataPoint => {
+        const date = new Date(dataPoint.date)
+        if (!isNaN(date.getTime())) {
+          allDates.push(date)
+        }
+      })
+    })
+    
+    // Get dates from S&P 500 data
+    comparisonData.sp500.data.forEach(dataPoint => {
+      const date = new Date(dataPoint.date)
+      if (!isNaN(date.getTime())) {
+        allDates.push(date)
+      }
+    })
+    
+    if (allDates.length === 0) return { startYear: null, endYear: null }
+    
+    const minDate = new Date(Math.min(...allDates.map(d => d.getTime())))
+    const maxDate = new Date(Math.max(...allDates.map(d => d.getTime())))
+    
+    return {
+      startYear: minDate.getFullYear(),
+      endYear: maxDate.getFullYear()
+    }
+  }
+
+  // Helper function to get NVIDIA comparison date range
+  const getNvidiaDateRange = () => {
+    if (!nvidiaComparisonData) return { startYear: null, endYear: null }
+    
+    const nvidiaStart = new Date(nvidiaComparisonData.target_stock.data[0].date)
+    const nvidiaEnd = new Date(nvidiaComparisonData.target_stock.data[nvidiaComparisonData.target_stock.data.length - 1].date)
+    const sp500Start = new Date(nvidiaComparisonData.sp500.data[0].date)
+    const sp500End = new Date(nvidiaComparisonData.sp500.data[nvidiaComparisonData.sp500.data.length - 1].date)
+    
+    const actualStart = new Date(Math.max(nvidiaStart.getTime(), sp500Start.getTime()))
+    const actualEnd = new Date(Math.min(nvidiaEnd.getTime(), sp500End.getTime()))
+    
+    return {
+      startYear: actualStart.getFullYear(),
+      endYear: actualEnd.getFullYear()
+    }
+  }
+
   // Load data
   useEffect(() => {
     const loadData = async () => {
@@ -1969,28 +2022,14 @@ export default function OutperformingIndex() {
               <h2 className="text-4xl font-bold text-gray-900 mb-6">The Allure of Stock Picking</h2>
               <p className="text-xl text-gray-600 mb-8">
                 Imagine you had perfect foresight. You invest in NVIDIA in{" "}
-                {nvidiaComparisonData ? (
-                  <span className="font-semibold">
-                    {(() => {
-                      const nvidiaStart = new Date(nvidiaComparisonData.target_stock.data[0].date);
-                      const sp500Start = new Date(nvidiaComparisonData.sp500.data[0].date);
-                      return new Date(Math.max(nvidiaStart.getTime(), sp500Start.getTime())).getFullYear();
-                    })()}
-                  </span>
-                ) : (
-                  "--"
-                )} and hold through{" "}
-                {nvidiaComparisonData ? (
-                  <span className="font-semibold">
-                    {(() => {
-                      const nvidiaEnd = new Date(nvidiaComparisonData.target_stock.data[nvidiaComparisonData.target_stock.data.length - 1].date);
-                      const sp500End = new Date(nvidiaComparisonData.sp500.data[nvidiaComparisonData.sp500.data.length - 1].date);
-                      return new Date(Math.min(nvidiaEnd.getTime(), sp500End.getTime())).getFullYear();
-                    })()}
-                  </span>
-                ) : (
-                  "--"
-                )} — your money grows by more than{" "}
+                {(() => {
+                  const { startYear } = getNvidiaDateRange();
+                  return startYear ? <span className="font-semibold">{startYear}</span> : "--";
+                })()} and hold through{" "}
+                {(() => {
+                  const { endYear } = getNvidiaDateRange();
+                  return endYear ? <span className="font-semibold">{endYear}</span> : "--";
+                })()} — your money grows by more than{" "}
                 {nvidiaComparisonData ? (
                   <span className="font-semibold text-green-600">
                     {((nvidiaComparisonData.target_stock.data[nvidiaComparisonData.target_stock.data.length - 1].normalizedPrice - 100) / 100 * 100).toFixed(0)}%
@@ -2108,7 +2147,11 @@ export default function OutperformingIndex() {
             <div className="text-center mb-12">
               <h2 className="text-4xl font-bold text-gray-900 mb-6">🎯 Try Your Luck</h2>
               <p className="text-xl text-gray-600 mb-8">
-                Think you can beat the odds? Pick any stock and see how it would've performed from 2014 to 2024.
+                Think you can beat the odds? Pick any stock and see how it would've performed from{" "}
+                {(() => {
+                  const { startYear, endYear } = getDataDateRange();
+                  return startYear && endYear ? `${startYear} to ${endYear}` : "the available data period";
+                })()}.
               </p>
               <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-2xl mx-auto">
                 <p className="text-xl font-semibold text-red-800">
@@ -2292,7 +2335,11 @@ export default function OutperformingIndex() {
                       </div>
                     </div>
                     <div className="mt-4 text-center text-sm text-gray-500">
-                      Hover over rectangles for detailed information • Data from 2010-2024 (annualized returns compared to S&P 500)
+                      Hover over rectangles for detailed information • Data from{" "}
+                      {(() => {
+                        const { startYear, endYear } = getDataDateRange();
+                        return startYear && endYear ? `${startYear}-${endYear}` : "available period";
+                      })()} (annualized returns compared to S&P 500)
                     </div>
                   </>
                 )}
