@@ -1848,8 +1848,67 @@ export default function OutperformingIndex() {
     <div className="min-h-screen bg-background">
       <div className="pt-0">
         {/* Section 1: Hero Introduction */}
-        <section className="relative min-h-screen flex items-center justify-center px-4 pt-0">
-          <div className="text-center max-w-4xl">
+        <section className="relative min-h-screen flex items-center justify-center px-4 pt-0 overflow-hidden">
+          {/* Scrolling Ticker Background */}
+          {comparisonData && (
+            <div className="absolute inset-0 pointer-events-none">
+              {/* Top ticker */}
+              <div className="absolute top-8 left-0 w-full overflow-hidden opacity-40">
+                <div className="flex animate-scroll-left whitespace-nowrap">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="flex items-center space-x-8 text-sm font-mono text-gray-400">
+                      {Object.entries(comparisonData.stocks).map(([symbol, data]) => (
+                        <div key={`${i}-${symbol}`} className="flex items-center space-x-2">
+                          <span className="font-semibold">{symbol}</span>
+                          <span className={data.metrics.totalReturn > 0 ? 'text-green-500' : 'text-red-500'}>
+                            {data.metrics.totalReturn > 0 ? '+' : ''}{(data.metrics.totalReturn * 100).toFixed(1)}%
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Middle ticker (opposite direction) */}
+              <div className="absolute top-1/3 left-0 w-full overflow-hidden opacity-30">
+                <div className="flex animate-scroll-right whitespace-nowrap">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="flex items-center space-x-8 text-xs font-mono text-gray-300">
+                      {Object.entries(comparisonData.stocks).slice().reverse().map(([symbol, data]) => (
+                        <div key={`${i}-${symbol}`} className="flex items-center space-x-2">
+                          <span className="font-semibold">{symbol}</span>
+                          <span className={data.metrics.annualizedReturn > 0.08 ? 'text-green-400' : 'text-red-400'}>
+                            {(data.metrics.annualizedReturn * 100).toFixed(1)}%
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Bottom ticker */}
+              <div className="absolute bottom-1/4 left-0 w-full overflow-hidden opacity-20">
+                <div className="flex animate-scroll-left whitespace-nowrap">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="flex items-center space-x-8 text-xs font-mono text-gray-300">
+                      {Object.entries(comparisonData.stocks).filter((_, index) => index % 2 === 0).map(([symbol, data]) => (
+                        <div key={`${i}-${symbol}`} className="flex items-center space-x-2">
+                          <span className="font-semibold">{symbol}</span>
+                          <span className="text-gray-400">
+                            ${(data.metrics.marketCap / 1e9).toFixed(1)}B
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="text-center max-w-4xl relative z-10">
             <div className="mb-8">
               <div className="inline-flex items-center justify-center gap-4 mb-6">
                 <div className="w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center">
