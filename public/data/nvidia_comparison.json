@@ -1,12 +1,7 @@
 {
   "target_stock": {
-    "name": "NVDA",
+    "name": "NVIDIA Corporation",
     "data": [
-      {
-        "date": "2010-01-04",
-        "price": 0.423922598361969,
-        "normalizedPrice": null
-      },
       {
         "date": "2010-01-05",
         "price": 0.4301129579544067,
@@ -18847,11 +18842,6 @@
   "sp500": {
     "name": "S&P 500",
     "data": [
-      {
-        "date": "2010-01-04",
-        "price": 22.877206832170486,
-        "normalizedPrice": null
-      },
       {
         "date": "2010-01-05",
         "price": 22.92191556215286,

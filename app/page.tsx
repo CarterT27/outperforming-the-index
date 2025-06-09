@@ -23,12 +23,27 @@ interface ComparisonData {
   stocks: {
     [symbol: string]: {
       name: string
+      sector: string
+      industry: string
       data: StockData[]
+      metrics: {
+        totalReturn: number
+        annualizedReturn: number
+        volatility: number
+        years: number
+        marketCap: number
+      }
     }
   }
   sp500: {
     name: string
     data: StockData[]
+    metrics: {
+      totalReturn: number
+      annualizedReturn: number
+      volatility: number
+      years: number
+    }
   }
 }
 
@@ -67,10 +82,17 @@ export default function OutperformingIndex() {
   const [isCalculated, setIsCalculated] = useState<boolean>(false)
   const [showScrollArrow, setShowScrollArrow] = useState<boolean>(true)
   const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [quizAnswers, setQuizAnswers] = useState<number[]>([])
+  const [showQuizResults, setShowQuizResults] = useState<boolean>(false)
+  const [selectedCharts, setSelectedCharts] = useState<number[]>([])
+  const [showChartResults, setShowChartResults] = useState<boolean>(false)
 
   const chartRef = useRef<HTMLDivElement>(null)
   const histogramRef = useRef<HTMLDivElement>(null)
   const portfolioChartRef = useRef<HTMLDivElement>(null)
+  const lossAversionRef = useRef<HTMLDivElement>(null)
+  const hindsightChartRef = useRef<HTMLDivElement>(null)
+  const treemapRef = useRef<HTMLDivElement>(null)
 
   // Load data
   useEffect(() => {
@@ -122,65 +144,47 @@ export default function OutperformingIndex() {
   const calculatePortfolioReturns = () => {
     if (!comparisonData) return
 
-    let totalInitialInvestment = 0
-    let totalCurrentValue = 0
+    let totalInvestment = 0
+    let weightedReturn = 0
 
     portfolioStocks.forEach(stock => {
-      const stockData = comparisonData.stocks[stock.symbol]?.data
-      if (!stockData) {
+      const stockInfo = comparisonData.stocks[stock.symbol]
+      if (!stockInfo) {
         console.warn(`No data found for stock ${stock.symbol}`)
         return
       }
 
-      // Use first and last data points (2023-03-01 and 2024-03-01)
-      const initialData = stockData[0]
-      const currentData = stockData[stockData.length - 1]
+      const stockReturn = stockInfo.metrics.totalReturn
+      console.log(`Using pre-calculated return for ${stock.symbol}:`, {
+        totalReturn: stockReturn,
+        annualizedReturn: stockInfo.metrics.annualizedReturn,
+        investment: stock.investment
+      })
 
-      if (initialData && currentData) {
-        console.log(`Calculating returns for ${stock.symbol}:`, {
-          initialPrice: initialData.price,
-          currentPrice: currentData.price,
-          investment: stock.investment
-        })
-
-        const initialPrice = initialData.price
-        const currentPrice = currentData.price
-        const shares = stock.investment / initialPrice
-        const currentValue = shares * currentPrice
-
-        totalInitialInvestment += stock.investment
-        totalCurrentValue += currentValue
-      } else {
-        console.warn(`Missing data points for ${stock.symbol}`)
-      }
+      totalInvestment += stock.investment
+      weightedReturn += stockReturn * stock.investment
     })
 
-    // Calculate S&P 500 return using first and last data points
-    const sp500Initial = comparisonData.sp500.data[0]
-    const sp500Current = comparisonData.sp500.data[comparisonData.sp500.data.length - 1]
-
-    if (sp500Initial && sp500Current) {
-      console.log('Calculating S&P 500 returns:', {
-        initialPrice: sp500Initial.price,
-        currentPrice: sp500Current.price
-      })
-
-      const sp500InitialPrice = sp500Initial.price
-      const sp500CurrentPrice = sp500Current.price
-      const sp500Return = ((sp500CurrentPrice - sp500InitialPrice) / sp500InitialPrice) * 100
+    // Calculate S&P 500 return using pre-calculated metrics
+    if (comparisonData.sp500.metrics) {
+      const sp500Return = comparisonData.sp500.metrics.totalReturn * 100
       setSp500Return(sp500Return)
+      console.log('Using pre-calculated S&P 500 return:', {
+        totalReturn: sp500Return,
+        annualizedReturn: comparisonData.sp500.metrics.annualizedReturn
+      })
     } else {
-      console.warn('Missing S&P 500 data points')
+      console.warn('Missing S&P 500 metrics')
     }
 
-    if (totalInitialInvestment > 0) {
-      const returnPercentage = ((totalCurrentValue - totalInitialInvestment) / totalInitialInvestment) * 100
+    if (totalInvestment > 0) {
+      const portfolioReturnPercentage = (weightedReturn / totalInvestment) * 100
       console.log('Portfolio calculation:', {
-        totalInitialInvestment,
-        totalCurrentValue,
-        returnPercentage
+        totalInvestment,
+        weightedReturn,
+        portfolioReturnPercentage
       })
-      setPortfolioReturn(returnPercentage)
+      setPortfolioReturn(portfolioReturnPercentage)
     }
 
     setIsCalculated(true)
@@ -1110,15 +1114,259 @@ export default function OutperformingIndex() {
       .attr("fill", "white")
       .attr("opacity", 0.9);
 
-    g.append("text")
-      .attr("x", xScale(annualizedReturn))
-      .attr("y", -10)
-      .attr("text-anchor", "middle")
-      .style("font-size", "12px")
-      .style("font-weight", "500")
-      .style("fill", "#f59e0b")
-      .text(`NVIDIA (${(annualizedReturn * 100).toFixed(1)}%)`);
+          g.append("text")
+        .attr("x", xScale(annualizedReturn))
+        .attr("y", -10)
+        .attr("text-anchor", "middle")
+        .style("font-size", "12px")
+        .style("font-weight", "500")
+        .style("fill", "#f59e0b")
+        .text(`NVIDIA (${(annualizedReturn * 100).toFixed(1)}%)`);
 
+  }
+
+  const drawTreemap = () => {
+    if (!treemapRef.current || !comparisonData) return
+
+    // Clear previous chart
+    d3.select(treemapRef.current).selectAll("*").remove()
+
+    const margin = { top: 40, right: 10, bottom: 10, left: 10 }
+    const width = treemapRef.current.offsetWidth - margin.left - margin.right
+    const height = 600 - margin.top - margin.bottom
+
+    // Get S&P 500 annualized return for comparison
+    const sp500AnnualizedReturn = comparisonData.sp500.metrics.annualizedReturn * 100 // Convert to percentage
+
+    // Process all stocks from comparison data
+    const processedStocks = Object.entries(comparisonData.stocks)
+      .map(([symbol, stockData]) => {
+        // Use annualized returns instead of total returns
+        const annualizedReturn = stockData.metrics.annualizedReturn * 100 // Convert to percentage
+        const volatility = stockData.metrics.volatility * 100 // Convert to percentage
+        const marketCap = stockData.metrics.marketCap || 1e9 // Default to 1B if missing
+
+        return {
+          name: symbol,
+          sector: stockData.sector,
+          industry: stockData.industry,
+          return: annualizedReturn,
+          volatility: volatility,
+          marketCap: marketCap,
+          size: Math.log(marketCap) // Use log scale for market cap to prevent extreme differences
+        }
+      })
+      .sort((a, b) => b.marketCap - a.marketCap) // Sort by market cap for better visual hierarchy
+
+    // Group stocks by sector and industry for hierarchical visualization
+    const stocksBySectorAndIndustry = processedStocks.reduce((acc, stock) => {
+      if (!acc[stock.sector]) {
+        acc[stock.sector] = {}
+      }
+      if (!acc[stock.sector][stock.industry]) {
+        acc[stock.sector][stock.industry] = []
+      }
+      acc[stock.sector][stock.industry].push(stock)
+      return acc
+    }, {} as Record<string, Record<string, Array<typeof processedStocks[0]>>>)
+
+    // Create hierarchical data structure
+    const hierarchicalData = {
+      name: "S&P 500",
+      children: Object.entries(stocksBySectorAndIndustry).map(([sectorName, industries]) => ({
+        name: sectorName,
+        children: Object.entries(industries).map(([industryName, stocks]) => ({
+          name: industryName,
+          children: stocks
+        }))
+      }))
+    }
+
+    // Create treemap with hierarchical padding
+    const treemap = d3.treemap()
+      .size([width, height])
+      .paddingInner(2)    // Padding between groups
+      .paddingOuter(6)    // Padding around the edge
+      .paddingTop(25)     // Extra padding for labels (sectors and industries)
+      .round(true)
+
+    const root = d3.hierarchy(hierarchicalData)
+      .sum((d: any) => d.size || 0)
+      .sort((a, b) => (b.value || 0) - (a.value || 0))
+
+    treemap(root as any)
+
+    // Color scale for returns relative to S&P 500
+    const allReturns = processedStocks.map(d => d.return - sp500AnnualizedReturn) // Relative to S&P 500
+    const maxDifference = d3.max(allReturns.map(r => Math.abs(r))) || 10
+    const colorScale = d3.scaleSequential(d3.interpolateRdYlGn)
+      .domain([-maxDifference, maxDifference])
+
+    // Create container
+    const container = d3.select(treemapRef.current)
+      .append("div")
+      .style("position", "relative")
+      .style("width", (width + margin.left + margin.right) + "px")
+      .style("height", (height + margin.top + margin.bottom) + "px")
+      .style("margin-left", margin.left + "px")
+      .style("margin-top", margin.top + "px")
+
+    // Create tooltip
+    const tooltip = d3.select("body")
+      .append("div")
+      .attr("class", "treemap-tooltip")
+      .style("position", "absolute")
+      .style("visibility", "hidden")
+      .style("background", "rgba(0, 0, 0, 0.9)")
+      .style("color", "white")
+      .style("padding", "12px")
+      .style("border-radius", "6px")
+      .style("font-size", "12px")
+      .style("pointer-events", "none")
+      .style("z-index", "1001")
+      .style("max-width", "300px")
+      .style("box-shadow", "0 4px 6px rgba(0, 0, 0, 0.1)")
+
+    // Add sector group backgrounds
+    container.selectAll(".sector")
+      .data(root.children || [])
+      .enter().append("div")
+      .attr("class", "sector")
+      .style("position", "absolute")
+      .style("left", (d: any) => d.x0 + "px")
+      .style("top", (d: any) => d.y0 + "px")
+      .style("width", (d: any) => Math.max(0, d.x1 - d.x0) + "px")
+      .style("height", (d: any) => Math.max(0, d.y1 - d.y0) + "px")
+      .style("border", "2px solid #333")
+      .style("border-radius", "4px")
+      .style("background", "rgba(0,0,0,0.05)")
+      .style("box-sizing", "border-box")
+
+    // Add sector labels
+    container.selectAll(".sector-label")
+      .data(root.children || [])
+      .enter().append("div")
+      .attr("class", "sector-label")
+      .style("position", "absolute")
+      .style("left", (d: any) => d.x0 + 4 + "px")
+      .style("top", (d: any) => d.y0 + 2 + "px")
+      .style("font-size", "12px")
+      .style("font-weight", "bold")
+      .style("color", "#333")
+      .style("pointer-events", "none")
+      .style("z-index", "2")
+      .text((d: any) => d.data.name)
+
+    // Add industry group backgrounds
+    const industryNodes = root.children ? root.children.flatMap(sector => sector.children || []) : []
+    container.selectAll(".industry")
+      .data(industryNodes)
+      .enter().append("div")
+      .attr("class", "industry")
+      .style("position", "absolute")
+      .style("left", (d: any) => d.x0 + "px")
+      .style("top", (d: any) => d.y0 + "px")
+      .style("width", (d: any) => Math.max(0, d.x1 - d.x0) + "px")
+      .style("height", (d: any) => Math.max(0, d.y1 - d.y0) + "px")
+      .style("border", "1px solid #666")
+      .style("border-radius", "2px")
+      .style("background", "rgba(0,0,0,0.02)")
+      .style("box-sizing", "border-box")
+
+    // Add industry labels
+    container.selectAll(".industry-label")
+      .data(industryNodes)
+      .enter().append("div")
+      .attr("class", "industry-label")
+      .style("position", "absolute")
+      .style("left", (d: any) => d.x0 + 2 + "px")
+      .style("top", (d: any) => d.y0 + 1 + "px")
+      .style("font-size", "9px")
+      .style("font-weight", "600")
+      .style("color", "#666")
+      .style("pointer-events", "none")
+      .style("z-index", "1")
+      .style("max-width", (d: any) => Math.max(0, d.x1 - d.x0 - 4) + "px")
+      .style("overflow", "hidden")
+      .style("white-space", "nowrap")
+      .style("text-overflow", "ellipsis")
+      .text((d: any) => {
+        const width = d.x1 - d.x0
+        // Only show industry label if there's enough space
+        if (width > 80) {
+          return d.data.name
+        }
+        return ""
+      })
+
+    // Add leaf nodes (individual stocks)
+    container.selectAll(".leaf")
+      .data(root.leaves())
+      .enter().append("div")
+      .attr("class", "leaf")
+      .style("position", "absolute")
+      .style("left", (d: any) => d.x0 + "px")
+      .style("top", (d: any) => d.y0 + "px")
+      .style("width", (d: any) => Math.max(0, d.x1 - d.x0) + "px")
+      .style("height", (d: any) => Math.max(0, d.y1 - d.y0) + "px")
+      .style("background", (d: any) => colorScale((d.data.return || 0) - sp500AnnualizedReturn))
+      .style("border", "1px solid white")
+      .style("box-sizing", "border-box")
+      .style("display", "flex")
+      .style("align-items", "center")
+      .style("justify-content", "center")
+      .style("font-size", (d: any) => {
+        const area = (d.x1 - d.x0) * (d.y1 - d.y0)
+        return Math.min(11, Math.max(6, Math.sqrt(area) / 12)) + "px"
+      })
+      .style("font-weight", "bold")
+      .style("color", (d: any) => {
+        const relativeReturn = (d.data.return || 0) - sp500AnnualizedReturn
+        return Math.abs(relativeReturn) > 10 ? "white" : "black"
+      })
+      .style("text-shadow", (d: any) => {
+        const relativeReturn = (d.data.return || 0) - sp500AnnualizedReturn
+        return Math.abs(relativeReturn) > 10 ? "1px 1px 2px rgba(0,0,0,0.5)" : "none"
+      })
+      .style("cursor", "pointer")
+      .text((d: any) => {
+        const area = (d.x1 - d.x0) * (d.y1 - d.y0)
+        return area > 400 ? d.data.name : ""
+      })
+      .on("mouseover", function(event: MouseEvent, d: any) {
+        d3.select(this).style("opacity", 0.8)
+        
+        const stockData = d.data
+        
+        const formatMarketCap = (cap: number) => {
+          if (cap >= 1e12) return `$${(cap / 1e12).toFixed(1)}T`
+          if (cap >= 1e9) return `$${(cap / 1e9).toFixed(1)}B`
+          if (cap >= 1e6) return `$${(cap / 1e6).toFixed(1)}M`
+          return `$${cap.toFixed(0)}`
+        }
+
+        const relativeReturn = stockData.return - sp500AnnualizedReturn
+        const outperformance = relativeReturn > 0 ? "outperformed" : "underperformed"
+        
+        tooltip
+          .style("visibility", "visible")
+          .html(`
+            <div style="font-weight: bold; margin-bottom: 8px; color: #f59e0b;">${stockData.name}</div>
+            <div style="margin-bottom: 4px;"><strong>Sector:</strong> ${stockData.sector}</div>
+            <div style="margin-bottom: 4px;"><strong>Industry:</strong> ${stockData.industry}</div>
+            <div style="margin-bottom: 4px;"><strong>Market Cap:</strong> ${formatMarketCap(stockData.marketCap)}</div>
+            <div style="margin-bottom: 4px;"><strong>Annualized Return:</strong> ${stockData.return.toFixed(1)}%</div>
+            <div style="margin-bottom: 4px;"><strong>S&P 500 Annualized:</strong> ${sp500AnnualizedReturn.toFixed(1)}%</div>
+            <div style="margin-bottom: 4px; color: ${relativeReturn > 0 ? '#10b981' : '#ef4444'};"><strong>${outperformance} by:</strong> ${Math.abs(relativeReturn).toFixed(1)}%</div>
+            <div style="margin-bottom: 4px;"><strong>Volatility:</strong> ${stockData.volatility.toFixed(1)}%</div>
+          `)
+          .style("left", event.pageX + 15 + "px")
+          .style("top", event.pageY - 10 + "px")
+      })
+      .on("mouseout", function() {
+        d3.select(this).style("opacity", 1)
+        tooltip.style("visibility", "hidden")
+      })
   }
 
   const drawPortfolioChart = () => {
@@ -1264,6 +1512,9 @@ export default function OutperformingIndex() {
     const drawCharts = () => {
       drawComparisonChart()
       drawHistogram(nvidiaComparisonData)
+      drawTreemap()
+      drawLossAversionChart()
+      drawHindsightCharts()
       if (isCalculated) {
         drawPortfolioChart()
       }
@@ -1277,8 +1528,9 @@ export default function OutperformingIndex() {
       d3.selectAll(".d3-tooltip").remove()
       d3.selectAll(".histogram-tooltip").remove() 
       d3.selectAll(".event-tooltip").remove()
+      d3.selectAll(".treemap-tooltip").remove()
     }
-  }, [nvidiaComparisonData, returnsData, isCalculated, portfolioReturn, sp500Return])
+  }, [nvidiaComparisonData, returnsData, isCalculated, portfolioReturn, sp500Return, comparisonData, selectedCharts, showChartResults])
 
   const addStock = (stock: string) => {
     if (!selectedStocks.includes(stock) && selectedStocks.length < 5) {
@@ -1288,6 +1540,309 @@ export default function OutperformingIndex() {
 
   const removeStock = (stock: string) => {
     setSelectedStocks(selectedStocks.filter((s) => s !== stock))
+  }
+
+  // Quiz questions and answers for overconfidence bias
+  interface QuizQuestion {
+    question: string;
+    options: number[];
+    correct: number;
+    explanation: string;
+    source: string;
+  }
+
+  const quizQuestions: QuizQuestion[] = [
+    {
+      question: "What percentage of actively managed funds beat the S&P 500 over 15 years?",
+      options: [10, 25, 50, 75],
+      correct: 0, // ~10%
+      explanation: "According to S&P Dow Jones Indices SPIVA Scorecard (2023), only about 10% of actively managed U.S. equity funds outperformed the S&P 500 over the 15-year period ending December 2022.",
+      source: "S&P Dow Jones Indices SPIVA U.S. Scorecard, 2023"
+    },
+    {
+      question: "What percentage of individual day traders are consistently profitable?",
+      options: [13, 25, 40, 60],
+      correct: 0, // ~13%
+      explanation: "Analysis of day trading performance shows that only 13% of day traders remain consistently profitable over a 6-month period, with the vast majority losing money.",
+      source: "Quantified Strategies - Day Trading Statistics (https://www.quantifiedstrategies.com/day-trading-statistics/)"
+    },
+    {
+      question: "By how much do individual investors typically underperform the market annually?",
+      options: [1, 3, 6, 10],
+      correct: 1, // ~3%
+      explanation: "Dalbar's Quantitative Analysis of Investor Behavior (QAIB) consistently shows individual investors underperform market indices by 2-4% annually due to poor market timing and emotional decision-making.",
+      source: "Dalbar QAIB Study, 2023 Edition"
+    }
+  ]
+
+  // Loss Aversion Demo
+  const drawLossAversionChart = () => {
+    if (!lossAversionRef.current) return
+
+    d3.select(lossAversionRef.current).selectAll("*").remove()
+
+    const margin = { top: 20, right: 80, bottom: 60, left: 80 }
+    const width = lossAversionRef.current.offsetWidth - margin.left - margin.right
+    const height = 300 - margin.top - margin.bottom
+
+    const svg = d3
+      .select(lossAversionRef.current)
+      .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+
+    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`)
+
+    // Generate two portfolios using Brownian motion with same 8% annual return
+    const months = 60 // 5 years
+    const dt = 1/12 // Monthly time step
+    const annualReturn = 0.08
+    const monthlyDrift = annualReturn / 12
+    const finalValue = 100 * Math.pow(1 + annualReturn, 5) // Target final value
+    
+    // Seeded random number generator for consistent results
+    let seed = 12345
+    const random = () => {
+      seed = (seed * 9301 + 49297) % 233280
+      return seed / 233280
+    }
+    
+    // Box-Muller transform for normal distribution
+    const gaussianRandom = () => {
+      const u1 = random()
+      const u2 = random()
+      return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2)
+    }
+    
+    // Generate Brownian motion paths
+    const generateBrownianPath = (volatility: number, driftAdjustment: number = 0) => {
+      const path = [{ month: 0, value: 100 }]
+      let currentValue = 100
+      
+      for (let i = 1; i < months; i++) {
+        // Geometric Brownian Motion: dS/S = μdt + σdW
+        const drift = monthlyDrift + driftAdjustment
+        const diffusion = volatility * Math.sqrt(dt) * gaussianRandom()
+        const monthlyReturn = drift + diffusion
+        
+        currentValue = currentValue * Math.exp(monthlyReturn)
+        path.push({ month: i, value: currentValue })
+      }
+      
+      // Adjust final value to match target (normalize the path)
+      const currentFinal = path[path.length - 1].value
+      const scaleFactor = finalValue / currentFinal
+      
+      return path.map((point, index) => {
+        if (index === 0) return point
+        // Apply logarithmic scaling to maintain path shape
+        const progress = index / (months - 1)
+        const adjustmentFactor = Math.pow(scaleFactor, progress)
+        return {
+          month: point.month,
+          value: point.value * adjustmentFactor
+        }
+      })
+    }
+    
+    // Smooth portfolio: Low volatility Brownian motion (5% annual volatility)
+    seed = 12345 // Reset seed for consistency
+    const smoothData = generateBrownianPath(0.05)
+    
+    // Volatile portfolio: High volatility Brownian motion (25% annual volatility)
+    seed = 54321 // Different seed for different path
+    const volatileData = generateBrownianPath(0.20)
+
+    // Scales
+    const xScale = d3.scaleLinear().domain([0, months - 1]).range([0, width])
+    
+    // Calculate dynamic y-axis based on actual data range with some padding
+    const allValues = [...smoothData.map(d => d.value), ...volatileData.map(d => d.value)]
+    const minValue = Math.min(...allValues)
+    const maxValue = Math.max(...allValues)
+    const padding = (maxValue - minValue) * 0.1 // 10% padding
+    
+    const yScale = d3.scaleLinear()
+      .domain([Math.max(0, minValue - padding), maxValue + padding])
+      .range([height, 0])
+
+    // Line generator
+    const line = d3.line<{month: number, value: number}>()
+      .x(d => xScale(d.month))
+      .y(d => yScale(d.value))
+      .curve(d3.curveMonotoneX)
+
+    // Add axes
+    g.append("g")
+      .attr("transform", `translate(0,${height})`)
+      .call(d3.axisBottom(xScale).tickFormat(d => `Year ${Math.floor((d as number) / 12) + 1}`))
+
+    g.append("g")
+      .call(d3.axisLeft(yScale).tickFormat(d => `$${d}`))
+
+    // Add lines
+    g.append("path")
+      .datum(smoothData)
+      .attr("fill", "none")
+      .attr("stroke", "#10b981")
+      .attr("stroke-width", 3)
+      .attr("d", line)
+
+    g.append("path")
+      .datum(volatileData)
+      .attr("fill", "none")
+      .attr("stroke", "#ef4444")
+      .attr("stroke-width", 3)
+      .attr("d", line)
+
+    // Add legend
+    const legend = g.append("g").attr("transform", `translate(${width - 150}, 20)`)
+    
+    legend.append("line")
+      .attr("x1", 0).attr("x2", 20)
+      .attr("stroke", "#10b981").attr("stroke-width", 3)
+    legend.append("text")
+      .attr("x", 25).attr("y", 4)
+      .text("Smooth Growth")
+      .style("font-size", "12px")
+
+    legend.append("line")
+      .attr("x1", 0).attr("x2", 20).attr("y1", 20).attr("y2", 20)
+      .attr("stroke", "#ef4444").attr("stroke-width", 3)
+    legend.append("text")
+      .attr("x", 25).attr("y", 24)
+      .text("Volatile Growth")
+      .style("font-size", "12px")
+  }
+
+  // Hindsight Bias Demo
+  const drawHindsightCharts = () => {
+    if (!hindsightChartRef.current || !comparisonData) return
+
+    d3.select(hindsightChartRef.current).selectAll("*").remove()
+
+    // Select 5 stocks for the demo
+    const stockSymbols = ["AAPL", "TSLA", "INTC", "GE", "AMZN"]
+    const stocksWithData = stockSymbols.filter(symbol => 
+      comparisonData.stocks[symbol] && comparisonData.stocks[symbol].data.length > 0
+    ).slice(0, 5)
+
+    if (stocksWithData.length === 0) return
+
+    const chartsPerRow = 5
+    const chartWidth = (hindsightChartRef.current.offsetWidth - 40) / chartsPerRow
+    const chartHeight = 150
+    const margin = { top: 10, right: 10, bottom: 30, left: 30 }
+    const innerWidth = chartWidth - margin.left - margin.right
+    const innerHeight = chartHeight - margin.top - margin.bottom
+
+    const container = d3.select(hindsightChartRef.current)
+      .append("div")
+      .style("display", "flex")
+      .style("flex-wrap", "wrap")
+      .style("gap", "10px")
+      .style("justify-content", "center")
+
+    stocksWithData.forEach((symbol, index) => {
+      const stockInfo = comparisonData.stocks[symbol]
+      const parseDate = d3.timeParse("%Y-%m-%d")
+      
+      // Create simple two-point line from start to end
+      const processedData = stockInfo.data
+        .filter(d => d.normalizedPrice !== null)
+        .map(d => ({
+          date: parseDate(d.date) as Date,
+          price: d.normalizedPrice
+        }))
+
+      if (processedData.length < 2) return
+
+      const chartDiv = container
+        .append("div")
+        .style("border", selectedCharts.includes(index) ? "3px solid #10b981" : "1px solid #ccc")
+        .style("border-radius", "8px")
+        .style("padding", "5px")
+        .style("background", "white")
+        .style("cursor", "pointer")
+        .on("click", () => {
+          if (!showChartResults) {
+            setSelectedCharts(prev => 
+              prev.includes(index) 
+                ? prev.filter(i => i !== index)
+                : prev.length < 3 ? [...prev, index] : prev
+            )
+          }
+        })
+
+      const svg = chartDiv
+        .append("svg")
+        .attr("width", chartWidth)
+        .attr("height", chartHeight)
+
+      const g = svg.append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`)
+
+      // Scales
+      const xScale = d3.scaleTime()
+        .domain(d3.extent(processedData, d => d.date) as [Date, Date])
+        .range([0, innerWidth])
+
+      const yScale = d3.scaleLinear()
+        .domain(d3.extent(processedData, d => d.price) as [number, number])
+        .nice()
+        .range([innerHeight, 0])
+
+      // Line
+      const line = d3.line<{date: Date, price: number}>()
+        .x(d => xScale(d.date))
+        .y(d => yScale(d.price))
+        .curve(d3.curveMonotoneX)
+
+      g.append("path")
+        .datum(processedData)
+        .attr("fill", "none")
+        .attr("stroke", "#3b82f6")
+        .attr("stroke-width", 2)
+        .attr("d", line)
+
+      // Axes
+      g.append("g")
+        .attr("transform", `translate(0,${innerHeight})`)
+        .call(d3.axisBottom(xScale).ticks(3).tickFormat((d: Date | d3.NumberValue) => {
+          if (d instanceof Date) {
+            return d3.timeFormat("%Y")(d)
+          }
+          return ""
+        }))
+        .style("font-size", "10px")
+
+      g.append("g")
+        .call(d3.axisLeft(yScale).ticks(3))
+        .style("font-size", "10px")
+
+      // Title (show stock name only after results are revealed)
+      chartDiv.append("div")
+        .style("text-align", "center")
+        .style("font-size", "12px")
+        .style("font-weight", "bold")
+        .style("margin-top", "5px")
+        .text(showChartResults ? symbol : `Stock ${String.fromCharCode(65 + index)}`)
+
+      // Performance indicator (only show after results)
+      if (showChartResults) {
+        const finalPrice = processedData[processedData.length - 1].price
+        const totalReturn = stockInfo.metrics.totalReturn * 100
+        const performance = totalReturn > 50 ? "Winner" : "Underperformed"
+        const color = totalReturn > 50 ? "#10b981" : "#ef4444"
+        
+        chartDiv.append("div")
+          .style("text-align", "center")
+          .style("font-size", "10px")
+          .style("color", color)
+          .style("font-weight", "bold")
+          .text(`${performance} (${totalReturn.toFixed(0)}%)`)
+      }
+    })
   }
 
   return (
@@ -1355,7 +1910,7 @@ export default function OutperformingIndex() {
             <div className="text-center mb-12">
               <h2 className="text-4xl font-bold text-gray-900 mb-6">The Allure of Stock Picking</h2>
               <p className="text-xl text-gray-600 mb-8">
-                Imagine you had perfect foresight. You invest in NVIDIA back in{" "}
+                Imagine you had perfect foresight. You invest in NVIDIA in{" "}
                 {nvidiaComparisonData ? (
                   <span className="font-semibold">
                     {(() => {
@@ -1366,7 +1921,18 @@ export default function OutperformingIndex() {
                   </span>
                 ) : (
                   "--"
-                )} and your money grows by more than{" "}
+                )} and hold through{" "}
+                {nvidiaComparisonData ? (
+                  <span className="font-semibold">
+                    {(() => {
+                      const nvidiaEnd = new Date(nvidiaComparisonData.target_stock.data[nvidiaComparisonData.target_stock.data.length - 1].date);
+                      const sp500End = new Date(nvidiaComparisonData.sp500.data[nvidiaComparisonData.sp500.data.length - 1].date);
+                      return new Date(Math.min(nvidiaEnd.getTime(), sp500End.getTime())).getFullYear();
+                    })()}
+                  </span>
+                ) : (
+                  "--"
+                )} — your money grows by more than{" "}
                 {nvidiaComparisonData ? (
                   <span className="font-semibold text-green-600">
                     {((nvidiaComparisonData.target_stock.data[nvidiaComparisonData.target_stock.data.length - 1].normalizedPrice - 100) / 100 * 100).toFixed(0)}%
@@ -1484,7 +2050,7 @@ export default function OutperformingIndex() {
             <div className="text-center mb-12">
               <h2 className="text-4xl font-bold text-gray-900 mb-6">🎯 Try Your Luck</h2>
               <p className="text-xl text-gray-600 mb-8">
-                Think you can beat the odds? Pick any stock and see how it would've performed.
+                Think you can beat the odds? Pick any stock and see how it would've performed from 2014 to 2024.
               </p>
               <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-2xl mx-auto">
                 <p className="text-xl font-semibold text-red-800">
@@ -1624,7 +2190,276 @@ export default function OutperformingIndex() {
           </div>
         </section>
 
-        {/* Section 5: The Lesson */}
+        {/* Section 5: The Bigger Picture */}
+        <section className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
+          <div className="max-w-6xl w-full">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-bold text-gray-900 mb-6">🌳 The Bigger Picture</h2>
+              <p className="text-xl text-gray-600 mb-8">
+                The market is a complex ecosystem — made up of diverse sectors and thousands of companies. 
+                Some thrive. Most don't.
+              </p>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-6 max-w-2xl mx-auto">
+                <p className="text-xl font-semibold text-green-800">
+                  "Understanding the forest, not just the trees."
+                </p>
+              </div>
+            </div>
+
+            <Card className="p-6">
+              <CardContent>
+                {isLoading ? (
+                  <div className="w-full h-[500px] bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
+                    <div className="text-gray-400">Loading market structure...</div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-center mb-4">
+                      <h3 className="text-xl font-semibold mb-2">S&P 500 Market Structure: All Available Stocks by Sector & Industry</h3>
+                      <p className="text-gray-600">Rectangle size = market cap (log scale) • Color = annualized return vs. S&P 500 • Hierarchical: Sector → Industry → Stock</p>
+                    </div>
+                    <div ref={treemapRef} className="w-full border rounded-lg bg-white" />
+                    <div className="mt-4 flex justify-center items-center gap-8">
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 bg-red-400 rounded"></div>
+                        <span className="text-sm">Underperformed S&P 500</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 bg-yellow-400 rounded"></div>
+                        <span className="text-sm">Similar to S&P 500</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 bg-green-400 rounded"></div>
+                        <span className="text-sm">Outperformed S&P 500</span>
+                      </div>
+                    </div>
+                    <div className="mt-4 text-center text-sm text-gray-500">
+                      Hover over rectangles for detailed information • Data from 2010-2024 (annualized returns compared to S&P 500)
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+            <div className="mt-8 text-center">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-3xl mx-auto">
+                <h3 className="text-lg font-semibold text-blue-800 mb-2">Key Insight</h3>
+                <p className="text-blue-700">
+                  Even within the same sector, individual stocks can have wildly different outcomes. 
+                  Technology stocks like NVIDIA soared while Intel struggled. This unpredictability 
+                  is why diversification through index funds is so powerful — you capture the 
+                  winners without having to predict which ones they'll be.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Section 6: Behavioral Finance */}
+        <section className="min-h-screen py-16 px-4 bg-gray-50">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold text-gray-900 mb-6">🧠 Why We Still Try to Beat the Market</h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                Even with the data staring us in the face, many investors still try to pick the next big winner. Why?
+                Behavioral finance reveals the hidden biases that lead us astray.
+              </p>
+            </div>
+
+            {/* Loss Aversion */}
+            <div className="mb-16">
+              <div className="text-center mb-8">
+                <h3 className="text-3xl font-bold text-gray-900 mb-4">📉 Loss Aversion</h3>
+                <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                  We feel the pain of losses twice as strongly as the joy of gains.
+                  This leads to overly conservative behavior after losses — or holding losers too long, hoping they'll rebound.
+                </p>
+              </div>
+              
+              <Card className="p-6">
+                <CardContent>
+                  <div className="text-center mb-4">
+                    <h4 className="text-xl font-semibold">Two Portfolios, Same 8% Annual Return</h4>
+                    <p className="text-gray-600">Which would you prefer?</p>
+                  </div>
+                  {isLoading ? (
+                    <div className="w-full h-[300px] bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
+                      <div className="text-gray-400">Loading chart...</div>
+                    </div>
+                  ) : (
+                    <div ref={lossAversionRef} className="w-full border rounded-lg bg-white" />
+                  )}
+                  <div className="mt-4 p-4 bg-yellow-50 rounded-lg">
+                    <p className="text-sm text-yellow-700">
+                      <strong>Reality Check:</strong> Most people say they want growth, but feel losses more deeply in practice.
+                      The volatile portfolio's dips would cause many investors to panic and sell at the worst times.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Overconfidence Bias */}
+            <div className="mb-16">
+              <div className="text-center mb-8">
+                <h3 className="text-3xl font-bold text-gray-900 mb-4">🚀 Overconfidence Bias</h3>
+                <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                  Most investors believe they're above average. But in investing, confidence without accuracy is costly.
+                </p>
+              </div>
+              
+              <Card className="p-6">
+                <CardContent>
+                  <div className="text-center mb-6">
+                    <h4 className="text-xl font-semibold">Quick Knowledge Check</h4>
+                    <p className="text-gray-600">Test your investing knowledge</p>
+                  </div>
+                  
+                  {!showQuizResults ? (
+                    <div className="space-y-6">
+                      {quizQuestions.map((q, qIndex) => (
+                        <div key={qIndex} className="border rounded-lg p-4">
+                          <h5 className="font-semibold mb-3">{q.question}</h5>
+                          <div className="grid grid-cols-2 gap-2">
+                            {q.options.map((option, oIndex) => (
+                              <Button
+                                key={oIndex}
+                                variant={quizAnswers[qIndex] === oIndex ? "default" : "outline"}
+                                onClick={() => {
+                                  const newAnswers = [...quizAnswers]
+                                  newAnswers[qIndex] = oIndex
+                                  setQuizAnswers(newAnswers)
+                                }}
+                                className="justify-start"
+                              >
+                                {option}%
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                      <Button 
+                        className="w-full" 
+                        onClick={() => setShowQuizResults(true)}
+                        disabled={quizAnswers.length !== quizQuestions.length}
+                      >
+                        See Results
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {quizQuestions.map((q, qIndex) => (
+                        <div key={qIndex} className={`border rounded-lg p-4 ${
+                          quizAnswers[qIndex] === q.correct ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+                        }`}>
+                          <h5 className="font-semibold mb-2">{q.question}</h5>
+                          <p className={`text-sm ${
+                            quizAnswers[qIndex] === q.correct ? 'text-green-700' : 'text-red-700'
+                          }`}>
+                            Your answer: {q.options[quizAnswers[qIndex]]}% 
+                            {quizAnswers[qIndex] === q.correct ? ' ✓ Correct!' : ` ✗ Correct answer: ${q.options[q.correct]}%`}
+                          </p>
+                          <p className="text-sm text-gray-600 mt-2">{q.explanation}</p>
+                          <p className="text-xs text-gray-500 mt-1 italic">Source: {q.source}</p>
+                        </div>
+                      ))}
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+                        <p className="text-blue-800">
+                          <strong>Research shows:</strong> Individual investors underperform the market by ~2–4% annually, 
+                          mostly due to poor timing and overconfidence.
+                          <br/>
+                          <span className="text-sm">Sources: Dalbar QAIB Study, SPIVA Scorecard</span>
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Hindsight Bias */}
+            <div className="mb-16">
+              <div className="text-center mb-8">
+                <h3 className="text-3xl font-bold text-gray-900 mb-4">🔮 Hindsight / Lookahead Bias</h3>
+                <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                  "Of course NVIDIA went up — AI was the future."
+                  That logic only works after the fact.
+                </p>
+              </div>
+              
+              <Card className="p-6">
+                <CardContent>
+                  <div className="text-center mb-6">
+                    <h4 className="text-xl font-semibold">Pick the Winners</h4>
+                    <p className="text-gray-600">
+                      {!showChartResults 
+                        ? `Select up to 3 charts that you think performed best (ticker names hidden)`
+                        : "Results revealed - see how hindsight makes everything seem obvious"
+                      }
+                    </p>
+                  </div>
+                  
+                  {isLoading ? (
+                    <div className="w-full h-[200px] bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
+                      <div className="text-gray-400">Loading stock charts...</div>
+                    </div>
+                  ) : (
+                    <>
+                      <div ref={hindsightChartRef} className="w-full mb-4" />
+                      {!showChartResults ? (
+                        <div className="text-center">
+                          <p className="text-sm text-gray-500 mb-4">
+                            Selected: {selectedCharts.length}/3 charts
+                          </p>
+                          <Button 
+                            onClick={() => setShowChartResults(true)}
+                            disabled={selectedCharts.length === 0}
+                          >
+                            Reveal Results
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                          <p className="text-yellow-800">
+                            <strong>The future is never as obvious as it feels in hindsight.</strong>
+                            <br/>
+                            In 2023, everyone "knew" AI stocks would soar. But in 2018, everyone "knew" 
+                            Intel and GE were solid picks. Yesterday's winners often become tomorrow's losers.
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Recap */}
+            <div className="text-center">
+              <div className="bg-gray-900 text-white rounded-lg p-8 max-w-2xl mx-auto">
+                <h3 className="text-2xl font-bold mb-4 text-white">🧾 The Takeaway</h3>
+                <p className="text-xl mb-6 text-gray-100">
+                  "Your brain isn't wired for investing. That's why index funds work."
+                </p>
+                <Button
+                  variant="outline"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200"
+                  asChild
+                >
+                  <a 
+                    href="https://www.investopedia.com/terms/b/behavioralfinance.asp" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                  >
+                    Explore More Biases
+                  </a>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Section 7: The Lesson */}
         <section className="min-h-screen flex items-center justify-center px-4 bg-gray-900 text-white">
           <div className="max-w-4xl text-center">
             <h2 className="text-4xl font-bold mb-6">The Lesson</h2>

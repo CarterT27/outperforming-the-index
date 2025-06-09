@@ -1,244 +1,3625 @@
 {
   "stocks": {
-    "AAPL": {
-      "name": "Apple Inc.",
+    "AOS": {
+      "name": "A. O. Smith Corporation",
+      "sector": "Industrials",
+      "industry": "Specialty Industrial Machinery",
       "data": [
         {
-          "date": "2023-03-01",
-          "price": 150.23,
-          "normalizedPrice": 100
+          "date": "2010-01-04",
+          "price": 5.9372663497924805,
+          "normalizedPrice": 100.0
         },
         {
-          "date": "2023-06-01",
-          "price": 180.96,
-          "normalizedPrice": 120.46
-        },
-        {
-          "date": "2023-09-01",
-          "price": 171.96,
-          "normalizedPrice": 114.47
-        },
-        {
-          "date": "2023-12-01",
-          "price": 193.58,
-          "normalizedPrice": 128.85
-        },
-        {
-          "date": "2024-03-01",
-          "price": 175.04,
-          "normalizedPrice": 116.52
+          "date": "2024-12-20",
+          "price": 68.72000122070312,
+          "normalizedPrice": 1157.4350411802736
         }
-      ]
+      ],
+      "metrics": {
+        "totalReturn": 10.574350411802737,
+        "annualizedReturn": 0.1778532053849644,
+        "volatility": 0.27353007277032215,
+        "years": 14.959616700889802,
+        "marketCap": 9964057600.0
+      }
+    },
+    "ABT": {
+      "name": "Abbott Laboratories",
+      "sector": "Healthcare",
+      "industry": "Medical Devices",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 18.763717651367188,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 114.2300033569336,
+          "normalizedPrice": 608.7812952600597
+        }
+      ],
+      "metrics": {
+        "totalReturn": 5.087812952600596,
+        "annualizedReturn": 0.12833639376055306,
+        "volatility": 0.2144970065461944,
+        "years": 14.959616700889802,
+        "marketCap": 198127370240.0
+      }
+    },
+    "AES": {
+      "name": "The AES Corporation",
+      "sector": "Utilities",
+      "industry": "Utilities - Diversified",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 9.370145797729492,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 13.0,
+          "normalizedPrice": 138.7385029072874
+        }
+      ],
+      "metrics": {
+        "totalReturn": 0.387385029072874,
+        "annualizedReturn": 0.022128248106081605,
+        "volatility": 0.31851732532847105,
+        "years": 14.959616700889802,
+        "marketCap": 9243351040.0
+      }
+    },
+    "ALB": {
+      "name": "Albemarle Corporation",
+      "sector": "Basic Materials",
+      "industry": "Specialty Chemicals",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 30.86457061767578,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 88.6500015258789,
+          "normalizedPrice": 287.22253299422243
+        }
+      ],
+      "metrics": {
+        "totalReturn": 1.8722253299422245,
+        "annualizedReturn": 0.07307570964454868,
+        "volatility": 0.40185016696590625,
+        "years": 14.959616700889802,
+        "marketCap": 10419920896.0
+      }
+    },
+    "ALL": {
+      "name": "The Allstate Corporation",
+      "sector": "Financial Services",
+      "industry": "Insurance - Property & Casualty",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 21.624143600463867,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 193.55999755859375,
+          "normalizedPrice": 895.1105816483832
+        }
+      ],
+      "metrics": {
+        "totalReturn": 7.951105816483832,
+        "annualizedReturn": 0.15778988585664444,
+        "volatility": 0.23388681403959302,
+        "years": 14.959616700889802,
+        "marketCap": 51255271424.0
+      }
+    },
+    "GOOG": {
+      "name": "Alphabet Inc.",
+      "sector": "Communication Services",
+      "industry": "Internet Content & Information",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 15.554351806640623,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 192.9600067138672,
+          "normalizedPrice": 1240.553184810226
+        }
+      ],
+      "metrics": {
+        "totalReturn": 11.40553184810226,
+        "annualizedReturn": 0.18332626979616728,
+        "volatility": 0.27362338582684137,
+        "years": 14.959616700889802,
+        "marketCap": 2351623045120.0
+      }
+    },
+    "MO": {
+      "name": "Altria Group, Inc.",
+      "sector": "Consumer Defensive",
+      "industry": "Tobacco",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 8.089123725891113,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 53.84000015258789,
+          "normalizedPrice": 665.5850741936423
+        }
+      ],
+      "metrics": {
+        "totalReturn": 5.6558507419364235,
+        "annualizedReturn": 0.13508500585225125,
+        "volatility": 0.20260092811618416,
+        "years": 14.959616700889802,
+        "marketCap": 91248566272.0
+      }
+    },
+    "AMZN": {
+      "name": "Amazon.com, Inc.",
+      "sector": "Consumer Cyclical",
+      "industry": "Internet Retail",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 6.695000171661377,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 224.9199981689453,
+          "normalizedPrice": 3359.521917878174
+        }
+      ],
+      "metrics": {
+        "totalReturn": 32.59521917878174,
+        "annualizedReturn": 0.26481355046981814,
+        "volatility": 0.32740177696640865,
+        "years": 14.959616700889802,
+        "marketCap": 2365033807872.0
+      }
+    },
+    "AXP": {
+      "name": "American Express Company",
+      "sector": "Financial Services",
+      "industry": "Credit Services",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 32.906185150146484,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 298.6499938964844,
+          "normalizedPrice": 907.580117639844
+        }
+      ],
+      "metrics": {
+        "totalReturn": 8.075801176398441,
+        "annualizedReturn": 0.15886109954826466,
+        "volatility": 0.289856895165171,
+        "years": 14.959616700889802,
+        "marketCap": 210382487552.0
+      }
+    },
+    "AMP": {
+      "name": "Ameriprise Financial, Inc.",
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 28.85603141784668,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 532.1199951171875,
+          "normalizedPrice": 1844.0512051428027
+        }
+      ],
+      "metrics": {
+        "totalReturn": 17.440512051428026,
+        "annualizedReturn": 0.21510179095245108,
+        "volatility": 0.32744780751492497,
+        "years": 14.959616700889802,
+        "marketCap": 51623407616.0
+      }
+    },
+    "APH": {
+      "name": "Amphenol Corporation",
+      "sector": "Technology",
+      "industry": "Electronic Components",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 5.078963756561279,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 70.58000183105469,
+          "normalizedPrice": 1389.6535831718752
+        }
+      ],
+      "metrics": {
+        "totalReturn": 12.89653583171875,
+        "annualizedReturn": 0.19233818951995407,
+        "volatility": 0.24997121339499867,
+        "years": 14.959616700889802,
+        "marketCap": 85091958784.0
+      }
+    },
+    "ANSS": {
+      "name": "ANSYS, Inc.",
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 44.63999938964844,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 338.3800048828125,
+          "normalizedPrice": 758.0197345640631
+        }
+      ],
+      "metrics": {
+        "totalReturn": 6.580197345640632,
+        "annualizedReturn": 0.1449952365978846,
+        "volatility": 0.28525806280703925,
+        "years": 14.959616700889802,
+        "marketCap": 29591330816.0
+      }
+    },
+    "ADM": {
+      "name": "Archer-Daniels-Midland Company",
+      "sector": "Consumer Defensive",
+      "industry": "Farm Products",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 21.239877700805664,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 50.4900016784668,
+          "normalizedPrice": 237.71324105388624
+        }
+      ],
+      "metrics": {
+        "totalReturn": 1.3771324105388625,
+        "annualizedReturn": 0.05959012372425976,
+        "volatility": 0.2592922896086942,
+        "years": 14.959616700889802,
+        "marketCap": 24161183744.0
+      }
+    },
+    "AJG": {
+      "name": "Arthur J. Gallagher & Co.",
+      "sector": "Financial Services",
+      "industry": "Insurance Brokers",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 15.1057767868042,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 283.1000061035156,
+          "normalizedPrice": 1874.1174988817552
+        }
+      ],
+      "metrics": {
+        "totalReturn": 17.74117498881755,
+        "annualizedReturn": 0.21641615975710082,
+        "volatility": 0.20352825689249246,
+        "years": 14.959616700889802,
+        "marketCap": 70719234048.0
+      }
+    },
+    "T": {
+      "name": "AT&T Inc.",
+      "sector": "Communication Services",
+      "industry": "Telecom Services",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 7.128320693969727,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 22.75,
+          "normalizedPrice": 319.1495020593783
+        }
+      ],
+      "metrics": {
+        "totalReturn": 2.191495020593783,
+        "annualizedReturn": 0.08066307689198648,
+        "volatility": 0.20560008169436264,
+        "years": 14.959616700889802,
+        "marketCap": 163237838848.0
+      }
+    },
+    "AXON": {
+      "name": "Axon Enterprise, Inc.",
+      "sector": "Industrials",
+      "industry": "Aerospace & Defense",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 4.650000095367432,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 631.6900024414062,
+          "normalizedPrice": 13584.730956688114
+        }
+      ],
+      "metrics": {
+        "totalReturn": 134.84730956688114,
+        "annualizedReturn": 0.3886323519264552,
+        "volatility": 0.4913290353895738,
+        "years": 14.959616700889802,
+        "marketCap": 48169394176.0
+      }
+    },
+    "BKR": {
+      "name": "Baker Hughes Company",
+      "sector": "Energy",
+      "industry": "Oil & Gas Equipment & Services",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 21.200529098510746,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 40.31999969482422,
+          "normalizedPrice": 190.1839312946984
+        }
+      ],
+      "metrics": {
+        "totalReturn": 0.9018393129469839,
+        "annualizedReturn": 0.04390704805015577,
+        "volatility": 0.38020659653227995,
+        "years": 14.959616700889802,
+        "marketCap": 39897690112.0
+      }
+    },
+    "BAX": {
+      "name": "Baxter International Inc.",
+      "sector": "Healthcare",
+      "industry": "Medical Instruments & Supplies",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 23.54444122314453,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 29.5,
+          "normalizedPrice": 125.29496759091087
+        }
+      ],
+      "metrics": {
+        "totalReturn": 0.2529496759091088,
+        "annualizedReturn": 0.015188134870699033,
+        "volatility": 0.23648268760255464,
+        "years": 14.959616700889802,
+        "marketCap": 15062345728.0
+      }
+    },
+    "BDX": {
+      "name": "Becton, Dickinson and Company",
+      "sector": "Healthcare",
+      "industry": "Medical Instruments & Supplies",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 59.64288711547851,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 227.67999267578125,
+          "normalizedPrice": 381.73871803850653
+        }
+      ],
+      "metrics": {
+        "totalReturn": 2.817387180385065,
+        "annualizedReturn": 0.09367708331069058,
+        "volatility": 0.20303398235154718,
+        "years": 14.959616700889802,
+        "marketCap": 66029019136.0
+      }
+    },
+    "BBY": {
+      "name": "Best Buy Co., Inc.",
+      "sector": "Consumer Cyclical",
+      "industry": "Specialty Retail",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 25.050416946411133,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 85.55000305175781,
+          "normalizedPrice": 341.51129394281077
+        }
+      ],
+      "metrics": {
+        "totalReturn": 2.415112939428108,
+        "annualizedReturn": 0.08556624995199535,
+        "volatility": 0.3881412266066887,
+        "years": 14.959616700889802,
+        "marketCap": 18290247680.0
+      }
+    },
+    "BK": {
+      "name": "The Bank of New York Mellon Corporation",
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 20.04460906982422,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 77.62000274658203,
+          "normalizedPrice": 387.23630117303514
+        }
+      ],
+      "metrics": {
+        "totalReturn": 2.8723630117303514,
+        "annualizedReturn": 0.09472294242448775,
+        "volatility": 0.2703967983758185,
+        "years": 14.959616700889802,
+        "marketCap": 56435798016.0
+      }
+    },
+    "BWA": {
+      "name": "BorgWarner Inc.",
+      "sector": "Consumer Cyclical",
+      "industry": "Auto Parts",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 12.634451866149902,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 31.8799991607666,
+          "normalizedPrice": 252.32593782860638
+        }
+      ],
+      "metrics": {
+        "totalReturn": 1.5232593782860637,
+        "annualizedReturn": 0.06382403751778165,
+        "volatility": 0.33644292332761516,
+        "years": 14.959616700889802,
+        "marketCap": 6972155904.0
+      }
+    },
+    "BSX": {
+      "name": "Boston Scientific Corporation",
+      "sector": "Healthcare",
+      "industry": "Medical Devices",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 9.010000228881836,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 88.94999694824219,
+          "normalizedPrice": 987.2363450459213
+        }
+      ],
+      "metrics": {
+        "totalReturn": 8.872363450459213,
+        "annualizedReturn": 0.1653964859028203,
+        "volatility": 0.28413533297568544,
+        "years": 14.959616700889802,
+        "marketCap": 131097174016.0
+      }
+    },
+    "BRO": {
+      "name": "Brown & Brown, Inc.",
+      "sector": "Financial Services",
+      "industry": "Insurance Brokers",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 7.624693393707275,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 102.93000030517578,
+          "normalizedPrice": 1349.9559259671319
+        }
+      ],
+      "metrics": {
+        "totalReturn": 12.499559259671319,
+        "annualizedReturn": 0.19003040654736147,
+        "volatility": 0.21748192823451198,
+        "years": 14.959616700889802,
+        "marketCap": 29433659392.0
+      }
+    },
+    "BLDR": {
+      "name": "Builders FirstSource, Inc.",
+      "sector": "Industrials",
+      "industry": "Building Products & Equipment",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 3.7699999809265137,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 150.5,
+          "normalizedPrice": 3992.042460515164
+        }
+      ],
+      "metrics": {
+        "totalReturn": 38.92042460515164,
+        "annualizedReturn": 0.2794829526553957,
+        "volatility": 0.5536889537370693,
+        "years": 14.959616700889802,
+        "marketCap": 17320292352.0
+      }
+    },
+    "COF": {
+      "name": "Capital One Financial Corporation",
+      "sector": "Financial Services",
+      "industry": "Credit Services",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 31.118467330932617,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 178.64999389648438,
+          "normalizedPrice": 574.0963781943764
+        }
+      ],
+      "metrics": {
+        "totalReturn": 4.740963781943764,
+        "annualizedReturn": 0.1239204631820412,
+        "volatility": 0.3402135058762485,
+        "years": 14.959616700889802,
+        "marketCap": 68156760064.0
+      }
+    },
+    "KMX": {
+      "name": "CarMax, Inc.",
+      "sector": "Consumer Cyclical",
+      "industry": "Auto & Truck Dealerships",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 23.979999542236328,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 84.2699966430664,
+          "normalizedPrice": 351.41784091630365
+        }
+      ],
+      "metrics": {
+        "totalReturn": 2.5141784091630366,
+        "annualizedReturn": 0.08764328620320772,
+        "volatility": 0.3594473848635856,
+        "years": 14.959616700889802,
+        "marketCap": 12969826304.0
+      }
+    },
+    "CCL": {
+      "name": "Carnival Corporation & plc",
+      "sector": "Consumer Cyclical",
+      "industry": "Travel Services",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 23.892749786376953,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 26.799999237060547,
+          "normalizedPrice": 112.16791485566569
+        }
+      ],
+      "metrics": {
+        "totalReturn": 0.12167914855665685,
+        "annualizedReturn": 0.007705319414608391,
+        "volatility": 0.4807455397617202,
+        "years": 14.959616700889802,
+        "marketCap": 35054399488.0
+      }
+    },
+    "CAT": {
+      "name": "Caterpillar Inc.",
+      "sector": "Industrials",
+      "industry": "Farm & Heavy Construction Machinery",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 39.8839111328125,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 366.0400085449219,
+          "normalizedPrice": 917.763574705643
+        }
+      ],
+      "metrics": {
+        "totalReturn": 8.17763574705643,
+        "annualizedReturn": 0.15972578466079512,
+        "volatility": 0.2906468148244844,
+        "years": 14.959616700889802,
+        "marketCap": 176724836352.0
+      }
+    },
+    "CE": {
+      "name": "Celanese Corporation",
+      "sector": "Basic Materials",
+      "industry": "Chemicals",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 25.83514404296875,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 68.25,
+          "normalizedPrice": 264.1750318344937
+        }
+      ],
+      "metrics": {
+        "totalReturn": 1.6417503183449371,
+        "annualizedReturn": 0.06709244225612232,
+        "volatility": 0.3419131327915384,
+        "years": 14.959616700889802,
+        "marketCap": 7460544000.0
+      }
+    },
+    "CVX": {
+      "name": "Chevron Corporation",
+      "sector": "Energy",
+      "industry": "Oil & Gas Integrated",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 44.0455322265625,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 142.85000610351562,
+          "normalizedPrice": 324.3234872693108
+        }
+      ],
+      "metrics": {
+        "totalReturn": 2.243234872693108,
+        "annualizedReturn": 0.08182542850055796,
+        "volatility": 0.26795752448255283,
+        "years": 14.959616700889802,
+        "marketCap": 254690115584.0
+      }
+    },
+    "CSCO": {
+      "name": "Cisco Systems, Inc.",
+      "sector": "Technology",
+      "industry": "Communication Equipment",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 16.475374221801758,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 58.52000045776367,
+          "normalizedPrice": 355.19679049429135
+        }
+      ],
+      "metrics": {
+        "totalReturn": 2.5519679049429134,
+        "annualizedReturn": 0.08842122224516369,
+        "volatility": 0.2587465340552519,
+        "years": 14.959616700889802,
+        "marketCap": 233071116288.0
+      }
+    },
+    "C": {
+      "name": "Citigroup Inc.",
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 25.92801284790039,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 69.19000244140625,
+          "normalizedPrice": 266.854243120329
+        }
+      ],
+      "metrics": {
+        "totalReturn": 1.66854243120329,
+        "annualizedReturn": 0.06781247167224413,
+        "volatility": 0.3394130970876024,
+        "years": 14.959616700889802,
+        "marketCap": 130856288256.0
+      }
+    },
+    "CLX": {
+      "name": "The Clorox Company",
+      "sector": "Consumer Defensive",
+      "industry": "Household & Personal Products",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 39.642696380615234,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 164.44000244140625,
+          "normalizedPrice": 414.8052919069735
+        }
+      ],
+      "metrics": {
+        "totalReturn": 3.148052919069735,
+        "annualizedReturn": 0.09976731941890415,
+        "volatility": 0.21007535763633745,
+        "years": 14.959616700889802,
+        "marketCap": 20354547712.0
+      }
+    },
+    "CME": {
+      "name": "CME Group Inc.",
+      "sector": "Financial Services",
+      "industry": "Financial Data & Stock Exchanges",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 38.05030822753906,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 238.52999877929688,
+          "normalizedPrice": 626.8805954288166
+        }
+      ],
+      "metrics": {
+        "totalReturn": 5.268805954288166,
+        "annualizedReturn": 0.13054829967323034,
+        "volatility": 0.24716286346733157,
+        "years": 14.959616700889802,
+        "marketCap": 85957140480.0
+      }
+    },
+    "CMCSA": {
+      "name": "Comcast Corporation",
+      "sector": "Communication Services",
+      "industry": "Telecom Services",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 6.250715255737305,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 38.220001220703125,
+          "normalizedPrice": 611.4500446268509
+        }
+      ],
+      "metrics": {
+        "totalReturn": 5.114500446268509,
+        "annualizedReturn": 0.1286663663977885,
+        "volatility": 0.24448048463091526,
+        "years": 14.959616700889802,
+        "marketCap": 146250366976.0
+      }
+    },
+    "ED": {
+      "name": "Consolidated Edison, Inc.",
+      "sector": "Utilities",
+      "industry": "Utilities - Regulated Electric",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 25.36937713623047,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 90.02999877929688,
+          "normalizedPrice": 354.8766621105703
+        }
+      ],
+      "metrics": {
+        "totalReturn": 2.548766621105703,
+        "annualizedReturn": 0.08835562065332381,
+        "volatility": 0.18835863373568473,
+        "years": 14.959616700889802,
+        "marketCap": 31191611392.0
+      }
+    },
+    "STZ": {
+      "name": "Constellation Brands, Inc.",
+      "sector": "Consumer Defensive",
+      "industry": "Beverages - Brewers",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 14.150276184082031,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 227.6300048828125,
+          "normalizedPrice": 1608.661215665025
+        }
+      ],
+      "metrics": {
+        "totalReturn": 15.08661215665025,
+        "annualizedReturn": 0.20405990627513138,
+        "volatility": 0.28459218476554754,
+        "years": 14.959616700889802,
+        "marketCap": 41334652928.0
+      }
+    },
+    "GLW": {
+      "name": "Corning Incorporated",
+      "sector": "Technology",
+      "industry": "Electronic Components",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 13.610857963562012,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 47.310001373291016,
+          "normalizedPrice": 347.59014824742036
+        }
+      ],
+      "metrics": {
+        "totalReturn": 2.4759014824742036,
+        "annualizedReturn": 0.08684731691429248,
+        "volatility": 0.29777056300702903,
+        "years": 14.959616700889802,
+        "marketCap": 40507248640.0
+      }
+    },
+    "CSGP": {
+      "name": "CoStar Group, Inc.",
+      "sector": "Real Estate",
+      "industry": "Real Estate Services",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 4.224999904632568,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 71.44000244140625,
+          "normalizedPrice": 1690.8876699162697
+        }
+      ],
+      "metrics": {
+        "totalReturn": 15.908876699162697,
+        "annualizedReturn": 0.20807900218192188,
+        "volatility": 0.3083318886160678,
+        "years": 14.959616700889802,
+        "marketCap": 29287542784.0
+      }
+    },
+    "DE": {
+      "name": "Deere & Company",
+      "sector": "Industrials",
+      "industry": "Farm & Heavy Construction Machinery",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 42.001075744628906,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 432.489990234375,
+          "normalizedPrice": 1029.711698014501
+        }
+      ],
+      "metrics": {
+        "totalReturn": 9.29711698014501,
+        "annualizedReturn": 0.1686827415119334,
+        "volatility": 0.28114574620357635,
+        "years": 14.959616700889802,
+        "marketCap": 117453471744.0
+      }
+    },
+    "DXCM": {
+      "name": "DexCom, Inc.",
+      "sector": "Healthcare",
+      "industry": "Medical Devices",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 2.140000104904175,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 80.04000091552734,
+          "normalizedPrice": 3740.1867753231436
+        }
+      ],
+      "metrics": {
+        "totalReturn": 36.401867753231436,
+        "annualizedReturn": 0.27392136058598515,
+        "volatility": 0.47705362421909314,
+        "years": 14.959616700889802,
+        "marketCap": 31263223808.0
+      }
+    },
+    "DLR": {
+      "name": "Digital Realty Trust, Inc.",
+      "sector": "Real Estate",
+      "industry": "REIT - Specialty",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 27.434532165527344,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 178.57000732421875,
+          "normalizedPrice": 650.8950334811963
+        }
+      ],
+      "metrics": {
+        "totalReturn": 5.508950334811963,
+        "annualizedReturn": 0.13339284859179923,
+        "volatility": 0.26860435348410966,
+        "years": 14.959616700889802,
+        "marketCap": 60376125440.0
+      }
+    },
+    "DFS": {
+      "name": "Discover Financial Services",
+      "sector": "Financial Services",
+      "industry": "Credit Services",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 11.073854446411133,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 173.16000366210938,
+          "normalizedPrice": 1563.6832188834476
+        }
+      ],
+      "metrics": {
+        "totalReturn": 14.636832188834475,
+        "annualizedReturn": 0.20177959081218355,
+        "volatility": 0.3558432368273297,
+        "years": 14.959616700889802,
+        "marketCap": 43475628032.0
+      }
+    },
+    "DG": {
+      "name": "Dollar General Corporation",
+      "sector": "Consumer Defensive",
+      "industry": "Discount Stores",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 20.588428497314453,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 76.4000015258789,
+          "normalizedPrice": 371.0822394037723
+        }
+      ],
+      "metrics": {
+        "totalReturn": 2.710822394037723,
+        "annualizedReturn": 0.0916091393783669,
+        "volatility": 0.28375606384664376,
+        "years": 14.959616700889802,
+        "marketCap": 16802347008.0
+      }
+    },
+    "DPZ": {
+      "name": "Domino's Pizza, Inc.",
+      "sector": "Consumer Cyclical",
+      "industry": "Restaurants",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 7.0377349853515625,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 426.1799926757813,
+          "normalizedPrice": 6055.6413897772245
+        }
+      ],
+      "metrics": {
+        "totalReturn": 59.556413897772245,
+        "annualizedReturn": 0.3156228401013139,
+        "volatility": 0.29956703054023737,
+        "years": 14.959616700889802,
+        "marketCap": 14716847104.0
+      }
+    },
+    "DOV": {
+      "name": "Dover Corporation",
+      "sector": "Industrials",
+      "industry": "Specialty Industrial Machinery",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 21.331859588623047,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 189.27000427246097,
+          "normalizedPrice": 887.2644388368495
+        }
+      ],
+      "metrics": {
+        "totalReturn": 7.872644388368496,
+        "annualizedReturn": 0.15710869091197543,
+        "volatility": 0.2660749504066911,
+        "years": 14.959616700889802,
+        "marketCap": 25966329856.0
+      }
+    },
+    "DHI": {
+      "name": "D.R. Horton, Inc.",
+      "sector": "Consumer Cyclical",
+      "industry": "Residential Construction",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 9.517474174499512,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 139.61000061035156,
+          "normalizedPrice": 1466.8807926415323
+        }
+      ],
+      "metrics": {
+        "totalReturn": 13.668807926415322,
+        "annualizedReturn": 0.19665667045710733,
+        "volatility": 0.359849568283156,
+        "years": 14.959616700889802,
+        "marketCap": 44790935552.0
+      }
+    },
+    "DTE": {
+      "name": "DTE Energy Company",
+      "sector": "Utilities",
+      "industry": "Utilities - Regulated Electric",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 21.50848388671875,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 120.18000030517578,
+          "normalizedPrice": 558.7562607301466
+        }
+      ],
+      "metrics": {
+        "totalReturn": 4.587562607301465,
+        "annualizedReturn": 0.12188747974755998,
+        "volatility": 0.20514730057946773,
+        "years": 14.959616700889802,
+        "marketCap": 24889397248.0
+      }
+    },
+    "EMN": {
+      "name": "Eastman Chemical Company",
+      "sector": "Basic Materials",
+      "industry": "Specialty Chemicals",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 20.531530380249023,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 91.76000213623048,
+          "normalizedPrice": 446.9223698224757
+        }
+      ],
+      "metrics": {
+        "totalReturn": 3.4692236982247566,
+        "annualizedReturn": 0.10526349377708799,
+        "volatility": 0.3002309575715332,
+        "years": 14.959616700889802,
+        "marketCap": 10636177408.0
+      }
+    },
+    "EIX": {
+      "name": "Edison International",
+      "sector": "Utilities",
+      "industry": "Utilities - Regulated Electric",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 20.58927345275879,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 79.5199966430664,
+          "normalizedPrice": 386.22050858434443
+        }
+      ],
+      "metrics": {
+        "totalReturn": 2.8622050858434442,
+        "annualizedReturn": 0.09453074620314839,
+        "volatility": 0.23704468823249317,
+        "years": 14.959616700889802,
+        "marketCap": 30786168832.0
+      }
+    },
+    "EA": {
+      "name": "Electronic Arts Inc.",
+      "sector": "Communication Services",
+      "industry": "Electronic Gaming & Multimedia",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 17.73162841796875,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 147.8000030517578,
+          "normalizedPrice": 833.5388017830404
+        }
+      ],
+      "metrics": {
+        "totalReturn": 7.335388017830404,
+        "annualizedReturn": 0.15228733882141943,
+        "volatility": 0.3169680700553842,
+        "years": 14.959616700889802,
+        "marketCap": 38763950080.0
+      }
+    },
+    "EQT": {
+      "name": "EQT Corporation",
+      "sector": "Energy",
+      "industry": "Oil & Gas E&P",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 21.401336669921875,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 42.9900016784668,
+          "normalizedPrice": 200.87531139532197
+        }
+      ],
+      "metrics": {
+        "totalReturn": 1.0087531139532198,
+        "annualizedReturn": 0.04773058200481883,
+        "volatility": 0.4369010572837672,
+        "years": 14.959616700889802,
+        "marketCap": 25651447808.0
+      }
+    },
+    "EFX": {
+      "name": "Equifax Inc.",
+      "sector": "Industrials",
+      "industry": "Consulting Services",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 26.576942443847656,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 258.42999267578125,
+          "normalizedPrice": 972.3842132020934
+        }
+      ],
+      "metrics": {
+        "totalReturn": 8.723842132020934,
+        "annualizedReturn": 0.16421619694653145,
+        "volatility": 0.2675836321744338,
+        "years": 14.959616700889802,
+        "marketCap": 32032915456.0
+      }
+    },
+    "EQIX": {
+      "name": "Equinix, Inc.",
+      "sector": "Real Estate",
+      "industry": "REIT - Specialty",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 83.68004608154297,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 927.219970703125,
+          "normalizedPrice": 1108.0538481056583
+        }
+      ],
+      "metrics": {
+        "totalReturn": 10.080538481056584,
+        "annualizedReturn": 0.174425240285508,
+        "volatility": 0.29219210299274206,
+        "years": 14.959616700889802,
+        "marketCap": 89465782272.0
+      }
+    },
+    "EQR": {
+      "name": "Equity Residential",
+      "sector": "Real Estate",
+      "industry": "REIT - Residential",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 17.41448974609375,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 71.3499984741211,
+          "normalizedPrice": 409.7162737146843
+        }
+      ],
+      "metrics": {
+        "totalReturn": 3.097162737146843,
+        "annualizedReturn": 0.0988601912230227,
+        "volatility": 0.24401992928123625,
+        "years": 14.959616700889802,
+        "marketCap": 27904485376.0
+      }
+    },
+    "ESS": {
+      "name": "Essex Property Trust, Inc.",
+      "sector": "Real Estate",
+      "industry": "REIT - Residential",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 51.68622970581055,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 283.760009765625,
+          "normalizedPrice": 549.0050471484184
+        }
+      ],
+      "metrics": {
+        "totalReturn": 4.490050471484183,
+        "annualizedReturn": 0.12056792627542134,
+        "volatility": 0.24424091645600457,
+        "years": 14.959616700889802,
+        "marketCap": 18898388992.0
+      }
+    },
+    "EL": {
+      "name": "The Est\u00e9e Lauder Companies Inc.",
+      "sector": "Consumer Defensive",
+      "industry": "Household & Personal Products",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 20.338863372802734,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 74.36000061035156,
+          "normalizedPrice": 365.6054876192652
+        }
+      ],
+      "metrics": {
+        "totalReturn": 2.656054876192652,
+        "annualizedReturn": 0.09052469194402146,
+        "volatility": 0.3055996626919247,
+        "years": 14.959616700889802,
+        "marketCap": 26693603328.0
+      }
+    },
+    "EXPE": {
+      "name": "Expedia Group, Inc.",
+      "sector": "Consumer Cyclical",
+      "industry": "Travel Services",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 34.01191711425781,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 184.75,
+          "normalizedPrice": 543.1919623329692
+        }
+      ],
+      "metrics": {
+        "totalReturn": 4.431919623329692,
+        "annualizedReturn": 0.11977084430138452,
+        "volatility": 0.42269503310364326,
+        "years": 14.959616700889802,
+        "marketCap": 23711924224.0
+      }
+    },
+    "FFIV": {
+      "name": "F5, Inc.",
+      "sector": "Technology",
+      "industry": "Software - Infrastructure",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 53.97999954223633,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 252.25,
+          "normalizedPrice": 467.30270866828835
+        }
+      ],
+      "metrics": {
+        "totalReturn": 3.6730270866828834,
+        "annualizedReturn": 0.10856303095278452,
+        "volatility": 0.3390641419982453,
+        "years": 14.959616700889802,
+        "marketCap": 14785608704.0
+      }
+    },
+    "FDS": {
+      "name": "FactSet Research Systems Inc.",
+      "sector": "Financial Services",
+      "industry": "Financial Data & Stock Exchanges",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 56.56194686889648,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 483.5199890136719,
+          "normalizedPrice": 854.8503292052708
+        }
+      ],
+      "metrics": {
+        "totalReturn": 7.5485032920527075,
+        "annualizedReturn": 0.1542336036247114,
+        "volatility": 0.24632448585766303,
+        "years": 14.959616700889802,
+        "marketCap": 18368344064.0
+      }
+    },
+    "FAST": {
+      "name": "Fastenal Company",
+      "sector": "Industrials",
+      "industry": "Industrial Distribution",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 7.15383768081665,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 74.81999969482422,
+          "normalizedPrice": 1045.8722022091379
+        }
+      ],
+      "metrics": {
+        "totalReturn": 9.45872202209138,
+        "annualizedReturn": 0.16989992376052565,
+        "volatility": 0.26687794696282263,
+        "years": 14.959616700889802,
+        "marketCap": 42863333376.0
+      }
+    },
+    "FRT": {
+      "name": "Federal Realty Investment Trust",
+      "sector": "Real Estate",
+      "industry": "REIT - Retail",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 40.733177185058594,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 111.91999816894533,
+          "normalizedPrice": 274.76373291597514
+        }
+      ],
+      "metrics": {
+        "totalReturn": 1.7476373291597516,
+        "annualizedReturn": 0.06989943514484787,
+        "volatility": 0.2631832358770008,
+        "years": 14.959616700889802,
+        "marketCap": 9579524096.0
+      }
+    },
+    "FDX": {
+      "name": "FedEx Corporation",
+      "sector": "Industrials",
+      "industry": "Integrated Freight & Logistics",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 70.70902252197266,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 275.7300109863281,
+          "normalizedPrice": 389.9502512577453
+        }
+      ],
+      "metrics": {
+        "totalReturn": 2.8995025125774534,
+        "annualizedReturn": 0.09523414551963794,
+        "volatility": 0.2982993504265535,
+        "years": 14.959616700889802,
+        "marketCap": 66409852928.0
+      }
+    },
+    "FSLR": {
+      "name": "First Solar, Inc.",
+      "sector": "Technology",
+      "industry": "Solar",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 135.4600067138672,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 182.38999938964844,
+          "normalizedPrice": 134.64490650359386
+        }
+      ],
+      "metrics": {
+        "totalReturn": 0.34644906503593864,
+        "annualizedReturn": 0.02008394361770849,
+        "volatility": 0.5346826239906891,
+        "years": 14.959616700889802,
+        "marketCap": 19526307840.0
+      }
+    },
+    "FTNT": {
+      "name": "Fortinet, Inc.",
+      "sector": "Technology",
+      "industry": "Software - Infrastructure",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 1.7999999523162842,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 97.19000244140624,
+          "normalizedPrice": 5399.444723114562
+        }
+      ],
+      "metrics": {
+        "totalReturn": 52.99444723114562,
+        "annualizedReturn": 0.30557463409208374,
+        "volatility": 0.41332336456406166,
+        "years": 14.959616700889802,
+        "marketCap": 74491568128.0
+      }
+    },
+    "BEN": {
+      "name": "Franklin Resources, Inc.",
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 21.365581512451172,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 20.489999771118164,
+          "normalizedPrice": 95.90190540415318
+        }
+      ],
+      "metrics": {
+        "totalReturn": -0.04098094595846813,
+        "annualizedReturn": -0.002793244539582407,
+        "volatility": 0.3078012368285077,
+        "years": 14.959616700889802,
+        "marketCap": 10736411648.0
+      }
+    },
+    "FCX": {
+      "name": "Freeport-McMoRan Inc.",
+      "sector": "Basic Materials",
+      "industry": "Copper",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 30.459444046020508,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 38.86000061035156,
+          "normalizedPrice": 127.57948093746832
+        }
+      ],
+      "metrics": {
+        "totalReturn": 0.27579480937468315,
+        "annualizedReturn": 0.01641506246853308,
+        "volatility": 0.4948764889966766,
+        "years": 14.959616700889802,
+        "marketCap": 55839100928.0
+      }
+    },
+    "GIS": {
+      "name": "General Mills, Inc.",
+      "sector": "Consumer Defensive",
+      "industry": "Packaged Foods",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 21.658246994018555,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 63.61000061035156,
+          "normalizedPrice": 293.6987496168041
+        }
+      ],
+      "metrics": {
+        "totalReturn": 1.9369874961680411,
+        "annualizedReturn": 0.07467632015273784,
+        "volatility": 0.19078884198791723,
+        "years": 14.959616700889802,
+        "marketCap": 35063803904.0
+      }
+    },
+    "GPN": {
+      "name": "Global Payments Inc.",
+      "sector": "Industrials",
+      "industry": "Specialty Business Services",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 25.11195182800293,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 112.02999877929688,
+          "normalizedPrice": 446.1222271634401
+        }
+      ],
+      "metrics": {
+        "totalReturn": 3.4612222716344005,
+        "annualizedReturn": 0.10513110726549124,
+        "volatility": 0.3023605878423337,
+        "years": 14.959616700889802,
+        "marketCap": 28511076352.0
+      }
+    },
+    "HIG": {
+      "name": "The Hartford Financial Services Group, Inc.",
+      "sector": "Financial Services",
+      "industry": "Insurance - Property & Casualty",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 17.705415725708008,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 109.47000122070312,
+          "normalizedPrice": 618.2854044017406
+        }
+      ],
+      "metrics": {
+        "totalReturn": 5.182854044017406,
+        "annualizedReturn": 0.1295054218231495,
+        "volatility": 0.3188554632525101,
+        "years": 14.959616700889802,
+        "marketCap": 31734368256.0
+      }
+    },
+    "HSIC": {
+      "name": "Henry Schein, Inc.",
+      "sector": "Healthcare",
+      "industry": "Medical Distribution",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 20.95294189453125,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 69.81999969482422,
+          "normalizedPrice": 333.2228956022989
+        }
+      ],
+      "metrics": {
+        "totalReturn": 2.332228956022989,
+        "annualizedReturn": 0.08378481889097489,
+        "volatility": 0.24274708664107064,
+        "years": 14.959616700889802,
+        "marketCap": 8705227776.0
+      }
+    },
+    "HRL": {
+      "name": "Hormel Foods Corporation",
+      "sector": "Consumer Defensive",
+      "industry": "Packaged Foods",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 7.000140190124512,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 31.68000030517578,
+          "normalizedPrice": 452.5623693918091
+        }
+      ],
+      "metrics": {
+        "totalReturn": 3.5256236939180914,
+        "annualizedReturn": 0.10619042682453217,
+        "volatility": 0.20826688395158982,
+        "years": 14.959616700889802,
+        "marketCap": 17392732160.0
+      }
+    },
+    "HST": {
+      "name": "Host Hotels & Resorts, Inc.",
+      "sector": "Real Estate",
+      "industry": "REIT - Hotel & Motel",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 7.465304851531982,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 18.200000762939453,
+          "normalizedPrice": 243.79447490619975
+        }
+      ],
+      "metrics": {
+        "totalReturn": 1.4379447490619977,
+        "annualizedReturn": 0.061380835538233924,
+        "volatility": 0.33096308795796153,
+        "years": 14.959616700889802,
+        "marketCap": 12895228928.0
+      }
+    },
+    "IEX": {
+      "name": "IDEX Corporation",
+      "sector": "Industrials",
+      "industry": "Specialty Industrial Machinery",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 25.54709815979004,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 212.3800048828125,
+          "normalizedPrice": 831.3273137889645
+        }
+      ],
+      "metrics": {
+        "totalReturn": 7.313273137889645,
+        "annualizedReturn": 0.15208272390796473,
+        "volatility": 0.235669713558492,
+        "years": 14.959616700889802,
+        "marketCap": 16082113536.0
+      }
+    },
+    "INCY": {
+      "name": "Incyte Corporation",
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 9.5,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 68.83999633789062,
+          "normalizedPrice": 724.6315403988488
+        }
+      ],
+      "metrics": {
+        "totalReturn": 6.246315403988487,
+        "annualizedReturn": 0.1415526343517588,
+        "volatility": 0.41467999092521657,
+        "years": 14.959616700889802,
+        "marketCap": 13262025728.0
+      }
+    },
+    "PODD": {
+      "name": "Insulet Corporation",
+      "sector": "Healthcare",
+      "industry": "Medical Devices",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 15.029999732971191,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 266.57000732421875,
+          "normalizedPrice": 1773.5862412521954
+        }
+      ],
+      "metrics": {
+        "totalReturn": 16.735862412521954,
+        "annualizedReturn": 0.21194126111620037,
+        "volatility": 0.4098417243671408,
+        "years": 14.959616700889802,
+        "marketCap": 18698500096.0
+      }
+    },
+    "ICE": {
+      "name": "Intercontinental Exchange, Inc.",
+      "sector": "Financial Services",
+      "industry": "Financial Data & Stock Exchanges",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 19.54451560974121,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 150.30999755859375,
+          "normalizedPrice": 769.0648392620052
+        }
+      ],
+      "metrics": {
+        "totalReturn": 6.6906483926200515,
+        "annualizedReturn": 0.14610297580363518,
+        "volatility": 0.23577805085361503,
+        "years": 14.959616700889802,
+        "marketCap": 86304546816.0
+      }
+    },
+    "IFF": {
+      "name": "International Flavors & Fragrances Inc.",
+      "sector": "Basic Materials",
+      "industry": "Specialty Chemicals",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 29.98963737487793,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 85.73999786376953,
+          "normalizedPrice": 285.8987482642695
+        }
+      ],
+      "metrics": {
+        "totalReturn": 1.858987482642695,
+        "annualizedReturn": 0.07274439209222328,
+        "volatility": 0.2670993868954906,
+        "years": 14.959616700889802,
+        "marketCap": 21922174976.0
+      }
+    },
+    "IP": {
+      "name": "International Paper Company",
+      "sector": "Consumer Cyclical",
+      "industry": "Packaging & Containers",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 14.523221015930176,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 54.45000076293945,
+          "normalizedPrice": 374.91683630796877
+        }
+      ],
+      "metrics": {
+        "totalReturn": 2.7491683630796877,
+        "annualizedReturn": 0.09235957109627235,
+        "volatility": 0.30320675487619475,
+        "years": 14.959616700889802,
+        "marketCap": 18916366336.0
+      }
+    },
+    "ISRG": {
+      "name": "Intuitive Surgical, Inc.",
+      "sector": "Healthcare",
+      "industry": "Medical Instruments & Supplies",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 34.307777404785156,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 524.4299926757812,
+          "normalizedPrice": 1528.6038104078266
+        }
+      ],
+      "metrics": {
+        "totalReturn": 14.286038104078266,
+        "annualizedReturn": 0.19995822935842678,
+        "volatility": 0.3176844800768939,
+        "years": 14.959616700889802,
+        "marketCap": 186790952960.0
+      }
+    },
+    "IRM": {
+      "name": "Iron Mountain Incorporated",
+      "sector": "Real Estate",
+      "industry": "REIT - Specialty",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 8.70764446258545,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 105.0999984741211,
+          "normalizedPrice": 1206.9854129404257
+        }
+      ],
+      "metrics": {
+        "totalReturn": 11.069854129404257,
+        "annualizedReturn": 0.1811583854465857,
+        "volatility": 0.2818525704751284,
+        "years": 14.959616700889802,
+        "marketCap": 30842646528.0
+      }
+    },
+    "JBHT": {
+      "name": "J.B. Hunt Transport Services, Inc.",
+      "sector": "Industrials",
+      "industry": "Integrated Freight & Logistics",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 28.517717361450195,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 170.22999572753906,
+          "normalizedPrice": 596.927143817104
+        }
+      ],
+      "metrics": {
+        "totalReturn": 4.969271438171041,
+        "annualizedReturn": 0.12685420031854844,
+        "volatility": 0.261116671408807,
+        "years": 14.959616700889802,
+        "marketCap": 17164290048.0
+      }
+    },
+    "JCI": {
+      "name": "Johnson Controls International plc",
+      "sector": "Industrials",
+      "industry": "Building Products & Equipment",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 12.019052505493164,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 80.63999938964844,
+          "normalizedPrice": 670.9347459193883
+        }
+      ],
+      "metrics": {
+        "totalReturn": 5.709347459193883,
+        "annualizedReturn": 0.13569259243322773,
+        "volatility": 0.2535930065878162,
+        "years": 14.959616700889802,
+        "marketCap": 53398601728.0
+      }
+    },
+    "K": {
+      "name": "Kellanova",
+      "sector": "Consumer Defensive",
+      "industry": "Packaged Foods",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 30.363018035888672,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 80.5,
+          "normalizedPrice": 265.12515951098834
+        }
+      ],
+      "metrics": {
+        "totalReturn": 1.6512515951098834,
+        "annualizedReturn": 0.06734856259739619,
+        "volatility": 0.1986990844090797,
+        "years": 14.959616700889802,
+        "marketCap": 27748188160.0
+      }
+    },
+    "KIM": {
+      "name": "Kimco Realty Corporation",
+      "sector": "Real Estate",
+      "industry": "REIT - Retail",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 6.903805255889893,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 23.420000076293945,
+          "normalizedPrice": 339.2332084731601
+        }
+      ],
+      "metrics": {
+        "totalReturn": 2.3923320847316014,
+        "annualizedReturn": 0.08508067507759831,
+        "volatility": 0.3148021565460389,
+        "years": 14.959616700889802,
+        "marketCap": 15786977280.0
+      }
+    },
+    "LH": {
+      "name": "Labcorp Holdings Inc.",
+      "sector": "Healthcare",
+      "industry": "Diagnostics & Research",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 63.371463775634766,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 228.61000061035156,
+          "normalizedPrice": 360.74596827957157
+        }
+      ],
+      "metrics": {
+        "totalReturn": 2.6074596827957155,
+        "annualizedReturn": 0.08954969377392397,
+        "volatility": 0.24299877973145537,
+        "years": 14.959616700889802,
+        "marketCap": 19120779264.0
+      }
+    },
+    "LRCX": {
+      "name": "Lam Research Corporation",
+      "sector": "Technology",
+      "industry": "Semiconductor Equipment & Materials",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 1.8834460973739624,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 71.79000091552734,
+          "normalizedPrice": 3811.630235429736
+        }
+      ],
+      "metrics": {
+        "totalReturn": 37.11630235429736,
+        "annualizedReturn": 0.2755336789937459,
+        "volatility": 0.3884271005500812,
+        "years": 14.959616700889802,
+        "marketCap": 92371476480.0
+      }
+    },
+    "LEN": {
+      "name": "Lennar Corporation",
+      "sector": "Consumer Cyclical",
+      "industry": "Residential Construction",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 11.413030624389648,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 138.0800018310547,
+          "normalizedPrice": 1209.8451881481656
+        }
+      ],
+      "metrics": {
+        "totalReturn": 11.098451881481655,
+        "annualizedReturn": 0.18134525472460994,
+        "volatility": 0.3735982226354021,
+        "years": 14.959616700889802,
+        "marketCap": 37306593280.0
+      }
+    },
+    "LKQ": {
+      "name": "LKQ Corporation",
+      "sector": "Consumer Cyclical",
+      "industry": "Auto Parts",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 9.214579582214355,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 36.880001068115234,
+          "normalizedPrice": 400.2353090454573
+        }
+      ],
+      "metrics": {
+        "totalReturn": 3.002353090454573,
+        "annualizedReturn": 0.09714178641591764,
+        "volatility": 0.3156698556158085,
+        "years": 14.959616700889802,
+        "marketCap": 9587324928.0
+      }
+    },
+    "MCD": {
+      "name": "McDonald's Corporation",
+      "sector": "Consumer Cyclical",
+      "industry": "Restaurants",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 41.50370788574219,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 292.67999267578125,
+          "normalizedPrice": 705.189988040384
+        }
+      ],
+      "metrics": {
+        "totalReturn": 6.05189988040384,
+        "annualizedReturn": 0.13947921743175762,
+        "volatility": 0.18594300011362724,
+        "years": 14.959616700889802,
+        "marketCap": 209740349440.0
+      }
+    },
+    "MRK": {
+      "name": "Merck & Co., Inc.",
+      "sector": "Healthcare",
+      "industry": "Drug Manufacturers - General",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 21.38721466064453,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 98.0500030517578,
+          "normalizedPrice": 458.4514842513997
+        }
+      ],
+      "metrics": {
+        "totalReturn": 3.5845148425139968,
+        "annualizedReturn": 0.10714686786194094,
+        "volatility": 0.20763717367442955,
+        "years": 14.959616700889802,
+        "marketCap": 248031199232.0
+      }
+    },
+    "MTD": {
+      "name": "Mettler-Toledo International Inc.",
+      "sector": "Healthcare",
+      "industry": "Diagnostics & Research",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 105.63999938964844,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 1230.739990234375,
+          "normalizedPrice": 1165.0321822653987
+        }
+      ],
+      "metrics": {
+        "totalReturn": 10.650321822653986,
+        "annualizedReturn": 0.17836843143604186,
+        "volatility": 0.2744165336274532,
+        "years": 14.959616700889802,
+        "marketCap": 25971937280.0
+      }
     },
     "MSFT": {
       "name": "Microsoft Corporation",
+      "sector": "Technology",
+      "industry": "Software - Infrastructure",
       "data": [
         {
-          "date": "2023-03-01",
-          "price": 280.57,
-          "normalizedPrice": 100
+          "date": "2010-01-04",
+          "price": 23.300683975219727,
+          "normalizedPrice": 100.0
         },
         {
-          "date": "2023-06-01",
-          "price": 337.32,
-          "normalizedPrice": 120.23
-        },
-        {
-          "date": "2023-09-01",
-          "price": 312.80,
-          "normalizedPrice": 111.49
-        },
-        {
-          "date": "2023-12-01",
-          "price": 374.69,
-          "normalizedPrice": 133.54
-        },
-        {
-          "date": "2024-03-01",
-          "price": 415.32,
-          "normalizedPrice": 148.03
+          "date": "2024-12-20",
+          "price": 436.6000061035156,
+          "normalizedPrice": 1873.7647640208315
         }
-      ]
+      ],
+      "metrics": {
+        "totalReturn": 17.737647640208316,
+        "annualizedReturn": 0.2164008541195921,
+        "volatility": 0.2558390205957335,
+        "years": 14.959616700889802,
+        "marketCap": 3246068596736.0
+      }
     },
-    "INTC": {
-      "name": "Intel Corporation",
+    "MSI": {
+      "name": "Motorola Solutions, Inc.",
+      "sector": "Technology",
+      "industry": "Communication Equipment",
       "data": [
         {
-          "date": "2023-03-01",
-          "price": 28.16,
-          "normalizedPrice": 100
+          "date": "2010-01-04",
+          "price": 25.461679458618164,
+          "normalizedPrice": 100.0
         },
         {
-          "date": "2023-06-01",
-          "price": 33.45,
-          "normalizedPrice": 118.79
-        },
-        {
-          "date": "2023-09-01",
-          "price": 35.62,
-          "normalizedPrice": 126.49
-        },
-        {
-          "date": "2023-12-01",
-          "price": 48.15,
-          "normalizedPrice": 170.99
-        },
-        {
-          "date": "2024-03-01",
-          "price": 42.73,
-          "normalizedPrice": 151.74
+          "date": "2024-12-20",
+          "price": 469.94000244140625,
+          "normalizedPrice": 1845.675589488041
         }
-      ]
+      ],
+      "metrics": {
+        "totalReturn": 17.45675589488041,
+        "annualizedReturn": 0.2151733112948302,
+        "volatility": 0.2471874631396853,
+        "years": 14.959616700889802,
+        "marketCap": 78536843264.0
+      }
     },
-    "AMZN": {
-      "name": "Amazon.com Inc.",
+    "NDAQ": {
+      "name": "Nasdaq, Inc.",
+      "sector": "Financial Services",
+      "industry": "Financial Data & Stock Exchanges",
       "data": [
         {
-          "date": "2023-03-01",
-          "price": 93.45,
-          "normalizedPrice": 100
+          "date": "2010-01-04",
+          "price": 5.48751163482666,
+          "normalizedPrice": 100.0
         },
         {
-          "date": "2023-06-01",
-          "price": 128.96,
-          "normalizedPrice": 137.99
-        },
-        {
-          "date": "2023-09-01",
-          "price": 133.07,
-          "normalizedPrice": 142.39
-        },
-        {
-          "date": "2023-12-01",
-          "price": 151.94,
-          "normalizedPrice": 162.59
-        },
-        {
-          "date": "2024-03-01",
-          "price": 178.75,
-          "normalizedPrice": 191.28
+          "date": "2024-12-20",
+          "price": 77.69999694824219,
+          "normalizedPrice": 1415.9422725432923
         }
-      ]
+      ],
+      "metrics": {
+        "totalReturn": 13.159422725432924,
+        "annualizedReturn": 0.19383283288494257,
+        "volatility": 0.25143205375185884,
+        "years": 14.959616700889802,
+        "marketCap": 44658696192.0
+      }
     },
-    "TSLA": {
-      "name": "Tesla Inc.",
+    "NTAP": {
+      "name": "NetApp, Inc.",
+      "sector": "Technology",
+      "industry": "Computer Hardware",
       "data": [
         {
-          "date": "2023-03-01",
-          "price": 207.77,
-          "normalizedPrice": 100
+          "date": "2010-01-04",
+          "price": 25.86441993713379,
+          "normalizedPrice": 100.0
         },
         {
-          "date": "2023-06-01",
-          "price": 261.77,
-          "normalizedPrice": 125.99
-        },
-        {
-          "date": "2023-09-01",
-          "price": 250.22,
-          "normalizedPrice": 120.43
-        },
-        {
-          "date": "2023-12-01",
-          "price": 193.57,
-          "normalizedPrice": 93.17
-        },
-        {
-          "date": "2024-03-01",
-          "price": 175.34,
-          "normalizedPrice": 84.39
+          "date": "2024-12-20",
+          "price": 118.4499969482422,
+          "normalizedPrice": 457.965023905997
         }
-      ]
+      ],
+      "metrics": {
+        "totalReturn": 3.57965023905997,
+        "annualizedReturn": 0.10706829837166865,
+        "volatility": 0.3370540591330168,
+        "years": 14.959616700889802,
+        "marketCap": 24081594368.0
+      }
     },
-    "MRNA": {
-      "name": "Moderna Inc.",
+    "NFLX": {
+      "name": "Netflix, Inc.",
+      "sector": "Communication Services",
+      "industry": "Entertainment",
       "data": [
         {
-          "date": "2023-03-01",
-          "price": 142.56,
-          "normalizedPrice": 100
+          "date": "2010-01-04",
+          "price": 7.639999866485596,
+          "normalizedPrice": 100.0
         },
         {
-          "date": "2023-06-01",
-          "price": 123.45,
-          "normalizedPrice": 86.59
-        },
-        {
-          "date": "2023-09-01",
-          "price": 98.32,
-          "normalizedPrice": 68.97
-        },
-        {
-          "date": "2023-12-01",
-          "price": 85.67,
-          "normalizedPrice": 60.09
-        },
-        {
-          "date": "2024-03-01",
-          "price": 92.45,
-          "normalizedPrice": 64.85
+          "date": "2024-12-20",
+          "price": 909.0499877929688,
+          "normalizedPrice": 11898.560257581945
         }
-      ]
+      ],
+      "metrics": {
+        "totalReturn": 117.98560257581946,
+        "annualizedReturn": 0.3763846241092792,
+        "volatility": 0.5001599218349209,
+        "years": 14.959616700889802,
+        "marketCap": 388580671488.0
+      }
     },
-    "PFE": {
-      "name": "Pfizer Inc.",
+    "NVDA": {
+      "name": "NVIDIA Corporation",
+      "sector": "Technology",
+      "industry": "Semiconductors",
       "data": [
         {
-          "date": "2023-03-01",
-          "price": 39.45,
-          "normalizedPrice": 100
+          "date": "2010-01-04",
+          "price": 0.423922598361969,
+          "normalizedPrice": 100.0
         },
         {
-          "date": "2023-06-01",
-          "price": 35.67,
-          "normalizedPrice": 90.42
-        },
-        {
-          "date": "2023-09-01",
-          "price": 32.89,
-          "normalizedPrice": 83.37
-        },
-        {
-          "date": "2023-12-01",
-          "price": 28.45,
-          "normalizedPrice": 72.12
-        },
-        {
-          "date": "2024-03-01",
-          "price": 27.34,
-          "normalizedPrice": 69.30
+          "date": "2024-12-20",
+          "price": 134.6999969482422,
+          "normalizedPrice": 31774.667703189472
         }
-      ]
+      ],
+      "metrics": {
+        "totalReturn": 316.7466770318947,
+        "annualizedReturn": 0.4697913605618591,
+        "volatility": 0.45456672283324373,
+        "years": 14.959616700889802,
+        "marketCap": 3298803056640.0
+      }
+    },
+    "OMC": {
+      "name": "Omnicom Group Inc.",
+      "sector": "Communication Services",
+      "industry": "Advertising Agencies",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 25.30747985839844,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 88.86000061035156,
+          "normalizedPrice": 351.12149098821794
+        }
+      ],
+      "metrics": {
+        "totalReturn": 2.5112149098821797,
+        "annualizedReturn": 0.08758194984656309,
+        "volatility": 0.2510382375027259,
+        "years": 14.959616700889802,
+        "marketCap": 17453082624.0
+      }
+    },
+    "ON": {
+      "name": "ON Semiconductor Corporation",
+      "sector": "Technology",
+      "industry": "Semiconductors",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 8.869999885559082,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 65.5,
+          "normalizedPrice": 738.444203439485
+        }
+      ],
+      "metrics": {
+        "totalReturn": 6.3844420343948505,
+        "annualizedReturn": 0.1429944279595572,
+        "volatility": 0.4466053009963405,
+        "years": 14.959616700889802,
+        "marketCap": 27889702912.0
+      }
+    },
+    "ORCL": {
+      "name": "Oracle Corporation",
+      "sector": "Technology",
+      "industry": "Software - Infrastructure",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 20.26957130432129,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 169.66000366210938,
+          "normalizedPrice": 837.0182137297566
+        }
+      ],
+      "metrics": {
+        "totalReturn": 7.370182137297565,
+        "annualizedReturn": 0.1526082434360938,
+        "volatility": 0.26851714910478197,
+        "years": 14.959616700889802,
+        "marketCap": 474532249600.0
+      }
+    },
+    "PKG": {
+      "name": "Packaging Corporation of America",
+      "sector": "Consumer Cyclical",
+      "industry": "Packaging & Containers",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 15.020821571350098,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 227.97999572753903,
+          "normalizedPrice": 1517.7598285461013
+        }
+      ],
+      "metrics": {
+        "totalReturn": 14.177598285461013,
+        "annualizedReturn": 0.199387301552562,
+        "volatility": 0.2742773393870782,
+        "years": 14.959616700889802,
+        "marketCap": 20473718784.0
+      }
+    },
+    "PARA": {
+      "name": "Paramount Global",
+      "sector": "Communication Services",
+      "industry": "Entertainment",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 10.958870887756348,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 10.65999984741211,
+          "normalizedPrice": 97.27279348935348
+        }
+      ],
+      "metrics": {
+        "totalReturn": -0.027272065106465293,
+        "annualizedReturn": -0.0018466590715069398,
+        "volatility": 0.4180015029055022,
+        "years": 14.959616700889802,
+        "marketCap": 7596251648.0
+      }
+    },
+    "PH": {
+      "name": "Parker-Hannifin Corporation",
+      "sector": "Industrials",
+      "industry": "Specialty Industrial Machinery",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 41.99702453613281,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 647.2000122070312,
+          "normalizedPrice": 1541.0615855659069
+        }
+      ],
+      "metrics": {
+        "totalReturn": 14.410615855659069,
+        "annualizedReturn": 0.20060947573005738,
+        "volatility": 0.3004099557810987,
+        "years": 14.959616700889802,
+        "marketCap": 83307585536.0
+      }
+    },
+    "PAYX": {
+      "name": "Paychex, Inc.",
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 18.702625274658203,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 139.5399932861328,
+          "normalizedPrice": 746.0984286265285
+        }
+      ],
+      "metrics": {
+        "totalReturn": 6.460984286265285,
+        "annualizedReturn": 0.14378259041888497,
+        "volatility": 0.2223190106630052,
+        "years": 14.959616700889802,
+        "marketCap": 50243190784.0
+      }
+    },
+    "PEP": {
+      "name": "PepsiCo, Inc.",
+      "sector": "Consumer Defensive",
+      "industry": "Beverages - Non-Alcoholic",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 39.47966384887695,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 152.7899932861328,
+          "normalizedPrice": 387.00935719967913
+        }
+      ],
+      "metrics": {
+        "totalReturn": 2.8700935719967915,
+        "annualizedReturn": 0.09468004362606597,
+        "volatility": 0.1721313999919507,
+        "years": 14.959616700889802,
+        "marketCap": 209626349568.0
+      }
+    },
+    "PM": {
+      "name": "Philip Morris International Inc.",
+      "sector": "Consumer Defensive",
+      "industry": "Tobacco",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 24.43447494506836,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 124.22000122070312,
+          "normalizedPrice": 508.38007159951115
+        }
+      ],
+      "metrics": {
+        "totalReturn": 4.083800715995111,
+        "annualizedReturn": 0.11482403767742388,
+        "volatility": 0.21355387654722585,
+        "years": 14.959616700889802,
+        "marketCap": 193140981760.0
+      }
+    },
+    "PNW": {
+      "name": "Pinnacle West Capital Corporation",
+      "sector": "Utilities",
+      "industry": "Utilities - Regulated Electric",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 19.92874336242676,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 84.95999908447266,
+          "normalizedPrice": 426.3188979825716
+        }
+      ],
+      "metrics": {
+        "totalReturn": 3.263188979825716,
+        "annualizedReturn": 0.10178190714574176,
+        "volatility": 0.20915434064218563,
+        "years": 14.959616700889802,
+        "marketCap": 9659952128.0
+      }
+    },
+    "PNC": {
+      "name": "The PNC Financial Services Group, Inc.",
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 35.56999206542969,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 192.7599945068359,
+          "normalizedPrice": 541.9174515199808
+        }
+      ],
+      "metrics": {
+        "totalReturn": 4.419174515199807,
+        "annualizedReturn": 0.11959502166816005,
+        "volatility": 0.28274364093359144,
+        "years": 14.959616700889802,
+        "marketCap": 76483887104.0
+      }
+    },
+    "PPG": {
+      "name": "PPG Industries, Inc.",
+      "sector": "Basic Materials",
+      "industry": "Specialty Chemicals",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 23.07216453552246,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 120.20999908447266,
+          "normalizedPrice": 521.0174316301985
+        }
+      ],
+      "metrics": {
+        "totalReturn": 4.210174316301986,
+        "annualizedReturn": 0.11665537095505663,
+        "volatility": 0.2539726634250855,
+        "years": 14.959616700889802,
+        "marketCap": 27888719872.0
+      }
+    },
+    "PPL": {
+      "name": "PPL Corporation",
+      "sector": "Utilities",
+      "industry": "Utilities - Regulated Electric",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 14.94383716583252,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 32.43000030517578,
+          "normalizedPrice": 217.01253798002762
+        }
+      ],
+      "metrics": {
+        "totalReturn": 1.1701253798002762,
+        "annualizedReturn": 0.053156415084086195,
+        "volatility": 0.21026896577772858,
+        "years": 14.959616700889802,
+        "marketCap": 23932366848.0
+      }
+    },
+    "PFG": {
+      "name": "Principal Financial Group, Inc.",
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 15.28350067138672,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 77.30000305175781,
+          "normalizedPrice": 505.77419868522924
+        }
+      ],
+      "metrics": {
+        "totalReturn": 4.057741986852292,
+        "annualizedReturn": 0.1144411323363752,
+        "volatility": 0.3196331744077312,
+        "years": 14.959616700889802,
+        "marketCap": 17680521216.0
+      }
+    },
+    "PGR": {
+      "name": "The Progressive Corporation",
+      "sector": "Financial Services",
+      "industry": "Insurance - Property & Casualty",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 11.27422046661377,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 239.97000122070312,
+          "normalizedPrice": 2128.484199251946
+        }
+      ],
+      "metrics": {
+        "totalReturn": 20.28484199251946,
+        "annualizedReturn": 0.2268092334945635,
+        "volatility": 0.2251088357877123,
+        "years": 14.959616700889802,
+        "marketCap": 140577062912.0
+      }
+    },
+    "PEG": {
+      "name": "Public Service Enterprise Group Incorporated",
+      "sector": "Utilities",
+      "industry": "Utilities - Regulated Electric",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 19.05221176147461,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 85.05999755859375,
+          "normalizedPrice": 446.4573385153801
+        }
+      ],
+      "metrics": {
+        "totalReturn": 3.464573385153801,
+        "annualizedReturn": 0.105186579601245,
+        "volatility": 0.20825351757972127,
+        "years": 14.959616700889802,
+        "marketCap": 42379018240.0
+      }
+    },
+    "PHM": {
+      "name": "PulteGroup, Inc.",
+      "sector": "Consumer Cyclical",
+      "industry": "Residential Construction",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 8.807815551757812,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 110.5199966430664,
+          "normalizedPrice": 1254.7946309003878
+        }
+      ],
+      "metrics": {
+        "totalReturn": 11.547946309003878,
+        "annualizedReturn": 0.1842295187167653,
+        "volatility": 0.3933061540245445,
+        "years": 14.959616700889802,
+        "marketCap": 22665662464.0
+      }
+    },
+    "PWR": {
+      "name": "Quanta Services, Inc.",
+      "sector": "Industrials",
+      "industry": "Engineering & Construction",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 20.86460876464844,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 328.4100036621094,
+          "normalizedPrice": 1574.0050885523658
+        }
+      ],
+      "metrics": {
+        "totalReturn": 14.740050885523658,
+        "annualizedReturn": 0.20230825512930695,
+        "volatility": 0.324622019319819,
+        "years": 14.959616700889802,
+        "marketCap": 48477257728.0
+      }
+    },
+    "RJF": {
+      "name": "Raymond James Financial, Inc.",
+      "sector": "Financial Services",
+      "industry": "Asset Management",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 13.017601013183594,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 155.0500030517578,
+          "normalizedPrice": 1191.0796996676322
+        }
+      ],
+      "metrics": {
+        "totalReturn": 10.910796996676323,
+        "annualizedReturn": 0.1801114409216089,
+        "volatility": 0.30442953484604557,
+        "years": 14.959616700889802,
+        "marketCap": 31637176320.0
+      }
+    },
+    "RTX": {
+      "name": "RTX Corporation",
+      "sector": "Industrials",
+      "industry": "Aerospace & Defense",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 31.648944854736328,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 116.4800033569336,
+          "normalizedPrice": 368.0375566754546
+        }
+      ],
+      "metrics": {
+        "totalReturn": 2.680375566754546,
+        "annualizedReturn": 0.09100812235341937,
+        "volatility": 0.24820492906710467,
+        "years": 14.959616700889802,
+        "marketCap": 155037220864.0
+      }
+    },
+    "O": {
+      "name": "Realty Income Corporation",
+      "sector": "Real Estate",
+      "industry": "REIT - Retail",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 12.52633285522461,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 52.790000915527344,
+          "normalizedPrice": 421.43220626225946
+        }
+      ],
+      "metrics": {
+        "totalReturn": 3.2143220626225943,
+        "annualizedReturn": 0.10093313871303611,
+        "volatility": 0.24406696848359202,
+        "years": 14.959616700889802,
+        "marketCap": 46202388480.0
+      }
+    },
+    "RF": {
+      "name": "Regions Financial Corporation",
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 3.682279348373413,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 23.770000457763672,
+          "normalizedPrice": 645.5240955106701
+        }
+      ],
+      "metrics": {
+        "totalReturn": 5.455240955106701,
+        "annualizedReturn": 0.1327652572835425,
+        "volatility": 0.3725981581574417,
+        "years": 14.959616700889802,
+        "marketCap": 21603698688.0
+      }
+    },
+    "RVTY": {
+      "name": "Revvity, Inc.",
+      "sector": "Healthcare",
+      "industry": "Diagnostics & Research",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 18.97842025756836,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 112.55999755859376,
+          "normalizedPrice": 593.094662416416
+        }
+      ],
+      "metrics": {
+        "totalReturn": 4.93094662416416,
+        "annualizedReturn": 0.1263691236311386,
+        "volatility": 0.27707954223601305,
+        "years": 14.959616700889802,
+        "marketCap": 13698777088.0
+      }
+    },
+    "CRM": {
+      "name": "Salesforce, Inc.",
+      "sector": "Technology",
+      "industry": "Software - Application",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 18.601104736328125,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 343.6499938964844,
+          "normalizedPrice": 1847.4708828736007
+        }
+      ],
+      "metrics": {
+        "totalReturn": 17.474708828736006,
+        "annualizedReturn": 0.21525228832477583,
+        "volatility": 0.36262606825494864,
+        "years": 14.959616700889802,
+        "marketCap": 328873050112.0
+      }
+    },
+    "SHW": {
+      "name": "The Sherwin-Williams Company",
+      "sector": "Basic Materials",
+      "industry": "Specialty Chemicals",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 17.437347412109375,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 345.4700012207031,
+          "normalizedPrice": 1981.2073078316448
+        }
+      ],
+      "metrics": {
+        "totalReturn": 18.81207307831645,
+        "annualizedReturn": 0.22094302402598376,
+        "volatility": 0.24769880264765376,
+        "years": 14.959616700889802,
+        "marketCap": 87007649792.0
+      }
+    },
+    "SO": {
+      "name": "The Southern Company",
+      "sector": "Utilities",
+      "industry": "Utilities - Regulated Electric",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 17.206472396850586,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 82.86000061035156,
+          "normalizedPrice": 481.56297641530506
+        }
+      ],
+      "metrics": {
+        "totalReturn": 3.8156297641530506,
+        "annualizedReturn": 0.11079281070514391,
+        "volatility": 0.19256464014065008,
+        "years": 14.959616700889802,
+        "marketCap": 90788044800.0
+      }
+    },
+    "SWK": {
+      "name": "Stanley Black & Decker, Inc.",
+      "sector": "Industrials",
+      "industry": "Tools & Accessories",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 36.93662643432617,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 82.0,
+          "normalizedPrice": 222.00186621211094
+        }
+      ],
+      "metrics": {
+        "totalReturn": 1.2200186621211095,
+        "annualizedReturn": 0.05475786883830014,
+        "volatility": 0.31970231115709896,
+        "years": 14.959616700889802,
+        "marketCap": 12641447936.0
+      }
+    },
+    "SBUX": {
+      "name": "Starbucks Corporation",
+      "sector": "Consumer Cyclical",
+      "industry": "Restaurants",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 8.890193939208984,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 87.97000122070312,
+          "normalizedPrice": 989.517234632233
+        }
+      ],
+      "metrics": {
+        "totalReturn": 8.89517234632233,
+        "annualizedReturn": 0.16557627719476442,
+        "volatility": 0.2750692238604918,
+        "years": 14.959616700889802,
+        "marketCap": 99740385280.0
+      }
+    },
+    "TTWO": {
+      "name": "Take-Two Interactive Software, Inc.",
+      "sector": "Communication Services",
+      "industry": "Electronic Gaming & Multimedia",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 10.399999618530272,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 181.97000122070312,
+          "normalizedPrice": 1749.7116143781086
+        }
+      ],
+      "metrics": {
+        "totalReturn": 16.497116143781085,
+        "annualizedReturn": 0.2108438021968262,
+        "volatility": 0.3504774732954558,
+        "years": 14.959616700889802,
+        "marketCap": 31958847488.0
+      }
+    },
+    "TJX": {
+      "name": "The TJX Companies, Inc.",
+      "sector": "Consumer Cyclical",
+      "industry": "Apparel Retail",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 7.407835006713867,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 122.0,
+          "normalizedPrice": 1646.9049309201541
+        }
+      ],
+      "metrics": {
+        "totalReturn": 15.46904930920154,
+        "annualizedReturn": 0.20595247757225454,
+        "volatility": 0.24864536984649524,
+        "years": 14.959616700889802,
+        "marketCap": 137147523072.0
+      }
+    },
+    "TT": {
+      "name": "Trane Technologies plc",
+      "sector": "Industrials",
+      "industry": "Building Products & Equipment",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 17.745655059814453,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 377.1099853515625,
+          "normalizedPrice": 2125.0834870871513
+        }
+      ],
+      "metrics": {
+        "totalReturn": 20.250834870871515,
+        "annualizedReturn": 0.22667811016307526,
+        "volatility": 0.2746630833413446,
+        "years": 14.959616700889802,
+        "marketCap": 84858798080.0
+      }
+    },
+    "TDG": {
+      "name": "TransDigm Group Incorporated",
+      "sector": "Industrials",
+      "industry": "Aerospace & Defense",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 22.668954849243164,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 1276.1500244140625,
+          "normalizedPrice": 5629.50534288381
+        }
+      ],
+      "metrics": {
+        "totalReturn": 55.2950534288381,
+        "annualizedReturn": 0.30922123436746407,
+        "volatility": 0.3076396986008724,
+        "years": 14.959616700889802,
+        "marketCap": 71758430208.0
+      }
+    },
+    "TSN": {
+      "name": "Tyson Foods, Inc.",
+      "sector": "Consumer Defensive",
+      "industry": "Farm Products",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 9.37343406677246,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 58.02000045776367,
+          "normalizedPrice": 618.9833954605456
+        }
+      ],
+      "metrics": {
+        "totalReturn": 5.189833954605456,
+        "annualizedReturn": 0.12959061406976047,
+        "volatility": 0.2810526689085944,
+        "years": 14.959616700889802,
+        "marketCap": 20665157632.0
+      }
+    },
+    "USB": {
+      "name": "U.S. Bancorp",
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 14.878419876098633,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 47.91999816894531,
+          "normalizedPrice": 322.0772001866016
+        }
+      ],
+      "metrics": {
+        "totalReturn": 2.220772001866016,
+        "annualizedReturn": 0.08132293432568649,
+        "volatility": 0.2778894602690236,
+        "years": 14.959616700889802,
+        "marketCap": 74756628480.0
+      }
+    },
+    "UDR": {
+      "name": "UDR, Inc.",
+      "sector": "Real Estate",
+      "industry": "REIT - Residential",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 9.544804573059082,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 43.459999084472656,
+          "normalizedPrice": 455.32623273546875
+        }
+      ],
+      "metrics": {
+        "totalReturn": 3.5532623273546875,
+        "annualizedReturn": 0.1066407384416761,
+        "volatility": 0.2494935594417501,
+        "years": 14.959616700889802,
+        "marketCap": 16326182912.0
+      }
+    },
+    "UAL": {
+      "name": "United Airlines Holdings, Inc.",
+      "sector": "Industrials",
+      "industry": "Airlines",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 12.800000190734863,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 97.4000015258789,
+          "normalizedPrice": 760.9375005820766
+        }
+      ],
+      "metrics": {
+        "totalReturn": 6.609375005820766,
+        "annualizedReturn": 0.14528932264905547,
+        "volatility": 0.48193971282900894,
+        "years": 14.959616700889802,
+        "marketCap": 32032522240.0
+      }
+    },
+    "UPS": {
+      "name": "United Parcel Service, Inc.",
+      "sector": "Industrials",
+      "industry": "Integrated Freight & Logistics",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 36.757469177246094,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 125.68000030517578,
+          "normalizedPrice": 341.9169031990245
+        }
+      ],
+      "metrics": {
+        "totalReturn": 2.419169031990245,
+        "annualizedReturn": 0.08565238861117441,
+        "volatility": 0.23345213552657895,
+        "years": 14.959616700889802,
+        "marketCap": 107251539968.0
+      }
+    },
+    "UHS": {
+      "name": "Universal Health Services, Inc.",
+      "sector": "Healthcare",
+      "industry": "Medical Care Facilities",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 29.012296676635746,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 180.11000061035156,
+          "normalizedPrice": 620.8057315069378
+        }
+      ],
+      "metrics": {
+        "totalReturn": 5.208057315069379,
+        "annualizedReturn": 0.12981261471302274,
+        "volatility": 0.3259749666078323,
+        "years": 14.959616700889802,
+        "marketCap": 11881064448.0
+      }
+    },
+    "VLO": {
+      "name": "Valero Energy Corporation",
+      "sector": "Energy",
+      "industry": "Oil & Gas Refining & Marketing",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 10.064087867736816,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 118.58999633789062,
+          "normalizedPrice": 1178.3481811408192
+        }
+      ],
+      "metrics": {
+        "totalReturn": 10.783481811408192,
+        "annualizedReturn": 0.17926398433702673,
+        "volatility": 0.38836029047223714,
+        "years": 14.959616700889802,
+        "marketCap": 37543813120.0
+      }
+    },
+    "VRSK": {
+      "name": "Verisk Analytics, Inc.",
+      "sector": "Industrials",
+      "industry": "Consulting Services",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 28.723241806030273,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 276.8599853515625,
+          "normalizedPrice": 963.8883633721225
+        }
+      ],
+      "metrics": {
+        "totalReturn": 8.638883633721225,
+        "annualizedReturn": 0.16353345134491737,
+        "volatility": 0.21918225401767466,
+        "years": 14.959616700889802,
+        "marketCap": 39095676928.0
+      }
+    },
+    "VRTX": {
+      "name": "Vertex Pharmaceuticals Incorporated",
+      "sector": "Healthcare",
+      "industry": "Biotechnology",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 44.2400016784668,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 397.2699890136719,
+          "normalizedPrice": 897.9881870281156
+        }
+      ],
+      "metrics": {
+        "totalReturn": 7.979881870281156,
+        "annualizedReturn": 0.15803832113627547,
+        "volatility": 0.43393060126675603,
+        "years": 14.959616700889802,
+        "marketCap": 102308536320.0
+      }
+    },
+    "VTRS": {
+      "name": "Viatris Inc.",
+      "sector": "Healthcare",
+      "industry": "Drug Manufacturers - Specialty & Generic",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 16.079442977905273,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 12.520000457763672,
+          "normalizedPrice": 77.86339660501534
+        }
+      ],
+      "metrics": {
+        "totalReturn": -0.22136603394984666,
+        "annualizedReturn": -0.016586875478826424,
+        "volatility": 0.34685504730761607,
+        "years": 14.959616700889802,
+        "marketCap": 14943747072.0
+      }
+    },
+    "V": {
+      "name": "Visa Inc.",
+      "sector": "Financial Services",
+      "industry": "Credit Services",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 19.822799682617188,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 317.7099914550781,
+          "normalizedPrice": 1602.750350817908
+        }
+      ],
+      "metrics": {
+        "totalReturn": 15.02750350817908,
+        "annualizedReturn": 0.20376365533031793,
+        "volatility": 0.25007765906568735,
+        "years": 14.959616700889802,
+        "marketCap": 615235846144.0
+      }
+    },
+    "WRB": {
+      "name": "W. R. Berkley Corporation",
+      "sector": "Financial Services",
+      "industry": "Insurance - Property & Casualty",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 5.35719108581543,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 58.56999969482422,
+          "normalizedPrice": 1093.296818362587
+        }
+      ],
+      "metrics": {
+        "totalReturn": 9.932968183625869,
+        "annualizedReturn": 0.17337314146769822,
+        "volatility": 0.2193943053280781,
+        "years": 14.959616700889802,
+        "marketCap": 22319210496.0
+      }
+    },
+    "DIS": {
+      "name": "The Walt Disney Company",
+      "sector": "Communication Services",
+      "industry": "Entertainment",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 27.59304428100586,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 112.02999877929688,
+          "normalizedPrice": 406.0081143580617
+        }
+      ],
+      "metrics": {
+        "totalReturn": 3.060081143580617,
+        "annualizedReturn": 0.09819255800183324,
+        "volatility": 0.26093608197430024,
+        "years": 14.959616700889802,
+        "marketCap": 202879614976.0
+      }
+    },
+    "WEC": {
+      "name": "WEC Energy Group, Inc.",
+      "sector": "Utilities",
+      "industry": "Utilities - Regulated Electric",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 15.350034713745115,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 94.5,
+          "normalizedPrice": 615.6337869085106
+        }
+      ],
+      "metrics": {
+        "totalReturn": 5.156337869085106,
+        "annualizedReturn": 0.12918096247607602,
+        "volatility": 0.2005955302071881,
+        "years": 14.959616700889802,
+        "marketCap": 29895450624.0
+      }
+    },
+    "WELL": {
+      "name": "Welltower Inc.",
+      "sector": "Real Estate",
+      "industry": "REIT - Healthcare Facilities",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 22.519933700561523,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 124.63999938964844,
+          "normalizedPrice": 553.4652146269001
+        }
+      ],
+      "metrics": {
+        "totalReturn": 4.534652146269001,
+        "annualizedReturn": 0.12117417637693961,
+        "volatility": 0.2883711606768167,
+        "years": 14.959616700889802,
+        "marketCap": 77612081152.0
+      }
+    },
+    "WST": {
+      "name": "West Pharmaceutical Services, Inc.",
+      "sector": "Healthcare",
+      "industry": "Medical Instruments & Supplies",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 17.611377716064453,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 331.3999938964844,
+          "normalizedPrice": 1881.738040256745
+        }
+      ],
+      "metrics": {
+        "totalReturn": 17.81738040256745,
+        "annualizedReturn": 0.21674617056026935,
+        "volatility": 0.2786257147078941,
+        "years": 14.959616700889802,
+        "marketCap": 24000782336.0
+      }
+    },
+    "WDC": {
+      "name": "Western Digital Corporation",
+      "sector": "Technology",
+      "industry": "Computer Hardware",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 36.33463668823242,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 60.2400016784668,
+          "normalizedPrice": 165.79222243324793
+        }
+      ],
+      "metrics": {
+        "totalReturn": 0.6579222243324792,
+        "annualizedReturn": 0.034372877420201675,
+        "volatility": 0.42775592687860453,
+        "years": 14.959616700889802,
+        "marketCap": 20825450496.0
+      }
+    },
+    "WMB": {
+      "name": "The Williams Companies, Inc.",
+      "sector": "Energy",
+      "industry": "Oil & Gas Midstream",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 8.2426118850708,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 53.4900016784668,
+          "normalizedPrice": 648.9448056549777
+        }
+      ],
+      "metrics": {
+        "totalReturn": 5.489448056549777,
+        "annualizedReturn": 0.13316552617106248,
+        "volatility": 0.37689778744950886,
+        "years": 14.959616700889802,
+        "marketCap": 65204850688.0
+      }
+    },
+    "WTW": {
+      "name": "Willis Towers Watson Public Limited Company",
+      "sector": "Financial Services",
+      "industry": "Insurance Brokers",
+      "data": [
+        {
+          "date": "2010-01-04",
+          "price": 52.54901123046875,
+          "normalizedPrice": 100.0
+        },
+        {
+          "date": "2024-12-20",
+          "price": 317.57000732421875,
+          "normalizedPrice": 604.3310804297048
+        }
+      ],
+      "metrics": {
+        "totalReturn": 5.0433108042970485,
+        "annualizedReturn": 0.12778314108514932,
+        "volatility": 0.2234873432611393,
+        "years": 14.959616700889802,
+        "marketCap": 31987238912.0
+      }
     }
   },
   "sp500": {
-    "name": "S&P 500",
+    "name": "S&P 500 Index",
     "data": [
       {
-        "date": "2023-03-01",
-        "price": 3951.57,
-        "normalizedPrice": 100
+        "date": "2010-01-04",
+        "price": 22.877206832170486,
+        "normalizedPrice": 100.0
       },
       {
-        "date": "2023-06-01",
-        "price": 4282.37,
-        "normalizedPrice": 108.37
-      },
-      {
-        "date": "2023-09-01",
-        "price": 4377.93,
-        "normalizedPrice": 110.79
-      },
-      {
-        "date": "2023-12-01",
-        "price": 4769.83,
-        "normalizedPrice": 120.70
-      },
-      {
-        "date": "2024-03-01",
-        "price": 5137.08,
-        "normalizedPrice": 130.00
+        "date": "2024-12-20",
+        "price": 176.58813910151636,
+        "normalizedPrice": 771.8955395078818
       }
-    ]
+    ],
+    "metrics": {
+      "totalReturn": 6.718955395078818,
+      "annualizedReturn": 0.14638448293363426,
+      "volatility": 0.17650642890247314,
+      "years": 14.959616700889802
+    }
   }
 }
