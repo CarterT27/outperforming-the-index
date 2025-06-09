@@ -75,7 +75,6 @@ export default function OutperformingIndex() {
   const [selectedStocks, setSelectedStocks] = useState<string[]>([])
   const [comparisonData, setComparisonData] = useState<ComparisonData | null>(null)
   const [nvidiaComparisonData, setNvidiaComparisonData] = useState<NvidiaComparisonData | null>(null)
-  const [returnsData, setReturnsData] = useState<ReturnsDistribution | null>(null)
   const [portfolioStocks, setPortfolioStocks] = useState<PortfolioStock[]>([])
   const [portfolioReturn, setPortfolioReturn] = useState<number>(0)
   const [sp500Return, setSp500Return] = useState<number>(0)
@@ -149,15 +148,13 @@ export default function OutperformingIndex() {
 
   // Helper function to get percentage of stocks that underperformed the market
   const getUnderperformancePercentage = () => {
-    if (!returnsData) return null
+    if (!comparisonData) return null
     
-    const underperformingCount = returnsData.counts
-      .map((count, i) => (returnsData.bins[i] < returnsData.mean ? count : 0))
-      .reduce((a, b) => a + b, 0)
+    const sp500Return = comparisonData.sp500.metrics.annualizedReturn
+    const stocks = Object.values(comparisonData.stocks)
+    const underperformingCount = stocks.filter(stock => stock.metrics.annualizedReturn < sp500Return).length
     
-    const totalCount = returnsData.counts.reduce((a, b) => a + b, 0)
-    
-    return totalCount > 0 ? Math.round((underperformingCount / totalCount) * 100) : null
+    return stocks.length > 0 ? Math.round((underperformingCount / stocks.length) * 100) : null
   }
 
   // Load data
@@ -167,10 +164,9 @@ export default function OutperformingIndex() {
         setIsLoading(true)
         console.log('Attempting to load data...');
         const basePath = process.env.NODE_ENV === 'production' ? '.' : '';
-        const [comparisonResponse, nvidiaResponse, returnsResponse] = await Promise.all([
+        const [comparisonResponse, nvidiaResponse] = await Promise.all([
           fetch(`${basePath}/data/comparison_data.json`),
           fetch(`${basePath}/data/nvidia_comparison.json`),
-          fetch(`${basePath}/data/returns_distribution.json`)
         ]);
         
         if (!comparisonResponse.ok) {
@@ -179,23 +175,17 @@ export default function OutperformingIndex() {
         if (!nvidiaResponse.ok) {
           throw new Error(`Failed to load NVIDIA comparison data: ${nvidiaResponse.status}`);
         }
-        if (!returnsResponse.ok) {
-          throw new Error(`Failed to load returns data: ${returnsResponse.status}`);
-        }
         
         const comparison = await comparisonResponse.json();
         const nvidiaComparison = await nvidiaResponse.json();
-        const returns = await returnsResponse.json();
         
         console.log('Data loaded successfully:', {
           comparisonDataSize: Object.keys(comparison.stocks).length,
           nvidiaComparisonDataSize: nvidiaComparison.target_stock.data.length,
-          returnsDataSize: returns.bins.length
         });
         
         setComparisonData(comparison);
         setNvidiaComparisonData(nvidiaComparison);
-        setReturnsData(returns);
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -1000,8 +990,8 @@ export default function OutperformingIndex() {
     })
   }
 
-  const drawHistogram = (comparisonData: NvidiaComparisonData | null) => {
-    if (!histogramRef.current || !returnsData || !nvidiaComparisonData) return
+  const drawHistogram = () => {
+    if (!histogramRef.current || !comparisonData || !nvidiaComparisonData) return
 
     // Clear previous chart
     d3.select(histogramRef.current).selectAll("*").remove()
@@ -1018,17 +1008,44 @@ export default function OutperformingIndex() {
 
     const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`)
 
-    // Create histogram bins
+    // Extract annualized returns from comparison data
+    const sp500Return = comparisonData.sp500.metrics.annualizedReturn
+    const stockReturns = Object.values(comparisonData.stocks).map(stock => stock.metrics.annualizedReturn)
+    
+    // Create histogram bins from actual data
+    const minReturn = Math.min(...stockReturns)
+    const maxReturn = Math.max(...stockReturns)
+    const binWidth = 0.02 // 2% bins
+    const numBins = Math.ceil((maxReturn - minReturn) / binWidth)
+    
+    // Generate bins
+    const bins = d3.range(numBins + 1).map(i => minReturn + i * binWidth)
+    const histogram = d3.histogram()
+      .domain([minReturn, maxReturn])
+      .thresholds(bins)
+      
+    const binData = histogram(stockReturns)
+
+    // Create dynamic x-axis scale
     const xScale = d3
       .scaleLinear()
-      .domain([-0.5, 0.5])
+      .domain([minReturn, maxReturn])
+      .nice()
       .range([0, width])
 
     const yScale = d3
       .scaleLinear()
-      .domain([0, d3.max(returnsData.counts) as number])
+      .domain([0, d3.max(binData, (d: any) => d.length) as number])
       .nice()
       .range([height, 0])
+
+    // Create color scale based on performance delta from S&P 500
+    const maxDelta = Math.max(
+      Math.abs(minReturn - sp500Return),
+      Math.abs(maxReturn - sp500Return)
+    )
+    const colorScale = d3.scaleSequential(d3.interpolateRdYlGn)
+      .domain([-maxDelta, maxDelta])
 
     // Add grid lines
     g.append("g")
@@ -1071,7 +1088,7 @@ export default function OutperformingIndex() {
       .style("text-anchor", "middle")
       .style("font-size", "14px")
       .style("font-weight", "500")
-      .text("Annual Return (%)")
+      .text("Annualized Return (%)")
 
     // Add Y axis label
     g.append("text")
@@ -1085,19 +1102,20 @@ export default function OutperformingIndex() {
 
     // Add bars
     g.selectAll(".bar")
-      .data(returnsData.bins.map((bin, i) => ({
-        bin,
-        count: returnsData.counts[i]
-      })))
+      .data(binData)
       .enter()
       .append("rect")
       .attr("class", "bar")
-      .attr("x", d => xScale(d.bin))
-      .attr("width", width / returnsData.bins.length - 1)
-      .attr("y", d => yScale(d.count))
-      .attr("height", d => height - yScale(d.count))
-      .attr("fill", d => d.bin < returnsData.mean ? "#ef4444" : "#10b981")
-      .on("mouseover", function(event, d) {
+      .attr("x", (d: any) => xScale(d.x0))
+      .attr("width", (d: any) => Math.max(0, xScale(d.x1) - xScale(d.x0) - 1))
+      .attr("y", (d: any) => yScale(d.length))
+      .attr("height", (d: any) => height - yScale(d.length))
+      .attr("fill", (d: any) => {
+        const binMidpoint = (d.x0 + d.x1) / 2
+        const delta = binMidpoint - sp500Return
+        return colorScale(delta)
+      })
+      .on("mouseover", function(event, d: any) {
         d3.select(this).attr("opacity", 0.8)
 
         // Remove any existing histogram tooltips
@@ -1116,8 +1134,9 @@ export default function OutperformingIndex() {
           .style("pointer-events", "none")
           .style("z-index", "1000")
           .html(`
-            <div><strong>Return Range:</strong> ${(d.bin * 100).toFixed(1)}% to ${((d.bin + 0.05) * 100).toFixed(1)}%</div>
-            <div><strong>Number of Stocks:</strong> ${d.count}</div>
+            <div><strong>Return Range:</strong> ${(d.x0 * 100).toFixed(1)}% to ${(d.x1 * 100).toFixed(1)}%</div>
+            <div><strong>Number of Stocks:</strong> ${d.length}</div>
+            <div><strong>vs S&P 500:</strong> ${(((d.x0 + d.x1) / 2 - sp500Return) * 100).toFixed(1)}% difference</div>
           `)
           .style("left", event.pageX + 10 + "px")
           .style("top", event.pageY - 10 + "px")
@@ -1127,25 +1146,25 @@ export default function OutperformingIndex() {
         d3.selectAll(".histogram-tooltip").remove()
       })
 
-    // Add mean line
+    // Add S&P 500 line
     g.append("line")
-      .attr("x1", xScale(returnsData.mean))
-      .attr("x2", xScale(returnsData.mean))
+      .attr("x1", xScale(sp500Return))
+      .attr("x2", xScale(sp500Return))
       .attr("y1", 0)
       .attr("y2", height)
       .attr("stroke", "#3b82f6")
       .attr("stroke-width", 3)
       .attr("stroke-dasharray", "5,5")
 
-    // Add mean label
+    // Add S&P 500 label
     g.append("text")
-      .attr("x", xScale(returnsData.mean))
+      .attr("x", xScale(sp500Return))
       .attr("y", -5)
       .attr("text-anchor", "middle")
       .style("font-size", "12px")
       .style("font-weight", "500")
       .style("fill", "#3b82f6")
-      .text(`Market Average (${(returnsData.mean * 100).toFixed(1)}%)`)
+      .text(`S&P 500 (${(sp500Return * 100).toFixed(1)}%)`)
 
     //NVIDIA line
     // Compute annualized NVIDIA return
@@ -1576,7 +1595,7 @@ export default function OutperformingIndex() {
   useEffect(() => {
     const drawCharts = () => {
       drawComparisonChart()
-      drawHistogram(nvidiaComparisonData)
+      drawHistogram()
       drawTreemap()
       drawLossAversionChart()
       drawHindsightCharts()
@@ -1595,7 +1614,7 @@ export default function OutperformingIndex() {
       d3.selectAll(".event-tooltip").remove()
       d3.selectAll(".treemap-tooltip").remove()
     }
-  }, [nvidiaComparisonData, returnsData, isCalculated, portfolioReturn, sp500Return, comparisonData, selectedCharts, showChartResults])
+  }, [nvidiaComparisonData, isCalculated, portfolioReturn, sp500Return, comparisonData, selectedCharts, showChartResults])
 
   const addStock = (stock: string) => {
     if (!selectedStocks.includes(stock) && selectedStocks.length < 5) {
@@ -1740,10 +1759,34 @@ export default function OutperformingIndex() {
     // Add axes
     g.append("g")
       .attr("transform", `translate(0,${height})`)
-      .call(d3.axisBottom(xScale).tickFormat(d => `Year ${Math.floor((d as number) / 12) + 1}`))
+      .call(d3.axisBottom(xScale).tickFormat((d, i) => {
+        const month = d as number
+        const year = Math.floor(month / 12) + 1
+        return (i % 2 === 1) ? `Year ${year}` : ""
+      }))
+      .style("font-size", "12px")
 
     g.append("g")
       .call(d3.axisLeft(yScale).tickFormat(d => `$${d}`))
+      .style("font-size", "12px")
+
+    // Add X axis label
+    g.append("text")
+      .attr("transform", `translate(${width / 2}, ${height + 45})`)
+      .style("text-anchor", "middle")
+      .style("font-size", "14px")
+      .style("font-weight", "500")
+      .text("Time")
+
+    // Add Y axis label
+    g.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left + 20)
+      .attr("x", 0 - height / 2)
+      .style("text-anchor", "middle")
+      .style("font-size", "14px")
+      .style("font-weight", "500")
+      .text("Portfolio Value ($)")
 
     // Add lines
     g.append("path")
@@ -1760,8 +1803,20 @@ export default function OutperformingIndex() {
       .attr("stroke-width", 3)
       .attr("d", line)
 
-    // Add legend
+    // Add legend with background
     const legend = g.append("g").attr("transform", `translate(${width - 150}, 20)`)
+    
+    // Add background rectangle for legend
+    legend.append("rect")
+      .attr("x", -5)
+      .attr("y", -5)
+      .attr("width", 140)
+      .attr("height", 35)
+      .attr("fill", "white")
+      .attr("stroke", "#e5e7eb")
+      .attr("stroke-width", 1)
+      .attr("rx", 4)
+      .attr("opacity", 0.9)
     
     legend.append("line")
       .attr("x1", 0).attr("x2", 20)
@@ -2097,7 +2152,7 @@ export default function OutperformingIndex() {
               {(() => {
                 const underperformanceRate = getUnderperformancePercentage();
                 return underperformanceRate !== null ? `${underperformanceRate}%` : "the majority";
-              })()} of S&P 500 stocks underperform the index over time.
+              })()} of S&P 500 stocks underperform the S&P 500 index on an annualized basis.
             </p>
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 max-w-2xl mx-auto">
               <p className="text-xl font-semibold text-yellow-800">
@@ -2117,37 +2172,25 @@ export default function OutperformingIndex() {
                   <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="text-center p-4 bg-red-50 rounded-lg">
                       <div className="text-2xl font-bold text-red-600">
-                        {returnsData && nvidiaComparisonData
-                          ? `${(
-                              (returnsData.counts
-                                .map((c, i) => (returnsData.bins[i] < returnsData.mean ? c : 0))
-                                .reduce((a, b) => a + b, 0) /
-                              returnsData.counts.reduce((a, b) => a + b, 0)) *
-                              100
-                            ).toFixed(0)}%`
+                        {comparisonData
+                          ? `${getUnderperformancePercentage()}%`
                           : "--"}
                       </div>
-                      <div className="text-sm text-gray-600">Underperformed Market</div>
+                      <div className="text-sm text-gray-600">Underperformed S&P 500</div>
                     </div>
                     <div className="text-center p-4 bg-blue-50 rounded-lg">
                       <div className="text-2xl font-bold text-blue-600">
-                        {returnsData ? `${(returnsData.mean * 100).toFixed(1)}%` : "--"}
+                        {comparisonData ? `${(comparisonData.sp500.metrics.annualizedReturn * 100).toFixed(1)}%` : "--"}
                       </div>
-                      <div className="text-sm text-gray-600">Market Average Return</div>
+                      <div className="text-sm text-gray-600">S&P 500 Annualized Return</div>
                     </div>
                     <div className="text-center p-4 bg-green-50 rounded-lg">
                       <div className="text-2xl font-bold text-green-600">
-                        {returnsData && nvidiaComparisonData
-                          ? `${(
-                              (returnsData.counts
-                                .map((c, i) => (returnsData.bins[i] >= returnsData.mean ? c : 0))
-                                .reduce((a, b) => a + b, 0) /
-                              returnsData.counts.reduce((a, b) => a + b, 0)) *
-                              100
-                            ).toFixed(0)}%`
+                        {comparisonData
+                          ? `${100 - (getUnderperformancePercentage() || 0)}%`
                           : "--"}
                       </div>
-                      <div className="text-sm text-gray-600">Outperformed Market</div>
+                      <div className="text-sm text-gray-600">Outperformed S&P 500</div>
                     </div>
                   </div>
                   <div className="mt-4 text-center text-sm text-gray-500">Hover over bars for detailed information</div>

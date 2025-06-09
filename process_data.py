@@ -257,41 +257,7 @@ def process_all_stocks_comparison_data(stocks_df: pd.DataFrame, companies_df: pd
         'sp500': sp500_data
     }
 
-def process_returns_distribution(stocks_df: pd.DataFrame, companies_df: pd.DataFrame, freq: str = 'annual'):
-    """Process data for the returns distribution histogram."""
-    # Merge with company data to get sectors
-    merged = stocks_df.reset_index().merge(companies_df[['Symbol', 'Sector']], on='Symbol')
-    merged_indexed = merged.set_index('Date')
-    
-    # Calculate returns based on frequency
-    if freq == 'annual':
-        # Resample to yearly and calculate returns
-        annual_prices = merged_indexed.groupby(['Symbol', 'Sector'])['Adj Close'].resample('YE').last()
-        returns = annual_prices.groupby(level=[0, 1]).pct_change(fill_method=None)
-        
-        # Restructure data
-        returns_df = returns.reset_index()
-        returns_df.columns = ['Symbol', 'Sector', 'Date', 'Return']
-    else:
-        raise ValueError("Currently only supporting annual frequency")
-    
-    # Drop NaN values
-    returns_df = returns_df.dropna(subset=['Return'])
-    
-    # Calculate histogram bins
-    bins = np.linspace(-0.5, 0.5, 21)  # 20 bins from -50% to +50%
-    hist, bin_edges = np.histogram(returns_df['Return'], bins=bins)
-    
-    # Create histogram data
-    histogram_data = {
-        'bins': [float(x) for x in bin_edges[:-1]],  # Exclude last edge
-        'counts': [int(x) for x in hist],
-        'mean': float(returns_df['Return'].mean()) if not pd.isna(returns_df['Return'].mean()) else None,
-        'median': float(returns_df['Return'].median()) if not pd.isna(returns_df['Return'].median()) else None,
-        'std': float(returns_df['Return'].std()) if not pd.isna(returns_df['Return'].std()) else None
-    }
-    
-    return histogram_data
+
 
 def main():
     # Create output directory
@@ -321,12 +287,7 @@ def main():
         json.dump(all_stocks_data, f, indent=2, allow_nan=False)
     print(f"Saved comparison_data.json with {len(all_stocks_data['stocks'])} stocks")
     
-    # Process returns distribution
-    print("Processing returns distribution...")
-    returns_data = process_returns_distribution(stocks_df, companies_df)
-    with open(output_dir / 'returns_distribution.json', 'w') as f:
-        json.dump(returns_data, f, indent=2, allow_nan=False)
-    print(f"Saved returns_distribution.json with {len(returns_data['bins'])} bins")
+
     
     print("Data processing complete!")
 
