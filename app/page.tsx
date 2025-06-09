@@ -111,7 +111,7 @@ export default function OutperformingIndex() {
   const [showChartResults, setShowChartResults] = useState<boolean>(false)
   const [searchQuery, setSearchQuery] = useState<string>("")
   const [showSearchResults, setShowSearchResults] = useState<boolean>(false)
-  const [scrollY, setScrollY] = useState<number>(0)
+  const [scrollProgress, setScrollProgress] = useState<number>(0)
 
   const chartRef = useRef<HTMLDivElement>(null)
   const histogramRef = useRef<HTMLDivElement>(null)
@@ -120,6 +120,7 @@ export default function OutperformingIndex() {
   const hindsightChartRef = useRef<HTMLDivElement>(null)
   const treemapRef = useRef<HTMLDivElement>(null)
   const pieChartRef = useRef<HTMLDivElement>(null)
+  const parallaxCandlestickRef = useRef<HTMLDivElement>(null)
 
   // Refs for animated counting numbers
   const underperformanceRef = useRef<HTMLSpanElement>(null)
@@ -163,6 +164,256 @@ export default function OutperformingIndex() {
       startYear: minDate.getFullYear(),
       endYear: maxDate.getFullYear()
     }
+  }
+
+  // Generate random candlestick data with fat-tailed distribution
+  const generateCandlestickData = () => {
+    const numCandles = 300 // More candles for full page scroll
+    const data = []
+    let currentPrice = 150 + Math.random() * 100 // Start between 150-250
+    
+    // Seeded random for consistent generation
+    let seed = 42
+    const seededRandom = () => {
+      seed = (seed * 9301 + 49297) % 233280
+      return seed / 233280
+    }
+    
+    // Box-Muller transform for normal distribution
+    const normalRandom = () => {
+      const u1 = seededRandom()
+      const u2 = seededRandom()
+      return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2)
+    }
+    
+    // Student's t-distribution for fat tails (approximation)
+    const fatTailedRandom = () => {
+      const normal = normalRandom()
+      const chi2 = Math.pow(normalRandom(), 2) + Math.pow(normalRandom(), 2) + Math.pow(normalRandom(), 2)
+      const df = 3 // degrees of freedom for fat tails
+      return normal / Math.sqrt(chi2 / df)
+    }
+    
+    for (let i = 0; i < numCandles; i++) {
+      const open = currentPrice
+      
+      // Fat-tailed distribution for returns with occasional large movements
+      const baseVolatility = 0.008 // 0.8% base volatility
+      let changePercent
+      
+      // 5% chance of large movement (fat tail event)
+      if (seededRandom() < 0.05) {
+        changePercent = fatTailedRandom() * baseVolatility * 5 // 5x larger movements
+      } else {
+        changePercent = normalRandom() * baseVolatility
+      }
+      
+      // Add some drift and mean reversion
+      const drift = 0.0001 // Slight upward bias
+      const meanReversion = (200 - currentPrice) / currentPrice * 0.001 // Pull toward $200
+      
+      changePercent += drift + meanReversion
+      
+      const close = open * (1 + changePercent)
+      
+      // Realistic intraday high/low with fat-tailed wick movements
+      const [minPrice, maxPrice] = [Math.min(open, close), Math.max(open, close)]
+      const wickVolatility = baseVolatility * 0.5
+      
+      let highWick = seededRandom() < 0.1 ? Math.abs(fatTailedRandom()) * wickVolatility : Math.abs(normalRandom()) * wickVolatility
+      let lowWick = seededRandom() < 0.1 ? Math.abs(fatTailedRandom()) * wickVolatility : Math.abs(normalRandom()) * wickVolatility
+      
+      const high = maxPrice * (1 + highWick)
+      const low = minPrice * (1 - lowWick)
+      
+      // Ensure price doesn't go negative
+      const finalLow = Math.max(low, currentPrice * 0.8)
+      
+      data.push({
+        x: i,
+        open: Math.round(open * 100) / 100,
+        high: Math.round(high * 100) / 100,
+        low: Math.round(finalLow * 100) / 100,
+        close: Math.round(close * 100) / 100,
+        isGreen: close > open,
+        volume: Math.floor(1000 + seededRandom() * 9000) // Random volume for realism
+      })
+      
+      currentPrice = close
+    }
+    
+    return data
+  }
+
+  // Draw complete candlestick chart with CSS masking for reveal
+  const drawParallaxCandlesticks = () => {
+    if (!parallaxCandlestickRef.current) return
+
+    // Clear previous chart
+    d3.select(parallaxCandlestickRef.current).selectAll("*").remove()
+
+    const width = window.innerWidth
+    const height = window.innerHeight
+    const margin = { top: 30, right: 30, bottom: 60, left: 80 }
+    const chartWidth = width - margin.left - margin.right
+    const chartHeight = height - margin.top - margin.bottom
+
+    const svg = d3
+      .select(parallaxCandlestickRef.current)
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height)
+      .style("position", "absolute")
+      .style("top", "0")
+      .style("left", "0")
+
+    // Add clip path for progressive reveal
+    const candlestickDefs = svg.append("defs")
+    const clipPath = candlestickDefs.append("clipPath")
+      .attr("id", "revealClip")
+    
+    const revealRect = clipPath.append("rect")
+      .attr("x", 0)
+      .attr("y", 0)
+      .attr("width", 0) // Start with 0 width
+      .attr("height", height)
+
+    const g = svg.append("g")
+      .attr("transform", `translate(${margin.left},${margin.top})`)
+      .attr("clip-path", "url(#revealClip)")
+      
+    // No need to store reference - we'll find it via selector
+
+    // Generate all candlestick data at once
+    const candleData = generateCandlestickData()
+
+    // Scales based on all data
+    const xScale = d3
+      .scaleBand()
+      .domain(candleData.map(d => d.x.toString()))
+      .range([0, chartWidth])
+      .padding(0.15)
+
+    const yScale = d3
+      .scaleLinear()
+      .domain(d3.extent(candleData.flatMap(d => [d.high, d.low])) as [number, number])
+      .nice()
+      .range([chartHeight, 0])
+
+    const candleWidth = xScale.bandwidth()
+
+    // Add background for better visibility on dark sections
+    g.append("rect")
+      .attr("x", -margin.left)
+      .attr("y", -margin.top)
+      .attr("width", width)
+      .attr("height", height)
+      .attr("fill", "rgba(255, 255, 255, 0.01)")
+      .attr("stroke", "rgba(255, 255, 255, 0.05)")
+      .attr("stroke-width", 1)
+      .attr("rx", 8)
+
+    // Add subtle grid lines with better visibility
+    const yAxisGrid = g.append("g")
+      .attr("class", "grid")
+      .call(
+        d3.axisLeft(yScale)
+          .tickSize(-chartWidth)
+          .tickFormat(() => "")
+          .ticks(6)
+      )
+      .style("stroke", "#ffffff")
+      .style("stroke-dasharray", "2,4")
+      .style("opacity", 0.08)
+
+    // Add price axis labels
+    g.append("g")
+      .attr("class", "y-axis")
+      .call(d3.axisLeft(yScale).ticks(6).tickFormat(d => `$${d}`))
+      .selectAll("text")
+      .style("fill", "rgba(255, 255, 255, 0.4)")
+      .style("font-size", "11px")
+      .style("font-weight", "500")
+
+    // Add candlesticks with improved visibility
+    const candles = g.selectAll(".candlestick")
+      .data(candleData)
+      .enter()
+      .append("g")
+      .attr("class", "candlestick")
+      .attr("transform", d => `translate(${xScale(d.x.toString())}, 0)`)
+
+    // High-low lines (wicks) with better contrast
+    candles.append("line")
+      .attr("x1", candleWidth / 2)
+      .attr("x2", candleWidth / 2)
+      .attr("y1", d => yScale(d.high))
+      .attr("y2", d => yScale(d.low))
+      .attr("stroke", d => d.isGreen ? "#22c55e" : "#ef4444")
+      .attr("stroke-width", Math.max(1.5, candleWidth * 0.12))
+      .attr("opacity", 0.6)
+      .attr("stroke-linecap", "round")
+
+    // Candle bodies with enhanced visibility
+    candles.append("rect")
+      .attr("x", candleWidth * 0.05)
+      .attr("y", d => yScale(Math.max(d.open, d.close)))
+      .attr("width", candleWidth * 0.9)
+      .attr("height", d => Math.max(2, Math.abs(yScale(d.open) - yScale(d.close))))
+      .attr("fill", d => d.isGreen ? "#22c55e" : "#ef4444")
+      .attr("opacity", 0.5)
+      .attr("stroke", d => d.isGreen ? "#16a34a" : "#dc2626")
+      .attr("stroke-width", 1)
+      .attr("rx", candleWidth * 0.08)
+
+    // Add glow effect for better visibility
+    candles.append("rect")
+      .attr("x", candleWidth * 0.05)
+      .attr("y", d => yScale(Math.max(d.open, d.close)))
+      .attr("width", candleWidth * 0.9)
+      .attr("height", d => Math.max(2, Math.abs(yScale(d.open) - yScale(d.close))))
+      .attr("fill", "none")
+      .attr("stroke", d => d.isGreen ? "#22c55e" : "#ef4444")
+      .attr("stroke-width", 3)
+      .attr("opacity", 0.15)
+      .attr("rx", candleWidth * 0.08)
+      .style("filter", "blur(1px)")
+
+    // Current price indicator removed for less distraction
+
+    // Add progress indicator
+    const progressWidth = (scrollProgress * chartWidth)
+    g.append("rect")
+      .attr("x", 0)
+      .attr("y", chartHeight + 10)
+      .attr("width", progressWidth)
+      .attr("height", 4)
+      .attr("fill", "url(#progressGradient)")
+      .attr("opacity", 0.8)
+      .attr("rx", 2)
+
+    // Define gradient for progress bar (use existing defs)
+    const progressGradient = candlestickDefs.append("linearGradient")
+      .attr("id", "progressGradient")
+      .attr("x1", "0%")
+      .attr("x2", "100%")
+      .attr("y1", "0%")
+      .attr("y2", "0%")
+
+    progressGradient.append("stop")
+      .attr("offset", "0%")
+      .attr("stop-color", "#22c55e")
+      .attr("stop-opacity", 1)
+
+    progressGradient.append("stop")
+      .attr("offset", "50%")
+      .attr("stop-color", "#3b82f6")
+      .attr("stop-opacity", 1)
+
+    progressGradient.append("stop")
+      .attr("offset", "100%")
+      .attr("stop-color", "#8b5cf6")
+      .attr("stop-opacity", 1)
   }
 
   // Helper function to get NVIDIA comparison date range
@@ -295,11 +546,16 @@ export default function OutperformingIndex() {
     setIsCalculated(false)
   }, [portfolioStocks])
 
-  // Show scroll arrow only when at the very top of the page
+  // Show scroll arrow only when at the very top of the page and track scroll progress
   useEffect(() => {
     const handleScroll = () => {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop
+      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight
+      const progress = Math.min(scrollTop / scrollHeight, 1)
+      
       // Show arrow only when at the very top (within 10px to account for small variations)
-      setShowScrollArrow(window.scrollY < 10)
+      setShowScrollArrow(scrollTop < 10)
+      setScrollProgress(progress)
     }
 
     window.addEventListener('scroll', handleScroll)
@@ -2228,6 +2484,35 @@ export default function OutperformingIndex() {
 
 
 
+  // Draw parallax candlestick chart on mount and resize
+  useEffect(() => {
+    if (!isLoading) {
+      drawParallaxCandlesticks()
+      
+      const handleResize = () => {
+        drawParallaxCandlesticks()
+      }
+      
+      window.addEventListener("resize", handleResize)
+      return () => {
+        window.removeEventListener("resize", handleResize)
+      }
+    }
+  }, [isLoading])
+
+  // Update candlestick visibility based on scroll progress
+  useEffect(() => {
+    if (parallaxCandlestickRef.current && !isLoading) {
+      // Update clip path width to reveal candlesticks progressively
+      const svg = d3.select(parallaxCandlestickRef.current).select("svg")
+      const revealRect = svg.select("#revealClip rect")
+      if (!revealRect.empty()) {
+        const revealWidth = scrollProgress * window.innerWidth
+        revealRect.attr("width", revealWidth)
+      }
+    }
+  }, [scrollProgress, isLoading])
+
   // Draw charts on mount and resize
   useEffect(() => {
     const drawCharts = () => {
@@ -2681,7 +2966,27 @@ export default function OutperformingIndex() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="pt-0">
+      {/* Progressive Candlestick Chart Background */}
+      <div
+        ref={parallaxCandlestickRef}
+        className="fixed inset-0 pointer-events-none z-0"
+        style={{
+          opacity: 0.35,
+          overflow: 'hidden'
+        }}
+      />
+      
+      {/* Progress Indicator */}
+      <div className="fixed bottom-0 left-0 w-full h-1 bg-gray-200 pointer-events-none z-50">
+        <div 
+          className="h-full bg-gradient-to-r from-green-500 via-blue-500 to-purple-500 transition-all duration-100 ease-out"
+          style={{
+            width: `${scrollProgress * 100}%`
+          }}
+        />
+      </div>
+      
+      <div className="pt-0 relative z-10">
         {/* Section 1: Hero Introduction */}
         <section className="relative min-h-screen flex items-center justify-center px-4 pt-0 overflow-hidden">
           {/* Scrolling Ticker Background */}
@@ -2743,7 +3048,7 @@ export default function OutperformingIndex() {
             </div>
           )}
 
-          <div className="text-center max-w-4xl relative z-10">
+          <div className="text-center max-w-4xl relative z-10 bg-white/90 backdrop-blur-md rounded-2xl p-8 shadow-2xl">
             <div className="mb-8">
               <div className="inline-flex items-center justify-center gap-4 mb-6">
                 <div className="w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -2818,7 +3123,7 @@ export default function OutperformingIndex() {
         {/* Section 2: The Allure of Stock Picking */}
         <section id="comparison-section" className="min-h-screen flex items-center justify-center px-4 pt-32">
           <div className="max-w-6xl w-full">
-            <div className="text-center mb-12">
+            <div className="text-center mb-12 bg-white/90 backdrop-blur-md rounded-xl p-6 shadow-lg">
               <h2 className="text-4xl font-bold text-gray-900 mb-6 mt-16">The Allure of Stock Picking</h2>
               <p className="text-xl text-gray-600 mb-8">
                 Imagine you had perfect foresight. You invest in NVIDIA in{" "}
@@ -2845,7 +3150,7 @@ export default function OutperformingIndex() {
                 </p>
               </div>
             </div>
-            <Card className="p-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:border-blue-200">
+            <Card className="p-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:border-blue-200 bg-white/95 backdrop-blur-sm">
               <CardContent>
                 {isLoading ? (
                   <div className="w-full h-[400px] bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
@@ -2874,11 +3179,11 @@ export default function OutperformingIndex() {
           </div>
         </section>
 
-      {/* Section 3: The Harsh Reality */}
-      <section className="min-h-screen flex items-center justify-center px-4 pt-32 bg-gray-50">
-        <div className="max-w-6xl w-full">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-6 mt-16">📉 The Harsh Reality</h2>
+              {/* Section 3: The Harsh Reality */}
+        <section className="min-h-screen flex items-center justify-center px-4 pt-32">
+                  <div className="max-w-6xl w-full">
+            <div className="text-center mb-12 bg-white/90 backdrop-blur-md rounded-xl p-6 shadow-lg">
+              <h2 className="text-4xl font-bold text-gray-900 mb-6 mt-16">📉 The Harsh Reality</h2>
             <p className="text-xl text-gray-600 mb-8">
               But here's the catch: most stocks don't beat the market. In fact, our data shows that{" "}
               {(() => {
@@ -2892,7 +3197,7 @@ export default function OutperformingIndex() {
               </p>
             </div>
           </div>
-          <Card className="p-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:border-blue-200">
+                      <Card className="p-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:border-blue-200 bg-white/95 backdrop-blur-sm">
             <CardContent>
               {isLoading ? (
                 <div className="w-full h-[400px] bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
@@ -2961,7 +3266,7 @@ export default function OutperformingIndex() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <Card className="p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:border-green-200">
+              <Card className="p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:border-green-200 bg-white/95 backdrop-blur-sm">
                 <CardContent>
                   <h3 className="text-xl font-semibold mb-4">Stock Picker</h3>
                   <div className="space-y-4">
@@ -3078,7 +3383,7 @@ export default function OutperformingIndex() {
                 </CardContent>
               </Card>
 
-              <Card className="p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:border-blue-200">
+              <Card className="p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:border-blue-200 bg-white/95 backdrop-blur-sm">
                 <CardContent>
                   <h3 className="text-xl font-semibold mb-4">Portfolio Allocation</h3>
                   <div className="space-y-4">
@@ -3250,7 +3555,7 @@ export default function OutperformingIndex() {
         </section>
 
         {/* Section 5: The Bigger Picture */}
-        <section className="min-h-screen flex items-center justify-center px-4 pt-32 bg-gray-50">
+        <section className="min-h-screen flex items-center justify-center px-4 pt-32">
           <div className="max-w-6xl w-full">
             <div className="text-center mb-12">
               <h2 className="text-4xl font-bold text-gray-900 mb-6 mt-16">🌳 The Bigger Picture</h2>
@@ -3265,7 +3570,7 @@ export default function OutperformingIndex() {
               </div>
             </div>
 
-            <Card className="p-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:border-indigo-200">
+            <Card className="p-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:border-indigo-200 bg-white/95 backdrop-blur-sm">
               <CardContent>
                 {isLoading ? (
                   <div className="w-full h-[500px] bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
@@ -3319,7 +3624,7 @@ export default function OutperformingIndex() {
         </section>
 
         {/* Section 6: Behavioral Finance */}
-        <section className="min-h-screen py-16 px-4 pt-40 bg-gray-50">
+        <section className="min-h-screen py-16 px-4 pt-40">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-4xl font-bold text-gray-900 mb-6 mt-20">🧠 Why We Still Try to Beat the Market</h2>
@@ -3339,7 +3644,7 @@ export default function OutperformingIndex() {
                 </p>
               </div>
               
-              <Card className="p-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:border-yellow-200">
+              <Card className="p-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:border-yellow-200 bg-white/95 backdrop-blur-sm">
                 <CardContent>
                   <div className="text-center mb-4">
                     <h4 className="text-xl font-semibold">Two Portfolios, Same 8% Annual Return</h4>
@@ -3371,7 +3676,7 @@ export default function OutperformingIndex() {
                 </p>
               </div>
               
-              <Card className="p-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:border-orange-200">
+              <Card className="p-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:border-orange-200 bg-white/95 backdrop-blur-sm">
                 <CardContent>
                   <div className="text-center mb-6">
                     <h4 className="text-xl font-semibold">Quick Knowledge Check</h4>
@@ -3450,7 +3755,7 @@ export default function OutperformingIndex() {
                 </p>
               </div>
               
-              <Card className="p-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:border-purple-200">
+              <Card className="p-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:border-purple-200 bg-white/95 backdrop-blur-sm">
                 <CardContent>
                   <div className="text-center mb-6">
                     <h4 className="text-xl font-semibold">The Holdout Test</h4>
@@ -3543,8 +3848,8 @@ export default function OutperformingIndex() {
         </section>
 
         {/* Section 7: The Lesson */}
-        <section className="min-h-screen flex items-center justify-center px-4 pt-32 bg-gray-900 text-white">
-          <div className="max-w-4xl text-center">
+        <section className="min-h-screen flex items-center justify-center px-4 pt-32 text-white">
+          <div className="max-w-4xl text-center bg-gray-900/90 backdrop-blur-md rounded-2xl p-8 shadow-2xl">
             <h2 className="text-4xl font-bold mb-6 mt-16">The Lesson</h2>
             <p className="text-xl mb-8 text-gray-300">
               You don't need to predict the future. You just need to own it. Index funds don't rely on luck. 
