@@ -9,6 +9,7 @@ import { TrendingUp, TrendingDown, Search, ExternalLink, ChevronDown } from "luc
 import * as d3 from "d3"
 import Link from "next/link"
 import { getDataPath } from "@/lib/config"
+import { CountUp } from "countup.js"
 
 interface StockData {
   date: string
@@ -119,6 +120,15 @@ export default function OutperformingIndex() {
   const hindsightChartRef = useRef<HTMLDivElement>(null)
   const treemapRef = useRef<HTMLDivElement>(null)
   const pieChartRef = useRef<HTMLDivElement>(null)
+
+  // Refs for animated counting numbers
+  const underperformanceRef = useRef<HTMLSpanElement>(null)
+  const sp500ReturnRef = useRef<HTMLSpanElement>(null)
+  const outperformanceRef = useRef<HTMLSpanElement>(null)
+  const portfolioReturnValueRef = useRef<HTMLSpanElement>(null)
+  const sp500ReturnValueRef = useRef<HTMLSpanElement>(null)
+  const differenceValueRef = useRef<HTMLSpanElement>(null)
+  const totalPortfolioValueRef = useRef<HTMLSpanElement>(null)
 
   // Helper function to get date range from data
   const getDataDateRange = () => {
@@ -295,6 +305,183 @@ export default function OutperformingIndex() {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+    // Animate harsh reality statistics when they come into view
+  useEffect(() => {
+    if (!comparisonData || isLoading) return
+
+    const underperformancePercentage = getUnderperformancePercentage()
+    const sp500AnnualizedReturn = comparisonData.sp500.metrics.annualizedReturn * 100
+    const outperformancePercentage = underperformancePercentage ? 100 - underperformancePercentage : 0
+
+    // Create intersection observer to trigger animations when elements come into view
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const target = entry.target as HTMLElement
+            
+            // Animate underperformance percentage
+            if (target === underperformanceRef.current && underperformancePercentage !== null) {
+              const countUp1 = new CountUp(target, underperformancePercentage, {
+                duration: 2,
+                suffix: '%',
+                useEasing: true,
+                useGrouping: false
+              })
+              countUp1.start()
+              observer.unobserve(target) // Only animate once
+            }
+
+            // Animate S&P 500 return
+            if (target === sp500ReturnRef.current) {
+              const countUp2 = new CountUp(target, sp500AnnualizedReturn, {
+                duration: 2,
+                suffix: '%',
+                useEasing: true,
+                useGrouping: false,
+                decimalPlaces: 1
+              })
+              countUp2.start()
+              observer.unobserve(target) // Only animate once
+            }
+
+            // Animate outperformance percentage
+            if (target === outperformanceRef.current) {
+              const countUp3 = new CountUp(target, outperformancePercentage, {
+                duration: 2,
+                suffix: '%',
+                useEasing: true,
+                useGrouping: false
+              })
+              countUp3.start()
+              observer.unobserve(target) // Only animate once
+            }
+          }
+        })
+      },
+      {
+        threshold: 0.5, // Trigger when 50% of element is visible
+        rootMargin: '0px 0px -100px 0px' // Start animation a bit before element is fully visible
+      }
+    )
+
+    // Observe all the elements
+    if (underperformanceRef.current) {
+      observer.observe(underperformanceRef.current)
+    }
+    if (sp500ReturnRef.current) {
+      observer.observe(sp500ReturnRef.current)
+    }
+    if (outperformanceRef.current) {
+      observer.observe(outperformanceRef.current)
+    }
+
+    // Cleanup observer on unmount
+    return () => {
+      observer.disconnect()
+    }
+  }, [comparisonData, isLoading])
+
+  // Animate portfolio results when calculated and when they come into view
+  useEffect(() => {
+    if (!isCalculated) return
+
+    const difference = portfolioReturn - sp500Return
+    const totalValue = (() => {
+      if (isCalculated) {
+        const updatedValues = getUpdatedPortfolioValues()
+        return updatedValues.reduce((sum, stock) => sum + stock.value, 0)
+      }
+      return getTotalPortfolioValue()
+    })()
+
+    // Create intersection observer to trigger animations when elements come into view
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const target = entry.target as HTMLElement
+            
+            // Animate portfolio return
+            if (target === portfolioReturnValueRef.current) {
+              const countUp1 = new CountUp(target, portfolioReturn, {
+                duration: 2,
+                suffix: '%',
+                useEasing: true,
+                useGrouping: false,
+                decimalPlaces: 2
+              })
+              countUp1.start()
+              observer.unobserve(target) // Only animate once
+            }
+
+            // Animate S&P 500 return
+            if (target === sp500ReturnValueRef.current) {
+              const countUp2 = new CountUp(target, sp500Return, {
+                duration: 2,
+                suffix: '%',
+                useEasing: true,
+                useGrouping: false,
+                decimalPlaces: 2
+              })
+              countUp2.start()
+              observer.unobserve(target) // Only animate once
+            }
+
+            // Animate difference
+            if (target === differenceValueRef.current) {
+              const countUp3 = new CountUp(target, difference, {
+                duration: 2,
+                suffix: '%',
+                useEasing: true,
+                useGrouping: false,
+                decimalPlaces: 2
+              })
+              countUp3.start()
+              observer.unobserve(target) // Only animate once
+            }
+
+            // Animate total portfolio value
+            if (target === totalPortfolioValueRef.current) {
+              const countUp4 = new CountUp(target, totalValue, {
+                duration: 2,
+                prefix: '$',
+                useEasing: true,
+                useGrouping: true,
+                decimalPlaces: 0
+              })
+              countUp4.start()
+              observer.unobserve(target) // Only animate once
+            }
+          }
+        })
+      },
+      {
+        threshold: 0.3, // Trigger when 30% of element is visible (earlier for results section)
+        rootMargin: '0px 0px -50px 0px' // Start animation a bit before element is fully visible
+      }
+    )
+
+    // Observe all the portfolio result elements
+    if (portfolioReturnValueRef.current) {
+      observer.observe(portfolioReturnValueRef.current)
+    }
+    if (sp500ReturnValueRef.current) {
+      observer.observe(sp500ReturnValueRef.current)
+    }
+    if (differenceValueRef.current) {
+      observer.observe(differenceValueRef.current)
+    }
+    if (totalPortfolioValueRef.current) {
+      observer.observe(totalPortfolioValueRef.current)
+    }
+
+    // Cleanup observer on unmount or when isCalculated changes
+    return () => {
+      observer.disconnect()
+    }
+  }, [isCalculated, portfolioReturn, sp500Return])
 
   // Handle clicking outside search results
   useEffect(() => {
@@ -2717,23 +2904,31 @@ export default function OutperformingIndex() {
                   <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="text-center p-4 bg-red-50 rounded-lg transition-all duration-200 hover:bg-red-100 hover:scale-105">
                       <div className="text-2xl font-bold text-red-600">
-                        {comparisonData
-                          ? `${getUnderperformancePercentage()}%`
-                          : "--"}
+                        {comparisonData ? (
+                          <span ref={underperformanceRef}>--</span>
+                        ) : (
+                          "--"
+                        )}
                       </div>
                       <div className="text-sm text-gray-600">Underperformed S&P 500</div>
                     </div>
                     <div className="text-center p-4 bg-blue-50 rounded-lg transition-all duration-200 hover:bg-blue-100 hover:scale-105">
                       <div className="text-2xl font-bold text-blue-600">
-                        {comparisonData ? `${(comparisonData.sp500.metrics.annualizedReturn * 100).toFixed(1)}%` : "--"}
+                        {comparisonData ? (
+                          <span ref={sp500ReturnRef}>--</span>
+                        ) : (
+                          "--"
+                        )}
                       </div>
                       <div className="text-sm text-gray-600">S&P 500 Annualized Return</div>
                     </div>
                     <div className="text-center p-4 bg-green-50 rounded-lg transition-all duration-200 hover:bg-green-100 hover:scale-105">
                       <div className="text-2xl font-bold text-green-600">
-                        {comparisonData
-                          ? `${100 - (getUnderperformancePercentage() || 0)}%`
-                          : "--"}
+                        {comparisonData ? (
+                          <span ref={outperformanceRef}>--</span>
+                        ) : (
+                          "--"
+                        )}
                       </div>
                       <div className="text-sm text-gray-600">Outperformed S&P 500</div>
                     </div>
@@ -2907,13 +3102,15 @@ export default function OutperformingIndex() {
                           <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg transition-all duration-300 hover:bg-blue-100 hover:scale-105 hover:shadow-md cursor-pointer">
                             <span className="font-medium">Total Portfolio Value</span>
                             <span className="font-bold text-blue-600">
-                              ${(() => {
-                                if (isCalculated) {
-                                  const updatedValues = getUpdatedPortfolioValues()
-                                  return updatedValues.reduce((sum, stock) => sum + stock.value, 0).toLocaleString()
-                                }
-                                return getTotalPortfolioValue().toLocaleString()
-                              })()}
+                              <span ref={totalPortfolioValueRef}>
+                                ${(() => {
+                                  if (isCalculated) {
+                                    const updatedValues = getUpdatedPortfolioValues()
+                                    return updatedValues.reduce((sum, stock) => sum + stock.value, 0).toLocaleString()
+                                  }
+                                  return getTotalPortfolioValue().toLocaleString()
+                                })()}
+                              </span>
                             </span>
                           </div>
                           <div className="text-sm text-gray-600 text-center">
@@ -2997,11 +3194,15 @@ export default function OutperformingIndex() {
                                                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                               <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg transition-all duration-200 hover:bg-green-100 hover:scale-105 cursor-pointer">
                                 <span>Your Portfolio Return</span>
-                                <span className="font-bold text-green-600">{portfolioReturn.toFixed(2)}%</span>
+                                <span className="font-bold text-green-600">
+                                  <span ref={portfolioReturnValueRef}>--</span>
+                                </span>
                               </div>
                               <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg transition-all duration-200 hover:bg-blue-100 hover:scale-105 cursor-pointer">
                                 <span>S&P 500 Return</span>
-                                <span className="font-bold text-blue-600">{sp500Return.toFixed(2)}%</span>
+                                <span className="font-bold text-blue-600">
+                                  <span ref={sp500ReturnValueRef}>--</span>
+                                </span>
                               </div>
                               <div className={`flex justify-between items-center p-3 rounded-lg transition-all duration-200 hover:scale-105 cursor-pointer ${
                                 portfolioReturn > sp500Return 
@@ -3010,7 +3211,7 @@ export default function OutperformingIndex() {
                               }`}>
                                 <span>Difference</span>
                                 <span className={`font-bold ${portfolioReturn > sp500Return ? 'text-green-600' : 'text-red-600'}`}>
-                                  {(portfolioReturn - sp500Return).toFixed(2)}%
+                                  <span ref={differenceValueRef}>--</span>
                                 </span>
                               </div>
                             </div>
