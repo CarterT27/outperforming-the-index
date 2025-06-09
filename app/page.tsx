@@ -195,12 +195,11 @@ export default function OutperformingIndex() {
     setIsCalculated(false)
   }, [portfolioStocks])
 
-  // Hide scroll arrow when user starts scrolling
+  // Show scroll arrow only when at the very top of the page
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 50) {
-        setShowScrollArrow(false)
-      }
+      // Show arrow only when at the very top (within 10px to account for small variations)
+      setShowScrollArrow(window.scrollY < 10)
     }
 
     window.addEventListener('scroll', handleScroll)
