@@ -2628,10 +2628,10 @@ export default function OutperformingIndex() {
         </section>
 
         {/* Section 2: The Allure of Stock Picking */}
-        <section id="comparison-section" className="min-h-screen flex items-center justify-center px-4">
+        <section id="comparison-section" className="min-h-screen flex items-center justify-center px-4 pt-32">
           <div className="max-w-6xl w-full">
             <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">The Allure of Stock Picking</h2>
+              <h2 className="text-4xl font-bold text-gray-900 mb-6 mt-16">The Allure of Stock Picking</h2>
               <p className="text-xl text-gray-600 mb-8">
                 Imagine you had perfect foresight. You invest in NVIDIA in{" "}
                 {(() => {
@@ -2687,10 +2687,10 @@ export default function OutperformingIndex() {
         </section>
 
       {/* Section 3: The Harsh Reality */}
-      <section className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
+      <section className="min-h-screen flex items-center justify-center px-4 pt-32 bg-gray-50">
         <div className="max-w-6xl w-full">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">📉 The Harsh Reality</h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-6 mt-16">📉 The Harsh Reality</h2>
             <p className="text-xl text-gray-600 mb-8">
               But here's the catch: most stocks don't beat the market. In fact, our data shows that{" "}
               {(() => {
@@ -2746,10 +2746,10 @@ export default function OutperformingIndex() {
       </section>
 
         {/* Section 4: Try Your Luck */}
-        <section className="min-h-screen flex items-center justify-center px-4 pt-32">
+        <section className="min-h-screen flex items-center justify-center px-4 pt-40">
           <div className="max-w-6xl w-full">
             <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">🎯 Try Your Luck</h2>
+              <h2 className="text-4xl font-bold text-gray-900 mb-6 mt-20">🎯 Try Your Luck</h2>
               <p className="text-xl text-gray-600 mb-8">
                 Think you can beat the odds? Pick any stock and see how it would've performed from{" "}
                 {(() => {
@@ -3044,10 +3044,10 @@ export default function OutperformingIndex() {
         </section>
 
         {/* Section 5: The Bigger Picture */}
-        <section className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
+        <section className="min-h-screen flex items-center justify-center px-4 pt-32 bg-gray-50">
           <div className="max-w-6xl w-full">
             <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">🌳 The Bigger Picture</h2>
+              <h2 className="text-4xl font-bold text-gray-900 mb-6 mt-16">🌳 The Bigger Picture</h2>
               <p className="text-xl text-gray-600 mb-8">
                 The market is a complex ecosystem — made up of diverse sectors and thousands of companies. 
                 Some thrive. Most don't.
@@ -3113,10 +3113,10 @@ export default function OutperformingIndex() {
         </section>
 
         {/* Section 6: Behavioral Finance */}
-        <section className="min-h-screen py-16 px-4 bg-gray-50">
+        <section className="min-h-screen py-16 px-4 pt-40 bg-gray-50">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">🧠 Why We Still Try to Beat the Market</h2>
+              <h2 className="text-4xl font-bold text-gray-900 mb-6 mt-20">🧠 Why We Still Try to Beat the Market</h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
                 Even with the data staring us in the face, many investors still try to pick the next big winner. Why?
                 Behavioral finance reveals the hidden biases that lead us astray.
@@ -3126,7 +3126,7 @@ export default function OutperformingIndex() {
             {/* Loss Aversion */}
             <div className="mb-16">
               <div className="text-center mb-8">
-                <h3 className="text-3xl font-bold text-gray-900 mb-4">📉 Loss Aversion</h3>
+                <h3 className="text-3xl font-bold text-gray-900 mb-4 mt-8">📉 Loss Aversion</h3>
                 <p className="text-lg text-gray-600 max-w-2xl mx-auto">
                   We feel the pain of losses twice as strongly as the joy of gains.
                   This leads to overly conservative behavior after losses — or holding losers too long, hoping they'll rebound.
@@ -3159,7 +3159,7 @@ export default function OutperformingIndex() {
             {/* Overconfidence Bias */}
             <div className="mb-16">
               <div className="text-center mb-8">
-                <h3 className="text-3xl font-bold text-gray-900 mb-4">🚀 Overconfidence Bias</h3>
+                <h3 className="text-3xl font-bold text-gray-900 mb-4 mt-8">🚀 Overconfidence Bias</h3>
                 <p className="text-lg text-gray-600 max-w-2xl mx-auto">
                   Most investors believe they're above average. But in investing, confidence without accuracy is costly.
                 </p>
@@ -3237,7 +3237,7 @@ export default function OutperformingIndex() {
             {/* Hindsight Bias */}
             <div className="mb-16">
               <div className="text-center mb-8">
-                <h3 className="text-3xl font-bold text-gray-900 mb-4">🔮 Hindsight Bias</h3>
+                <h3 className="text-3xl font-bold text-gray-900 mb-4 mt-8">🔮 Hindsight Bias</h3>
                 <p className="text-lg text-gray-600 max-w-2xl mx-auto">
                   "Of course that stock was going to win — the trend was so obvious!"
                   But was it really predictable, or are you just seeing patterns after the fact?
@@ -3337,9 +3337,9 @@ export default function OutperformingIndex() {
         </section>
 
         {/* Section 7: The Lesson */}
-        <section className="min-h-screen flex items-center justify-center px-4 bg-gray-900 text-white">
+        <section className="min-h-screen flex items-center justify-center px-4 pt-32 bg-gray-900 text-white">
           <div className="max-w-4xl text-center">
-            <h2 className="text-4xl font-bold mb-6">The Lesson</h2>
+            <h2 className="text-4xl font-bold mb-6 mt-16">The Lesson</h2>
             <p className="text-xl mb-8 text-gray-300">
               You don't need to predict the future. You just need to own it. Index funds don't rely on luck. 
               They own the entire market, capturing every NVIDIA and weathering every disappointment.
