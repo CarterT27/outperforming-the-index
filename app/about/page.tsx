@@ -9,13 +9,13 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-green-600 border-b border-green-700">
+      <header className="bg-blue-600 border-b border-blue-700">
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col items-center text-center">
             <h1 className="text-2xl font-bold text-black mb-2">
               The Illusion of Outperformance: What Looks Like a Win, Rarely Lasts
             </h1>
-            <p className="text-sm text-green-100 font-semibold">
+            <p className="text-sm text-blue-100 font-semibold">
               By Carter Tran, April Huang, and Cheryl Xiang
             </p>
           </div>
