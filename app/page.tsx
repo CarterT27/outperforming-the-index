@@ -3364,17 +3364,31 @@ export default function OutperformingIndex() {
         {/* Footer with dataset reference */}
         <footer className="border-t mt-8 py-6">
           <div className="container mx-auto px-4">
-            <div className="flex items-center justify-center text-sm text-muted-foreground">
-              <span>Data source: </span>
-              <a
-                href="https://www.kaggle.com/datasets/andrewmvd/sp-500-stocks/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 ml-1 text-primary hover:underline"
-              >
-                S&P 500 Stocks Dataset
-                <ExternalLink className="h-3 w-3" />
-              </a>
+            <div className="flex flex-col items-center gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center">
+                <span>Data source: </span>
+                <a
+                  href="https://www.kaggle.com/datasets/andrewmvd/sp-500-stocks/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 ml-1 text-primary hover:underline"
+                >
+                  S&P 500 Stocks Dataset
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+              <div className="flex items-center">
+                <span>Project repository: </span>
+                <a
+                  href="https://github.com/CarterT27/outperforming-the-index"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 ml-1 text-primary hover:underline"
+                >
+                  GitHub Repository
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
             </div>
           </div>
         </footer>
