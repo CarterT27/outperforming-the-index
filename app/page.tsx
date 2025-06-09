@@ -86,6 +86,13 @@ interface PortfolioStock {
   investment: number
 }
 
+interface PieChartData {
+  symbol: string
+  investment: number
+  originalValue: number | null | undefined
+  return: number | null | undefined
+}
+
 export default function OutperformingIndex() {
   const [selectedStocks, setSelectedStocks] = useState<string[]>([])
   const [comparisonData, setComparisonData] = useState<ComparisonData | null>(null)
@@ -101,6 +108,8 @@ export default function OutperformingIndex() {
   const [showQuizResults, setShowQuizResults] = useState<boolean>(false)
   const [selectedCharts, setSelectedCharts] = useState<number[]>([])
   const [showChartResults, setShowChartResults] = useState<boolean>(false)
+  const [searchQuery, setSearchQuery] = useState<string>("")
+  const [showSearchResults, setShowSearchResults] = useState<boolean>(false)
 
   const chartRef = useRef<HTMLDivElement>(null)
   const histogramRef = useRef<HTMLDivElement>(null)
@@ -108,6 +117,7 @@ export default function OutperformingIndex() {
   const lossAversionRef = useRef<HTMLDivElement>(null)
   const hindsightChartRef = useRef<HTMLDivElement>(null)
   const treemapRef = useRef<HTMLDivElement>(null)
+  const pieChartRef = useRef<HTMLDivElement>(null)
 
   // Helper function to get date range from data
   const getDataDateRange = () => {
@@ -232,15 +242,16 @@ export default function OutperformingIndex() {
         return
       }
 
+      const investment = stock.investment || 100 // Treat empty as $100
       const stockReturn = stockInfo.metrics.totalReturn
       console.log(`Using pre-calculated return for ${stock.symbol}:`, {
         totalReturn: stockReturn,
         annualizedReturn: stockInfo.metrics.annualizedReturn,
-        investment: stock.investment
+        investment: investment
       })
 
-      totalInvestment += stock.investment
-      weightedReturn += stockReturn * stock.investment
+      totalInvestment += investment
+      weightedReturn += stockReturn * investment
     })
 
     // Calculate S&P 500 return using pre-calculated metrics
@@ -284,6 +295,19 @@ export default function OutperformingIndex() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  // Handle clicking outside search results
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element
+      if (!target.closest('.search-container')) {
+        setShowSearchResults(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
   const updateInvestment = (symbol: string, investment: number) => {
     setPortfolioStocks(prev => {
       const existing = prev.find(s => s.symbol === symbol)
@@ -292,6 +316,81 @@ export default function OutperformingIndex() {
       }
       return [...prev, { symbol, investment }]
     })
+  }
+
+  // Get all available stock symbols for search
+  const getAvailableStocks = () => {
+    if (!comparisonData) return []
+    return Object.entries(comparisonData.stocks).map(([symbol, data]) => ({
+      symbol,
+      name: data.name,
+      sector: data.sector
+    })).sort((a, b) => a.symbol.localeCompare(b.symbol))
+  }
+
+  // Filter stocks based on search query
+  const getFilteredStocks = () => {
+    const availableStocks = getAvailableStocks()
+    if (!searchQuery.trim()) return availableStocks.slice(0, 10) // Show first 10 if no search
+    
+    return availableStocks.filter(stock => 
+      stock.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      stock.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      stock.sector.toLowerCase().includes(searchQuery.toLowerCase())
+    ).slice(0, 20) // Limit to 20 results
+  }
+
+  // Add stock to portfolio
+  const addStockToPortfolio = (symbol: string) => {
+    const existing = portfolioStocks.find(s => s.symbol === symbol)
+    if (!existing) {
+      setPortfolioStocks(prev => [...prev, { symbol, investment: 100 }]) // Default to $100
+    }
+    setSearchQuery("")
+    setShowSearchResults(false)
+  }
+
+  // Remove stock from portfolio
+  const removeStockFromPortfolio = (symbol: string) => {
+    setPortfolioStocks(prev => prev.filter(s => s.symbol !== symbol))
+  }
+
+  // Get total portfolio value
+  const getTotalPortfolioValue = () => {
+    return portfolioStocks.reduce((total, stock) => total + (stock.investment || 100), 0)
+  }
+
+  // Get consistent color for a stock symbol
+  const getStockColor = (symbol: string, allSymbols: string[]) => {
+    const sortedSymbols = [...allSymbols].sort() // Ensure consistent order
+    const colorScale = d3.scaleOrdinal(d3.schemeCategory10).domain(sortedSymbols)
+    return colorScale(symbol)
+  }
+
+  // Calculate updated portfolio values after returns
+  const getUpdatedPortfolioValues = () => {
+    if (!comparisonData || !isCalculated) return []
+    
+    return portfolioStocks
+      .map(stock => {
+        const stockInfo = comparisonData.stocks[stock.symbol]
+        const investment = stock.investment || 100 // Treat empty as $100
+        if (!stockInfo) return { 
+          symbol: stock.symbol, 
+          value: investment,
+          originalValue: investment,
+          return: 0
+        }
+        
+        const totalReturn = stockInfo.metrics.totalReturn
+        const updatedValue = investment * (1 + totalReturn)
+        return {
+          symbol: stock.symbol,
+          value: updatedValue,
+          originalValue: investment,
+          return: totalReturn
+        }
+      })
   }
 
   // Key events data
@@ -1757,6 +1856,178 @@ export default function OutperformingIndex() {
       .style("opacity", 1)
   }
 
+  const drawPieChart = () => {
+    if (!pieChartRef.current || portfolioStocks.length === 0) return
+
+    // Clear previous chart
+    d3.select(pieChartRef.current).selectAll("*").remove()
+
+    const width = pieChartRef.current.offsetWidth
+    const height = 300
+    const margin = 40
+    const radius = Math.min(width, height) / 2 - margin
+
+    const svg = d3
+      .select(pieChartRef.current)
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height)
+
+    const g = svg.append("g")
+      .attr("transform", `translate(${width / 2}, ${height / 2})`)
+
+    // Get all symbols for consistent colors
+    const allSymbols = portfolioStocks.map(s => s.symbol)
+
+    // Pie generator
+    const pie = d3.pie<PieChartData>()
+      .value(d => d.investment)
+      .sort(null)
+
+    // Arc generator
+    const arc = d3.arc<d3.PieArcDatum<PortfolioStock>>()
+      .innerRadius(0)
+      .outerRadius(radius)
+
+    // Label arc
+    const labelArc = d3.arc<d3.PieArcDatum<PortfolioStock>>()
+      .innerRadius(radius * 0.6)
+      .outerRadius(radius * 0.6)
+
+    // Generate the pie data - use updated values if calculated, otherwise use original investments
+    let portfolioData, pieTotal, isShowingReturns
+    
+    if (isCalculated) {
+      // Show updated values after returns
+      const updatedValues = getUpdatedPortfolioValues()
+      portfolioData = updatedValues.map(stock => ({
+        symbol: stock.symbol,
+        investment: stock.value,
+        originalValue: stock.originalValue || null,
+        return: stock.return || null
+      }))
+      pieTotal = updatedValues.reduce((sum, stock) => sum + stock.value, 0)
+      isShowingReturns = true
+    } else {
+      // Show original investment amounts
+      portfolioData = portfolioStocks.map(stock => ({
+        symbol: stock.symbol,
+        investment: stock.investment || 100,
+        originalValue: null,
+        return: null
+      }))
+      pieTotal = getTotalPortfolioValue()
+      isShowingReturns = false
+    }
+    
+    const pieData = pie(portfolioData)
+
+    // Create tooltip
+    const tooltip = d3.select("body")
+      .append("div")
+      .attr("class", "pie-tooltip")
+      .style("position", "absolute")
+      .style("visibility", "hidden")
+      .style("background", "rgba(0, 0, 0, 0.8)")
+      .style("color", "white")
+      .style("padding", "8px 12px")
+      .style("border-radius", "4px")
+      .style("font-size", "12px")
+      .style("pointer-events", "none")
+      .style("z-index", "1000")
+
+    // Add pie slices
+    const slices = g.selectAll(".arc")
+      .data(pieData)
+      .enter().append("g")
+      .attr("class", "arc")
+
+    slices.append("path")
+      .attr("d", arc)
+      .style("fill", d => getStockColor(d.data.symbol, allSymbols))
+      .style("stroke", "white")
+      .style("stroke-width", "2px")
+      .style("opacity", 0.8)
+      .on("mouseover", function(event, d) {
+        d3.select(this).style("opacity", 1)
+        const percentage = ((d.data.investment / pieTotal) * 100).toFixed(1)
+        
+        let tooltipContent = `
+          <div><strong>${d.data.symbol}</strong></div>
+          <div>$${d.data.investment.toLocaleString()}</div>
+          <div>${percentage}% of portfolio</div>
+        `
+        
+        if (isShowingReturns && d.data.originalValue && d.data.return !== null && d.data.return !== undefined) {
+          const returnPct = (d.data.return * 100).toFixed(1)
+          const gain = d.data.investment - d.data.originalValue
+          tooltipContent = `
+            <div><strong>${d.data.symbol}</strong></div>
+            <div>Original: $${d.data.originalValue.toLocaleString()}</div>
+            <div>Current: $${d.data.investment.toLocaleString()}</div>
+            <div>Return: ${returnPct}% (${gain >= 0 ? '+' : ''}$${gain.toLocaleString()})</div>
+            <div>${percentage}% of portfolio</div>
+          `
+        }
+        
+        tooltip
+          .style("visibility", "visible")
+          .html(tooltipContent)
+          .style("left", event.pageX + 10 + "px")
+          .style("top", event.pageY - 10 + "px")
+      })
+      .on("mouseout", function() {
+        d3.select(this).style("opacity", 0.8)
+        tooltip.style("visibility", "hidden")
+      })
+      .transition()
+      .duration(1000)
+      .attrTween("d", function(d: any) {
+        const interpolate = d3.interpolate({ startAngle: 0, endAngle: 0 }, d)
+        return function(t: number) {
+          return arc(interpolate(t)) || ""
+        }
+      })
+
+    // Add labels for larger slices
+    slices.append("text")
+      .attr("transform", d => `translate(${labelArc.centroid(d)})`)
+      .attr("dy", "0.35em")
+      .style("text-anchor", "middle")
+      .style("font-size", "11px")
+      .style("font-weight", "bold")
+      .style("fill", "white")
+      .style("text-shadow", "1px 1px 2px rgba(0,0,0,0.7)")
+      .text(d => {
+        const percentage = (d.data.investment / pieTotal) * 100
+        return percentage > 8 ? d.data.symbol : "" // Only show label if slice is > 8%
+      })
+      .style("opacity", 0)
+      .transition()
+      .delay(500)
+      .duration(500)
+      .style("opacity", 1)
+
+    // Add center text showing total
+    g.append("text")
+      .attr("text-anchor", "middle")
+      .attr("dy", "-0.5em")
+      .style("font-size", "14px")
+      .style("font-weight", "bold")
+      .style("fill", "#333")
+      .text(isShowingReturns ? "After Returns" : "Portfolio")
+
+    g.append("text")
+      .attr("text-anchor", "middle")
+      .attr("dy", "1em")
+      .style("font-size", "18px")
+      .style("font-weight", "bold")
+      .style("fill", "#333")
+      .text(`$${pieTotal.toLocaleString()}`)
+  }
+
+
+
   // Draw charts on mount and resize
   useEffect(() => {
     const drawCharts = () => {
@@ -1765,6 +2036,7 @@ export default function OutperformingIndex() {
       drawTreemap()
       drawLossAversionChart()
       drawHindsightCharts()
+      drawPieChart()
       if (isCalculated) {
         drawPortfolioChart()
       }
@@ -1779,18 +2051,11 @@ export default function OutperformingIndex() {
       d3.selectAll(".histogram-tooltip").remove() 
       d3.selectAll(".event-tooltip").remove()
       d3.selectAll(".treemap-tooltip").remove()
+      d3.selectAll(".pie-tooltip").remove()
     }
-  }, [nvidiaComparisonData, isCalculated, portfolioReturn, sp500Return, comparisonData, hindsightStocksData, selectedCharts, showChartResults])
+  }, [nvidiaComparisonData, isCalculated, portfolioReturn, sp500Return, comparisonData, hindsightStocksData, selectedCharts, showChartResults, portfolioStocks])
 
-  const addStock = (stock: string) => {
-    if (!selectedStocks.includes(stock) && selectedStocks.length < 5) {
-      setSelectedStocks([...selectedStocks, stock])
-    }
-  }
 
-  const removeStock = (stock: string) => {
-    setSelectedStocks(selectedStocks.filter((s) => s !== stock))
-  }
 
   // Quiz questions and answers for overconfidence bias
   interface QuizQuestion {
@@ -2455,50 +2720,106 @@ export default function OutperformingIndex() {
                 <CardContent>
                   <h3 className="text-xl font-semibold mb-4">Stock Picker</h3>
                   <div className="space-y-4">
-                    <div className="space-y-4">
-                      {selectedStocks.length === 0 ? (
-                        <div className="text-center p-4 text-gray-500">
-                          Select a stock to begin
+                    {/* Search Bar */}
+                    <div className="relative search-container">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <Input
+                          type="text"
+                          placeholder="Search stocks by symbol, name, or sector..."
+                          value={searchQuery}
+                          onChange={(e) => {
+                            setSearchQuery(e.target.value)
+                            setShowSearchResults(e.target.value.length > 0)
+                          }}
+                          onFocus={() => setShowSearchResults(searchQuery.length > 0)}
+                          className="pl-10"
+                        />
+                      </div>
+                      
+                      {/* Search Results Dropdown */}
+                      {showSearchResults && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                          {getFilteredStocks().map((stock) => {
+                            const isAlreadySelected = portfolioStocks.some(p => p.symbol === stock.symbol)
+                            return (
+                              <div
+                                key={stock.symbol}
+                                className={`px-4 py-2 cursor-pointer hover:bg-gray-50 ${
+                                  isAlreadySelected ? 'bg-gray-100 text-gray-500' : ''
+                                }`}
+                                onClick={() => !isAlreadySelected && addStockToPortfolio(stock.symbol)}
+                              >
+                                <div className="flex justify-between items-center">
+                                  <div>
+                                    <div className="font-semibold">{stock.symbol}</div>
+                                    <div className="text-sm text-gray-600">{stock.name}</div>
+                                  </div>
+                                  <div className="text-xs text-gray-500">{stock.sector}</div>
+                                </div>
+                                {isAlreadySelected && (
+                                  <div className="text-xs text-gray-400 mt-1">Already selected</div>
+                                )}
+                              </div>
+                            )
+                          })}
+                          {getFilteredStocks().length === 0 && (
+                            <div className="px-4 py-2 text-gray-500 text-center">No stocks found</div>
+                          )}
                         </div>
-                      ) : (
-                        selectedStocks.map((stock) => (
-                          <div key={stock} className="flex items-center justify-between gap-4">
-                            <Badge
-                              variant="secondary"
-                              className="cursor-pointer"
-                              onClick={() => removeStock(stock)}
-                            >
-                              {stock} ×
-                            </Badge>
-                            <select
-                              className="border rounded p-2"
-                              value={portfolioStocks.find(s => s.symbol === stock)?.investment || 0}
-                              onChange={(e) => updateInvestment(stock, Number(e.target.value))}
-                            >
-                              <option value="0">Select investment</option>
-                              {Array.from({ length: 21 }, (_, i) => i * 100).map((amount) => (
-                                <option key={amount} value={amount}>
-                                  ${amount}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        ))
                       )}
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2">
-                      {["AAPL", "MSFT", "INTC", "AMZN", "TSLA", "MRNA", "PFE"].map((stock) => (
-                        <Button
-                          key={stock}
-                          variant="outline"
-                          size="sm"
-                          onClick={() => addStock(stock)}
-                          disabled={selectedStocks.includes(stock)}
-                        >
-                          {stock}
-                        </Button>
-                      ))}
+                    {/* Portfolio Stocks */}
+                    <div className="space-y-3">
+                      {portfolioStocks.length === 0 ? (
+                        <div className="text-center p-6 text-gray-500 border border-dashed border-gray-200 rounded-lg">
+                          <div className="mb-2">🔍</div>
+                          <div>Search and select stocks to build your portfolio</div>
+                        </div>
+                      ) : (
+                        portfolioStocks.map((stock) => {
+                          const stockData = comparisonData?.stocks[stock.symbol]
+                          return (
+                            <div key={stock.symbol} className="border rounded-lg p-4 bg-gray-50">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="secondary">{stock.symbol}</Badge>
+                                  <span className="text-sm text-gray-600">
+                                    {stockData?.name || stock.symbol}
+                                  </span>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeStockFromPortfolio(stock.symbol)}
+                                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                >
+                                  Remove
+                                </Button>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium">Investment:</span>
+                                <div className="flex items-center gap-1">
+                                  <span className="text-sm">$</span>
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    step="100"
+                                    placeholder="100"
+                                    value={stock.investment === 0 ? "" : stock.investment}
+                                    onChange={(e) => {
+                                      const value = e.target.value === "" ? 100 : parseFloat(e.target.value) || 100
+                                      updateInvestment(stock.symbol, Math.max(0, value))
+                                    }}
+                                    className="w-24 text-sm"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })
+                      )}
                     </div>
 
                     <Button 
@@ -2514,10 +2835,104 @@ export default function OutperformingIndex() {
 
               <Card className="p-6">
                 <CardContent>
-                  <h3 className="text-xl font-semibold mb-4">Your Results</h3>
+                  <h3 className="text-xl font-semibold mb-4">Portfolio Allocation</h3>
                   <div className="space-y-4">
-                    {isCalculated ? (
+                    {portfolioStocks.length === 0 ? (
+                      <div className="text-center p-8 text-gray-500">
+                        <div className="mb-4">📊</div>
+                        <div>Add stocks and set investments to see your portfolio allocation</div>
+                      </div>
+                    ) : (
                       <>
+                        {isLoading ? (
+                          <div className="w-full h-[300px] bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
+                            <div className="text-gray-400">Loading chart...</div>
+                          </div>
+                        ) : (
+                          <div ref={pieChartRef} className="w-full border rounded-lg bg-white" />
+                        )}
+                        
+                        {/* Portfolio Summary */}
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                            <span className="font-medium">Total Portfolio Value</span>
+                            <span className="font-bold text-blue-600">
+                              ${(() => {
+                                if (isCalculated) {
+                                  const updatedValues = getUpdatedPortfolioValues()
+                                  return updatedValues.reduce((sum, stock) => sum + stock.value, 0).toLocaleString()
+                                }
+                                return getTotalPortfolioValue().toLocaleString()
+                              })()}
+                            </span>
+                          </div>
+                          <div className="text-sm text-gray-600 text-center">
+                            {portfolioStocks.length === 1 ? "1 stock selected" : `${portfolioStocks.length} stocks selected`}
+                          </div>
+                        </div>
+
+                        {/* Stock List with Percentages */}
+                        <div className="space-y-2">
+                          <h4 className="font-medium text-sm text-gray-700">Portfolio Breakdown:</h4>
+                          {(() => {
+                            if (isCalculated) {
+                              // Show updated values after returns
+                              const updatedValues = getUpdatedPortfolioValues()
+                              const totalValue = updatedValues.reduce((sum, stock) => sum + stock.value, 0)
+                              return updatedValues
+                                .sort((a, b) => b.value - a.value)
+                                .map((stock) => {
+                                  const percentage = ((stock.value / totalValue) * 100).toFixed(1)
+                                  const gain = stock.value - (stock.originalValue || 0)
+                                  const returnPct = ((stock.return || 0) * 100).toFixed(1)
+                                  return (
+                                    <div key={stock.symbol} className="flex justify-between items-center text-sm py-1">
+                                      <span className="font-medium">{stock.symbol}</span>
+                                      <div className="text-right">
+                                        <div>${stock.value.toLocaleString()}</div>
+                                        <div className="text-xs text-gray-500">
+                                          {percentage}% • {returnPct}% return
+                                        </div>
+                                        <div className={`text-xs ${gain >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                          {gain >= 0 ? '+' : ''}${gain.toLocaleString()}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )
+                                })
+                            } else {
+                              // Show original investment amounts
+                              return portfolioStocks
+                                .sort((a, b) => (b.investment || 100) - (a.investment || 100))
+                                .map((stock) => {
+                                  const investment = stock.investment || 100
+                                  const percentage = ((investment / getTotalPortfolioValue()) * 100).toFixed(1)
+                                  return (
+                                    <div key={stock.symbol} className="flex justify-between items-center text-sm py-1">
+                                      <span className="font-medium">{stock.symbol}</span>
+                                      <div className="text-right">
+                                        <div>${investment.toLocaleString()}</div>
+                                        <div className="text-xs text-gray-500">{percentage}%</div>
+                                      </div>
+                                    </div>
+                                  )
+                                })
+                            }
+                          })()}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Results Section - Only shown after calculation */}
+              {isCalculated && (
+                <div className="lg:col-span-2 mt-8">
+                  <Card className="p-6">
+                    <CardContent>
+                      <h3 className="text-xl font-semibold mb-4">Your Results</h3>
+                      <div className="space-y-4">
                         {isLoading ? (
                           <div className="w-full h-[300px] bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
                             <div className="text-gray-400">Loading portfolio data...</div>
@@ -2525,23 +2940,25 @@ export default function OutperformingIndex() {
                         ) : (
                           <>
                             <div ref={portfolioChartRef} className="w-full border rounded-lg bg-white mb-4" />
-                            <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                              <span>Your Portfolio Return</span>
-                              <span className="font-bold text-green-600">{portfolioReturn.toFixed(2)}%</span>
-                            </div>
-                            <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-                              <span>S&P 500 Return</span>
-                              <span className="font-bold text-blue-600">{sp500Return.toFixed(2)}%</span>
-                            </div>
-                            <div className={`flex justify-between items-center p-3 rounded-lg ${
-                              portfolioReturn > sp500Return 
-                                ? 'bg-gray-50' 
-                                : 'bg-red-100'
-                            }`}>
-                              <span>Difference</span>
-                              <span className={`font-bold ${portfolioReturn > sp500Return ? 'text-green-600' : 'text-red-600'}`}>
-                                {(portfolioReturn - sp500Return).toFixed(2)}%
-                              </span>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                                <span>Your Portfolio Return</span>
+                                <span className="font-bold text-green-600">{portfolioReturn.toFixed(2)}%</span>
+                              </div>
+                              <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                                <span>S&P 500 Return</span>
+                                <span className="font-bold text-blue-600">{sp500Return.toFixed(2)}%</span>
+                              </div>
+                              <div className={`flex justify-between items-center p-3 rounded-lg ${
+                                portfolioReturn > sp500Return 
+                                  ? 'bg-gray-50' 
+                                  : 'bg-red-100'
+                              }`}>
+                                <span>Difference</span>
+                                <span className={`font-bold ${portfolioReturn > sp500Return ? 'text-green-600' : 'text-red-600'}`}>
+                                  {(portfolioReturn - sp500Return).toFixed(2)}%
+                                </span>
+                              </div>
                             </div>
 
                             <div className={`mt-6 p-4 rounded-lg ${
@@ -2568,15 +2985,11 @@ export default function OutperformingIndex() {
                             </div>
                           </>
                         )}
-                      </>
-                    ) : (
-                      <div className="text-center p-8 text-gray-500">
-                        Select stocks and investment amounts, then click "Calculate Returns" to see your results
                       </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
             </div>
           </div>
         </section>
