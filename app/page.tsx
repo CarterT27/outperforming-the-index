@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -94,6 +94,13 @@ interface PieChartData {
   return: number | null | undefined
 }
 
+interface FilteredStock {
+  symbol: string
+  name: string
+  sector: string
+  searchText: string
+}
+
 export default function OutperformingIndex() {
   const [selectedStocks, setSelectedStocks] = useState<string[]>([])
   const [comparisonData, setComparisonData] = useState<ComparisonData | null>(null)
@@ -110,6 +117,7 @@ export default function OutperformingIndex() {
   const [selectedCharts, setSelectedCharts] = useState<number[]>([])
   const [showChartResults, setShowChartResults] = useState<boolean>(false)
   const [searchQuery, setSearchQuery] = useState<string>("")
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState<string>("")
   const [showSearchResults, setShowSearchResults] = useState<boolean>(false)
   const [scrollProgress, setScrollProgress] = useState<number>(0)
 
@@ -799,6 +807,15 @@ export default function OutperformingIndex() {
     }
   }, [isCalculated, portfolioReturn, sp500Return])
 
+  // Debounce search query for better performance
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery)
+    }, 200) // 200ms debounce
+
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
   // Handle clicking outside search results
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -822,27 +839,36 @@ export default function OutperformingIndex() {
     })
   }
 
-  // Get all available stock symbols for search
-  const getAvailableStocks = () => {
+  // Memoized available stocks list for better performance
+  const availableStocks = useMemo((): FilteredStock[] => {
     if (!comparisonData) return []
     return Object.entries(comparisonData.stocks).map(([symbol, data]) => ({
       symbol,
       name: data.name,
-      sector: data.sector
+      sector: data.sector,
+      // Pre-compute lowercase versions for faster searching
+      searchText: `${symbol} ${data.name} ${data.sector}`.toLowerCase()
     })).sort((a, b) => a.symbol.localeCompare(b.symbol))
-  }
+  }, [comparisonData])
 
-  // Filter stocks based on search query
-  const getFilteredStocks = () => {
-    const availableStocks = getAvailableStocks()
-    if (!searchQuery.trim()) return availableStocks.slice(0, 10) // Show first 10 if no search
+  // Optimized filtered stocks with debounced search
+  const filteredStocks = useMemo((): FilteredStock[] => {
+    if (!debouncedSearchQuery.trim()) {
+      // Show top 8 most popular stocks when no search query
+      const popularStocks = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'TSLA', 'META', 'NFLX']
+      return availableStocks
+        .filter((stock: FilteredStock) => popularStocks.includes(stock.symbol))
+        .slice(0, 8)
+    }
     
-    return availableStocks.filter(stock => 
-      stock.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      stock.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      stock.sector.toLowerCase().includes(searchQuery.toLowerCase())
-    ).slice(0, 20) // Limit to 20 results
-  }
+    const query = debouncedSearchQuery.toLowerCase()
+    const maxResults = isLowEndDevice ? 10 : 15 // Show fewer results on low-end devices
+    
+    // Fast filtering using pre-computed search text
+    return availableStocks
+      .filter((stock: FilteredStock) => stock.searchText.includes(query))
+      .slice(0, maxResults)
+  }, [availableStocks, debouncedSearchQuery, isLowEndDevice])
 
   // Add stock to portfolio
   const addStockToPortfolio = (symbol: string) => {
@@ -851,6 +877,7 @@ export default function OutperformingIndex() {
       setPortfolioStocks(prev => [...prev, { symbol, investment: 100 }]) // Default to $100
     }
     setSearchQuery("")
+    setDebouncedSearchQuery("") // Clear debounced query too
     setShowSearchResults(false)
   }
 
@@ -3387,17 +3414,23 @@ export default function OutperformingIndex() {
                           value={searchQuery}
                           onChange={(e) => {
                             setSearchQuery(e.target.value)
-                            setShowSearchResults(e.target.value.length > 0)
+                            setShowSearchResults(e.target.value.length > 0 || !e.target.value.trim())
                           }}
-                          onFocus={() => setShowSearchResults(searchQuery.length > 0)}
+                          onFocus={() => setShowSearchResults(true)}
                           className="pl-10"
                         />
                       </div>
                       
                       {/* Search Results Dropdown */}
                       {showSearchResults && (
-                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                          {getFilteredStocks().map((stock) => {
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto" style={{ scrollBehavior: 'smooth' }}>
+                          {searchQuery !== debouncedSearchQuery && searchQuery.length > 0 ? (
+                            <div className="px-4 py-2 text-gray-500 text-center">
+                              <div className="animate-pulse">Searching...</div>
+                            </div>
+                          ) : (
+                            <>
+                              {filteredStocks.map((stock) => {
                             const isAlreadySelected = portfolioStocks.some(p => p.symbol === stock.symbol)
                             return (
                               <div
@@ -3420,8 +3453,10 @@ export default function OutperformingIndex() {
                               </div>
                             )
                           })}
-                          {getFilteredStocks().length === 0 && (
-                            <div className="px-4 py-2 text-gray-500 text-center">No stocks found</div>
+                              {filteredStocks.length === 0 && (
+                                <div className="px-4 py-2 text-gray-500 text-center">No stocks found</div>
+                              )}
+                            </>
                           )}
                         </div>
                       )}
