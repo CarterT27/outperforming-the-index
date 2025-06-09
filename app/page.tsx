@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { TrendingUp, TrendingDown, Search, ExternalLink, ChevronDown } from "lucide-react"
 import * as d3 from "d3"
 import Link from "next/link"
+import { getDataPath } from "@/lib/config"
 
 interface StockData {
   date: string
@@ -178,11 +179,10 @@ export default function OutperformingIndex() {
       try {
         setIsLoading(true)
         console.log('Attempting to load data...');
-        const basePath = process.env.NODE_ENV === 'production' ? '.' : '';
         const [comparisonResponse, nvidiaResponse, hindsightResponse] = await Promise.all([
-          fetch(`${basePath}/data/comparison_data.json`),
-          fetch(`${basePath}/data/nvidia_comparison.json`),
-          fetch(`${basePath}/data/hindsight_stocks.json`),
+          fetch(getDataPath('comparison_data.json')),
+          fetch(getDataPath('nvidia_comparison.json')),
+          fetch(getDataPath('hindsight_stocks.json')),
         ]);
         
         if (!comparisonResponse.ok) {

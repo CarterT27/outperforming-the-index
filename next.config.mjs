@@ -11,8 +11,13 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  assetPrefix: process.env.NODE_ENV === 'production' ? '/outperforming-the-index' : '',
-  basePath: process.env.NODE_ENV === 'production' ? '/outperforming-the-index' : '',
+  // Use environment variable for flexible deployment
+  assetPrefix: process.env.ASSET_PREFIX || (process.env.NODE_ENV === 'production' ? '/outperforming-the-index' : ''),
+  basePath: process.env.BASE_PATH || (process.env.NODE_ENV === 'production' ? '/outperforming-the-index' : ''),
+  // Ensure proper static file handling for Cloudflare Workers
+  generateBuildId: async () => {
+    return 'build'
+  },
 }
 
 export default nextConfig
