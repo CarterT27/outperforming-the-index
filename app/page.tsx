@@ -2986,6 +2986,22 @@ export default function OutperformingIndex() {
         />
       </div>
       
+      {/* Bouncing scroll arrow - positioned at bottom of viewport */}
+      {showScrollArrow && (
+        <div 
+          className="fixed bottom-8 left-0 right-0 flex justify-center cursor-pointer animate-bounce z-50"
+          onClick={() => {
+            const nextSection = document.querySelector('#comparison-section');
+            nextSection?.scrollIntoView({ behavior: 'smooth' });
+          }}
+        >
+          <div className="flex flex-col items-center text-gray-400 hover:text-gray-600 transition-colors">
+            <span className="text-sm mb-2">Scroll to explore</span>
+            <ChevronDown className="w-6 h-6" />
+          </div>
+        </div>
+      )}
+
       <div className="pt-0 relative z-10">
         {/* Section 1: Hero Introduction */}
         <section className="relative min-h-screen flex items-center justify-center px-4 pt-0 overflow-hidden">
@@ -3119,22 +3135,6 @@ export default function OutperformingIndex() {
               Start Exploring
             </Button>
             </div>
-            
-            {/* Bouncing scroll arrow */}
-            {showScrollArrow && (
-              <div 
-                className="fixed bottom-8 left-0 right-0 flex justify-center cursor-pointer animate-bounce"
-                onClick={() => {
-                  const nextSection = document.querySelector('#comparison-section');
-                  nextSection?.scrollIntoView({ behavior: 'smooth' });
-                }}
-              >
-                <div className="flex flex-col items-center text-gray-400 hover:text-gray-600 transition-colors">
-                  <span className="text-sm mb-2">Scroll to explore</span>
-                  <ChevronDown className="w-6 h-6" />
-                </div>
-              </div>
-            )}
           </div>
         </section>
 
