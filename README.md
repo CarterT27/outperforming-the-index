@@ -1,192 +1,209 @@
-# Outperforming The Index - Investment Analysis Dashboard
+# Outperforming The Index - Interactive Financial Dashboard
 
-A static webpage prototype that explores the reality of beating market returns through interactive data visualizations. This project demonstrates the narrative of comparing individual stock performance (using NVIDIA as an example) against dollar cost averaging in the S&P 500.
+A modern Next.js application that explores the reality of beating market returns through advanced interactive data visualizations. This comprehensive dashboard demonstrates the challenges of individual stock picking versus systematic index investing through compelling data storytelling.
 
 ## 🎯 Project Overview
 
-This prototype tells a compelling data story:
+This application tells a compelling financial data story through seven interactive sections:
 
-1. **NVIDIA Success Story**: Shows NVIDIA's dramatic stock price appreciation over time with animated visualizations
-2. **Reality Check**: Demonstrates how rare such performance is through a histogram of S&P 500 returns distribution
-3. **DCA Alternative**: Compares dollar cost averaging strategies between NVIDIA and S&P 500
-4. **Strategy Builder**: Interactive tool for users to test their own investment strategies
+1. **Market Reality Check**: Real-time visualization of how few stocks actually outperform the S&P 500
+2. **NVIDIA Success Story**: Interactive comparison of NVIDIA's exceptional performance against market averages
+3. **Hindsight Analysis**: Explore historical performance of all S&P 500 stocks with filtering and sorting
+4. **Interactive Portfolio Builder**: Build and backtest custom investment strategies with real historical data
+5. **Behavioral Finance**: Interactive demonstrations of cognitive biases affecting investment decisions
+6. **Loss Aversion Simulation**: Real-time behavioral economics experiments with dynamic visualizations
+7. **Key Takeaways**: Synthesized insights on the index investing advantage
+
+## 🏗️ Tech Stack
+
+- **Framework**: Next.js 15.2.4 with App Router
+- **Language**: TypeScript 5
+- **Styling**: Tailwind CSS 3.4.17 with custom design system
+- **UI Components**: Radix UI + shadcn/ui component library
+- **Data Visualization**: D3.js v7 with custom React integration
+- **Charts**: Recharts 2.15.0 for additional chart types
+- **Animations**: CSS animations with Tailwind classes
+- **Icons**: Lucide React
+- **Data Processing**: Client-side CSV/Parquet file processing
 
 ## 📁 Project Structure
 
 ```
-├── index.html           # Main HTML structure with all sections
-├── styles.css          # Comprehensive CSS with modern design system
-├── script.js           # Main JavaScript for interactivity and event handling
-├── d3-charts.js        # D3.js chart implementations and sample data
-├── assets/             # Existing analysis images and data files
-│   ├── *.png           # Generated visualization images
-│   └── *.parquet       # S&P 500 data files
-├── eda.py             # Python analysis script
-├── requirements.txt    # Python dependencies
-└── README.md          # This file
+├── app/                    # Next.js App Router
+│   ├── page.tsx           # Main dashboard (4150 lines of interactive content)
+│   ├── layout.tsx         # Root layout with metadata
+│   ├── globals.css        # Global styles and Tailwind imports
+│   ├── loading.tsx        # Loading component
+│   └── about/             # About page
+├── components/            # Reusable React components
+├── lib/                   # Utility functions and configurations
+├── hooks/                 # Custom React hooks
+├── styles/                # Additional styling files
+├── public/                # Static assets
+├── assets/                # Data files and analysis assets
+│   ├── *.parquet          # S&P 500 historical data
+│   └── *.csv              # Processed analysis data
+├── scripts/               # Data processing scripts
+├── requirements.txt       # Python dependencies for data analysis
+├── eda.py                 # Exploratory data analysis script
+├── package.json           # Node.js dependencies and scripts
+├── tailwind.config.ts     # Tailwind CSS configuration
+├── tsconfig.json          # TypeScript configuration
+└── next.config.mjs        # Next.js configuration
 ```
 
 ## 🚀 Getting Started
 
-### Option 1: View the Static Prototype
+### Prerequisites
 
-Simply open `index.html` in your browser to view the complete prototype. All functionality is implemented using client-side JavaScript with D3.js.
+- Node.js 18+ 
+- npm, yarn, or pnpm package manager
 
-### Option 2: Serve Locally (Recommended)
+### Installation
 
-For best results, serve the files through a local web server:
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd outperforming-the-index
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   # or
+   yarn install
+   # or
+   pnpm install
+   ```
+
+3. **Run the development server**
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   # or
+   pnpm dev
+   ```
+
+4. **Open your browser**
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+### Production Build
 
 ```bash
-# Using Python
-python -m http.server 8000
-
-# Using Node.js (if you have live-server installed)
-npx live-server
-
-# Then open http://localhost:8000 in your browser
+npm run build
+npm run start
 ```
 
-## 📊 Features
+## 📊 Key Features
 
-### Interactive Visualizations
+### Interactive Data Visualizations
 
-- **Animated NVIDIA Chart**: Stock price progression with smooth D3.js animations
-- **Returns Distribution Histogram**: Shows where NVIDIA ranks among all S&P 500 stocks
-- **DCA Comparison Chart**: Interactive comparison of investment strategies
-- **Strategy Builder**: Build and backtest custom investment portfolios
+- **Real-time Stock Performance Charts**: Dynamic D3.js visualizations with smooth animations
+- **Historical Returns Distribution**: Interactive histograms showing S&P 500 performance patterns
+- **Portfolio Backtesting Tool**: Build custom portfolios and analyze historical performance
+- **Treemap Visualizations**: Hierarchical market cap and performance representations
+- **Candlestick Charts**: Detailed stock price movements with technical indicators
+- **Behavioral Finance Simulations**: Interactive experiments demonstrating cognitive biases
 
-### User Interface
+### Advanced UI/UX
 
-- **Modern Design**: Professional financial dashboard aesthetic
-- **Responsive Layout**: Works on desktop, tablet, and mobile devices
-- **Smooth Navigation**: Fixed header with smooth scrolling to sections
-- **Interactive Controls**: Dropdowns, toggles, and form inputs that update visualizations
+- **Responsive Design**: Fully responsive across all device sizes
+- **Modern Component Library**: Built with Radix UI and shadcn/ui components
+- **Smooth Scrolling Navigation**: Seamless section transitions with parallax effects
+- **Interactive Controls**: Dynamic filtering, searching, and real-time updates
+- **Dark Theme**: Professional dark color scheme optimized for financial data
+- **Accessibility**: WCAG compliant with keyboard navigation and screen reader support
 
-### Technical Features
+### Data Processing Capabilities
 
-- **D3.js Visualizations**: Professional-grade interactive charts
-- **CSS Grid & Flexbox**: Modern responsive layout system
-- **CSS Custom Properties**: Consistent design system with color variables
-- **Progressive Enhancement**: Works without JavaScript for basic content
+- **Real Historical Data**: S&P 500 stock data from comprehensive datasets
+- **Client-side Processing**: Efficient data manipulation without server dependencies
+- **Multiple Data Sources**: Integration with Parquet and CSV data formats
+- **Real-time Calculations**: Dynamic portfolio returns and risk metrics
+- **Advanced Filtering**: Multi-dimensional data filtering and sorting
 
 ## 🎨 Design System
 
 ### Color Palette
-- **Primary**: `#2563eb` (Blue)
-- **Secondary**: `#10b981` (Green - S&P 500)
-- **Accent**: `#f59e0b` (Amber - NVIDIA)
-- **Success**: `#22c55e` (Green)
-- **Danger**: `#ef4444` (Red)
+- **Primary**: Blue spectrum (`#2563eb`, `#3b82f6`)
+- **Success**: Green variants (`#10b981`, `#22c55e`)
+- **Warning**: Amber/Orange (`#f59e0b`, `#ea580c`)
+- **Danger**: Red variants (`#ef4444`, `#dc2626`)
+- **Neutral**: Gray scale from `gray-50` to `gray-950`
 
 ### Typography
-- **Font Family**: Inter (Google Fonts)
-- **Responsive Sizing**: Fluid typography scales with viewport
-- **Weight Hierarchy**: 300-700 weight range for proper hierarchy
+- **Font**: System fonts with optimized fallbacks
+- **Responsive Scales**: Fluid typography scaling with viewport
+- **Weight Hierarchy**: 400-700 weight range for clear information hierarchy
 
-## 📱 Responsive Design
+### Components
+- **Buttons**: Multiple variants (primary, secondary, outline, ghost)
+- **Cards**: Elevated surfaces with consistent spacing
+- **Forms**: Accessible form controls with validation
+- **Navigation**: Fixed header with smooth scrolling
 
-The prototype is fully responsive with breakpoints at:
-- **Desktop**: 1200px+ (Full layout)
-- **Tablet**: 768px-1199px (Adapted layout)
-- **Mobile**: <768px (Stacked layout)
+## 🔧 Configuration
 
-## 🔧 Customization
+### Environment Variables
+No environment variables required - all data processing is client-side.
 
-### Adding Real Data
+### Tailwind Configuration
+Custom configuration in `tailwind.config.ts` includes:
+- Extended color palette
+- Custom animations
+- Container queries
+- Additional utilities
 
-To integrate with your actual data files:
-
-1. **Load Data**: Modify `d3-charts.js` to load from your `.parquet` files using a library like [Apache Arrow](https://arrow.apache.org/docs/js/)
-2. **Update Functions**: Replace the sample data generation functions with real data processing
-3. **Connect Backend**: Add API endpoints to serve processed data
-
-### Extending Charts
-
-The D3.js implementation is modular and can be extended:
-
-```javascript
-// Add new chart type
-function createCustomChart(containerId, data, options) {
-    // D3.js implementation
-}
-
-// Register with main script
-window.renderCustomChart = createCustomChart;
-```
-
-### Styling Modifications
-
-The CSS uses custom properties for easy theming:
-
-```css
-:root {
-    --primary-color: #your-brand-color;
-    --font-family: 'Your-Font', sans-serif;
-}
-```
+### Next.js Configuration
+Optimized build settings in `next.config.mjs` for static export compatibility.
 
 ## 📈 Data Sources
 
-The prototype uses the following data sources:
-- **S&P 500 Stocks Dataset**: [Kaggle Dataset](https://www.kaggle.com/datasets/andrewmvd/sp-500-stocks/) containing historical data for S&P 500 stocks
-- **Sample Data**: Generated simulated data for demonstration
-- **Existing Files**: Your S&P 500 analysis from `*.parquet` files
-- **Static Images**: Visualization exports in `assets/`
+- **S&P 500 Historical Data**: `sp500_stocks.parquet` (42MB) containing comprehensive historical price data
+- **Company Information**: `sp500_companies.parquet` with sector and industry classifications
+- **Real-time Calculations**: Dynamic portfolio and risk calculations
 
-## 🛠 Technical Stack
+## 🛠 Development
 
-- **HTML5**: Semantic markup with accessibility considerations
-- **CSS3**: Modern features including Grid, Flexbox, and Custom Properties
-- **JavaScript ES6+**: Modern syntax with modules and async/await
-- **D3.js v7**: Latest version for data visualization
-- **Font Awesome**: Icon library for UI elements
-- **Google Fonts**: Inter font family
+### Available Scripts
 
-## 🚧 Future Enhancements
+- `npm run dev` - Start development server with Turbopack
+- `npm run build` - Create production build
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
 
-### Phase 1: Data Integration
-- [ ] Connect to real S&P 500 data from `.parquet` files
-- [ ] Implement data processing pipeline
-- [ ] Add more stocks beyond NVIDIA
+### Key Dependencies
 
-### Phase 2: Advanced Features
-- [ ] Real-time data updates
-- [ ] More sophisticated backtesting algorithms
-- [ ] Additional chart types (treemap, sunburst, etc.)
-- [ ] Export functionality (PDF, PNG)
+#### Core Framework
+- **Next.js 15.2.4**: React framework with App Router
+- **React 19**: Latest React with concurrent features
+- **TypeScript 5**: Full type safety
 
-### Phase 3: Interactivity
-- [ ] User accounts and saved strategies
-- [ ] Social sharing of strategies
-- [ ] Community leaderboard
-- [ ] Advanced portfolio optimization
+#### UI & Styling
+- **Tailwind CSS 3.4.17**: Utility-first CSS framework
+- **Radix UI**: Accessible component primitives
+- **Lucide React**: Modern icon library
 
-## 🎯 Key Messages
+#### Data Visualization
+- **D3.js (latest)**: Advanced data visualization
+- **Recharts 2.15.0**: React charting library
 
-The prototype effectively communicates:
+#### Form Handling
+- **React Hook Form 7.54.1**: Performant form library
+- **Zod 3.24.1**: Schema validation
 
-1. **Survivorship Bias**: NVIDIA's success is exceptional, not typical
-2. **Risk vs. Return**: High returns come with high volatility
-3. **DCA Benefits**: Systematic investing reduces timing risk
-4. **Diversification**: Broad market exposure vs. individual stock picking
+## 🎯 Educational Insights
 
-## 📄 License
+The application demonstrates key financial concepts:
 
-This project is for educational and demonstration purposes. Please ensure you have appropriate licenses for any real financial data used.
-
-## 🤝 Contributing
-
-This is a prototype, but suggestions for improvements are welcome:
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
-## 📞 Support
-
-For questions about the prototype implementation or suggestions for enhancements, please create an issue in the repository.
+1. **Survivorship Bias**: Why success stories like NVIDIA are misleading
+2. **Risk-Return Relationship**: Higher returns require accepting higher volatility
+3. **Dollar Cost Averaging**: Benefits of systematic investing over time
+4. **Diversification**: Why broad market exposure beats stock picking
+5. **Behavioral Biases**: How psychology affects investment decisions
+6. **Market Efficiency**: Why beating the market is exceptionally difficult
 
 ---
 
-**Note**: This is a prototype for demonstration purposes. All investment data and strategies shown are for educational use only and should not be considered financial advice.
+**Disclaimer**: This application is for educational purposes only. All investment strategies and data presented are for demonstration and should not be considered financial advice. Past performance does not guarantee future results.
