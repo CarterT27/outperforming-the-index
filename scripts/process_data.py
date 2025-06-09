@@ -6,14 +6,17 @@ from kagglehub import KaggleDatasetAdapter
 import numpy as np
 from datetime import datetime
 
-def load_data(file_path: str = "sp500_stocks.csv"):
+def load_data(file_path = "sp500_stocks.csv"):
     """Load data from Kaggle dataset or local parquet file."""
-    if not Path(file_path.replace('.csv', '.parquet')).exists():
+    # Convert to Path object and handle both string and Path inputs
+    file_path = Path(file_path)
+    parquet_path = file_path.with_suffix('.parquet')
+    if not parquet_path.exists():
         df = kagglehub.dataset_load(
             KaggleDatasetAdapter.PANDAS,
-            "andrewmvd/sp-500-stocks",
-            file_path,
-            pandas_kwargs={"parse_dates": ["Date"] if file_path != 'sp500_companies.csv' else None},
+            "andrewmvd/sp-500-stocks/versions/960",
+            file_path.name,
+            pandas_kwargs={"parse_dates": ["Date"] if file_path.name != 'sp500_companies.csv' else None},
         )
         numeric_columns = ['Open', 'High', 'Low', 'Close', 'Volume']
         for col in numeric_columns:
@@ -22,9 +25,9 @@ def load_data(file_path: str = "sp500_stocks.csv"):
 
         if "Date" in df.columns:
             df = df.set_index('Date')
-        df.to_parquet(file_path.replace('.csv', '.parquet'))
+        df.to_parquet(parquet_path)
     else:
-        df = pd.read_parquet(file_path.replace('.csv', '.parquet'))
+        df = pd.read_parquet(parquet_path)
         if "Date" in df.columns:
             df = df.set_index('Date')
         if not isinstance(df.index, pd.DatetimeIndex) and df.index.name == 'Date':
@@ -159,16 +162,19 @@ def process_all_stocks_comparison_data(stocks_df: pd.DataFrame, companies_df: pd
         sector = company_info['Sector'].iloc[0] if 'Sector' in company_info.columns else 'Unknown'
         industry = company_info['Industry'].iloc[0] if 'Industry' in company_info.columns else 'Unknown'
         
+        # Use Adj Close if available, otherwise fall back to Close
+        price_column = 'Adj Close' if not stock_data['Adj Close'].isna().all() else 'Close'
+        
         # Calculate returns
-        stock_returns = stock_data['Adj Close'].pct_change().dropna()
+        stock_returns = stock_data[price_column].pct_change().dropna()
         
         # Skip if no valid returns
         if len(stock_returns) == 0:
             continue
             
         # Calculate total return and annualized return
-        start_price = stock_data['Adj Close'].iloc[0]
-        end_price = stock_data['Adj Close'].iloc[-1]
+        start_price = stock_data[price_column].iloc[0]
+        end_price = stock_data[price_column].iloc[-1]
         
         if pd.isna(start_price) or pd.isna(end_price) or start_price <= 0:
             continue
@@ -259,6 +265,83 @@ def process_all_stocks_comparison_data(stocks_df: pd.DataFrame, companies_df: pd
 
 
 
+def process_hindsight_stocks_data(stocks_df: pd.DataFrame, companies_df: pd.DataFrame, symbols: list):
+    """Process monthly time series data for specific stocks used in hindsight bias section."""
+    hindsight_data = {}
+    
+    for symbol in symbols:
+        stock_data = stocks_df[stocks_df['Symbol'] == symbol].copy()
+        
+        # Skip if insufficient data
+        if len(stock_data) < 60:  # At least ~3 months of data
+            continue
+            
+        # Get company information
+        company_info = companies_df[companies_df['Symbol'] == symbol]
+        if company_info.empty:
+            continue
+            
+        company_name = company_info['Longname'].iloc[0]
+        sector = company_info['Sector'].iloc[0] if 'Sector' in company_info.columns else 'Unknown'
+        industry = company_info['Industry'].iloc[0] if 'Industry' in company_info.columns else 'Unknown'
+        
+        # Use Adj Close if available, otherwise fall back to Close
+        price_column = 'Adj Close' if not stock_data['Adj Close'].isna().all() else 'Close'
+        
+        # Resample to monthly data for efficiency (first business day of each month)
+        # Make sure we have a proper datetime index for resampling
+        stock_data_indexed = stock_data.copy()
+        if not isinstance(stock_data_indexed.index, pd.DatetimeIndex):
+            stock_data_indexed = stock_data_indexed.reset_index().set_index('Date')
+        
+        monthly_data = stock_data_indexed[price_column].resample('MS').first().dropna()
+        
+        if len(monthly_data) < 3:  # Need at least 3 months
+            continue
+        
+        # Calculate normalized prices starting from 100
+        start_price = monthly_data.iloc[0]
+        normalized_prices = (monthly_data / start_price) * 100
+        
+        # Calculate total return and metrics
+        end_price = monthly_data.iloc[-1]
+        total_return = (end_price / start_price) - 1
+        
+        # Calculate years for annualized return
+        stock_start = monthly_data.index.min()
+        stock_end = monthly_data.index.max()
+        stock_years = (stock_end - stock_start).days / 365.25
+        
+        if stock_years <= 0:
+            continue
+            
+        annualized_return = (1 + total_return) ** (1 / stock_years) - 1
+        
+        # Create time series data
+        time_series_data = [
+            {
+                'date': date.strftime('%Y-%m-%d'),
+                'price': float(price),
+                'normalizedPrice': float(norm_price)
+            }
+            for date, price, norm_price in zip(monthly_data.index, monthly_data.values, normalized_prices.values)
+            if not pd.isna(price) and not pd.isna(norm_price)
+        ]
+        
+        hindsight_data[symbol] = {
+            'name': company_name,
+            'sector': sector,
+            'industry': industry,
+            'data': time_series_data,
+            'metrics': {
+                'totalReturn': float(total_return),
+                'annualizedReturn': float(annualized_return),
+                'years': float(stock_years)
+            }
+        }
+    
+    return hindsight_data
+
 def main():
     # Create output directory
     output_dir = Path('public/data')
@@ -287,7 +370,13 @@ def main():
         json.dump(all_stocks_data, f, indent=2, allow_nan=False)
     print(f"Saved comparison_data.json with {len(all_stocks_data['stocks'])} stocks")
     
-
+    # Process hindsight bias stocks data (monthly data for specific stocks)
+    print("Processing hindsight bias stocks data...")
+    hindsight_symbols = ["MKTX", "ALGN", "ULTA", "TSLA", "PODD", "MOH"]
+    hindsight_data = process_hindsight_stocks_data(stocks_df, companies_df, hindsight_symbols)
+    with open(output_dir / 'hindsight_stocks.json', 'w') as f:
+        json.dump(hindsight_data, f, indent=2, allow_nan=False)
+    print(f"Saved hindsight_stocks.json with {len(hindsight_data)} stocks")
     
     print("Data processing complete!")
 

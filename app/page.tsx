@@ -47,6 +47,20 @@ interface ComparisonData {
   }
 }
 
+interface HindsightStocksData {
+  [symbol: string]: {
+    name: string
+    sector: string
+    industry: string
+    data: StockData[]
+    metrics: {
+      totalReturn: number
+      annualizedReturn: number
+      years: number
+    }
+  }
+}
+
 interface NvidiaComparisonData {
   target_stock: {
     name: string
@@ -75,6 +89,7 @@ export default function OutperformingIndex() {
   const [selectedStocks, setSelectedStocks] = useState<string[]>([])
   const [comparisonData, setComparisonData] = useState<ComparisonData | null>(null)
   const [nvidiaComparisonData, setNvidiaComparisonData] = useState<NvidiaComparisonData | null>(null)
+  const [hindsightStocksData, setHindsightStocksData] = useState<HindsightStocksData | null>(null)
   const [portfolioStocks, setPortfolioStocks] = useState<PortfolioStock[]>([])
   const [portfolioReturn, setPortfolioReturn] = useState<number>(0)
   const [sp500Return, setSp500Return] = useState<number>(0)
@@ -164,9 +179,10 @@ export default function OutperformingIndex() {
         setIsLoading(true)
         console.log('Attempting to load data...');
         const basePath = process.env.NODE_ENV === 'production' ? '.' : '';
-        const [comparisonResponse, nvidiaResponse] = await Promise.all([
+        const [comparisonResponse, nvidiaResponse, hindsightResponse] = await Promise.all([
           fetch(`${basePath}/data/comparison_data.json`),
           fetch(`${basePath}/data/nvidia_comparison.json`),
+          fetch(`${basePath}/data/hindsight_stocks.json`),
         ]);
         
         if (!comparisonResponse.ok) {
@@ -175,17 +191,23 @@ export default function OutperformingIndex() {
         if (!nvidiaResponse.ok) {
           throw new Error(`Failed to load NVIDIA comparison data: ${nvidiaResponse.status}`);
         }
+        if (!hindsightResponse.ok) {
+          throw new Error(`Failed to load hindsight stocks data: ${hindsightResponse.status}`);
+        }
         
         const comparison = await comparisonResponse.json();
         const nvidiaComparison = await nvidiaResponse.json();
+        const hindsightStocks = await hindsightResponse.json();
         
         console.log('Data loaded successfully:', {
           comparisonDataSize: Object.keys(comparison.stocks).length,
           nvidiaComparisonDataSize: nvidiaComparison.target_stock.data.length,
+          hindsightStocksSize: Object.keys(hindsightStocks).length,
         });
         
         setComparisonData(comparison);
         setNvidiaComparisonData(nvidiaComparison);
+        setHindsightStocksData(hindsightStocks);
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -1244,26 +1266,29 @@ export default function OutperformingIndex() {
 
   }
 
+  // State for treemap navigation
+  const [currentTreemapNode, setCurrentTreemapNode] = useState<any>(null)
+  const [treemapBreadcrumbs, setTreemapBreadcrumbs] = useState<any[]>([])
+
   const drawTreemap = () => {
     if (!treemapRef.current || !comparisonData) return
 
     // Clear previous chart
     d3.select(treemapRef.current).selectAll("*").remove()
 
-    const margin = { top: 40, right: 10, bottom: 10, left: 10 }
+    const margin = { top: 80, right: 10, bottom: 10, left: 10 }
     const width = treemapRef.current.offsetWidth - margin.left - margin.right
     const height = 600 - margin.top - margin.bottom
 
     // Get S&P 500 annualized return for comparison
-    const sp500AnnualizedReturn = comparisonData.sp500.metrics.annualizedReturn * 100 // Convert to percentage
+    const sp500AnnualizedReturn = comparisonData.sp500.metrics.annualizedReturn * 100
 
     // Process all stocks from comparison data
     const processedStocks = Object.entries(comparisonData.stocks)
       .map(([symbol, stockData]) => {
-        // Use annualized returns instead of total returns
-        const annualizedReturn = stockData.metrics.annualizedReturn * 100 // Convert to percentage
-        const volatility = stockData.metrics.volatility * 100 // Convert to percentage
-        const marketCap = stockData.metrics.marketCap || 1e9 // Default to 1B if missing
+        const annualizedReturn = stockData.metrics.annualizedReturn * 100
+        const volatility = stockData.metrics.volatility * 100
+        const marketCap = stockData.metrics.marketCap || 1e9
 
         return {
           name: symbol,
@@ -1272,10 +1297,10 @@ export default function OutperformingIndex() {
           return: annualizedReturn,
           volatility: volatility,
           marketCap: marketCap,
-          size: Math.log(marketCap) // Use log scale for market cap to prevent extreme differences
+          value: Math.log(marketCap) // Use log scale for market cap
         }
       })
-      .sort((a, b) => b.marketCap - a.marketCap) // Sort by market cap for better visual hierarchy
+      .sort((a, b) => b.marketCap - a.marketCap)
 
     // Group stocks by sector and industry for hierarchical visualization
     const stocksBySectorAndIndustry = processedStocks.reduce((acc, stock) => {
@@ -1289,46 +1314,104 @@ export default function OutperformingIndex() {
       return acc
     }, {} as Record<string, Record<string, Array<typeof processedStocks[0]>>>)
 
-    // Create hierarchical data structure
-    const hierarchicalData = {
-      name: "S&P 500",
-      children: Object.entries(stocksBySectorAndIndustry).map(([sectorName, industries]) => ({
-        name: sectorName,
-        children: Object.entries(industries).map(([industryName, stocks]) => ({
-          name: industryName,
-          children: stocks
-        }))
-      }))
+    // Helper function to calculate average return for a group
+    const calculateAverageReturn = (items: any[]): number => {
+      if (!items.length) return 0
+      return items.reduce((sum, item) => sum + (item.return || 0), 0) / items.length
     }
 
-    // Create treemap with hierarchical padding
-    const treemap = d3.treemap()
-      .size([width, height])
-      .paddingInner(2)    // Padding between groups
-      .paddingOuter(6)    // Padding around the edge
-      .paddingTop(25)     // Extra padding for labels (sectors and industries)
-      .round(true)
+    // Create hierarchical data structure with average returns
+    const hierarchicalData = {
+      name: "S&P 500",
+      averageReturn: calculateAverageReturn(processedStocks),
+      children: Object.entries(stocksBySectorAndIndustry).map(([sectorName, industries]) => {
+        const sectorStocks = Object.values(industries).flat()
+        return {
+          name: sectorName,
+          averageReturn: calculateAverageReturn(sectorStocks),
+          children: Object.entries(industries).map(([industryName, stocks]) => ({
+            name: industryName,
+            averageReturn: calculateAverageReturn(stocks),
+            children: stocks
+          }))
+        }
+      })
+    }
 
-    const root = d3.hierarchy(hierarchicalData)
-      .sum((d: any) => d.size || 0)
-      .sort((a, b) => (b.value || 0) - (a.value || 0))
+    // Custom tiling function for zoom behavior
+    function tile(node: any, x0: number, y0: number, x1: number, y1: number) {
+      d3.treemapBinary(node, 0, 0, width, height)
+      for (const child of node.children) {
+        child.x0 = x0 + child.x0 / width * (x1 - x0)
+        child.x1 = x0 + child.x1 / width * (x1 - x0)
+        child.y0 = y0 + child.y0 / height * (y1 - y0)
+        child.y1 = y0 + child.y1 / height * (y1 - y0)
+      }
+    }
 
-    treemap(root as any)
+         // Compute the layout
+     const hierarchy = d3.hierarchy(hierarchicalData as any)
+       .sum((d: any) => d.value || 0)
+       .sort((a, b) => (b.value || 0) - (a.value || 0))
+
+     const root = d3.treemap().tile(tile)(hierarchy) as any
+
+    // Create scales
+    const x = d3.scaleLinear().rangeRound([0, width])
+    const y = d3.scaleLinear().rangeRound([0, height])
 
     // Color scale for returns relative to S&P 500
-    const allReturns = processedStocks.map(d => d.return - sp500AnnualizedReturn) // Relative to S&P 500
-    const maxDifference = d3.max(allReturns.map(r => Math.abs(r))) || 10
+    const maxDifference = 15 // Max difference from S&P 500 for color scale
     const colorScale = d3.scaleSequential(d3.interpolateRdYlGn)
       .domain([-maxDifference, maxDifference])
 
-    // Create container
-    const container = d3.select(treemapRef.current)
+         // Get node color based on average return
+     const getNodeColor = (d: any) => {
+       const avgReturn = d.data.averageReturn || d.data.return || 0
+       const difference = avgReturn - sp500AnnualizedReturn
+       return colorScale(difference)
+     }
+
+         // Create SVG container
+     const svg = d3.select(treemapRef.current)
+       .append("svg")
+       .attr("viewBox", [0, 0, width, height])
+       .attr("width", width + margin.left + margin.right)
+       .attr("height", height + margin.top + margin.bottom)
+       .style("max-width", "100%")
+       .style("height", "auto")
+       .style("font", "10px sans-serif")
+
+    // Add breadcrumb container
+    const breadcrumbContainer = d3.select(treemapRef.current)
+      .insert("div", "svg")
+      .attr("class", "treemap-breadcrumbs")
+      .style("margin-bottom", "10px")
+      .style("display", "flex")
+      .style("align-items", "center")
+      .style("gap", "8px")
+
+    // Add reset button
+    const resetButton = breadcrumbContainer
+      .append("button")
+      .attr("class", "treemap-reset-btn")
+      .style("padding", "6px 12px")
+      .style("background", "#3b82f6")
+      .style("color", "white")
+      .style("border", "none")
+      .style("border-radius", "4px")
+      .style("cursor", "pointer")
+      .style("font-size", "12px")
+      .text("Reset View")
+      .on("click", () => zoomToNode(root))
+
+    // Add breadcrumb navigation
+    const breadcrumbNav = breadcrumbContainer
       .append("div")
-      .style("position", "relative")
-      .style("width", (width + margin.left + margin.right) + "px")
-      .style("height", (height + margin.top + margin.bottom) + "px")
-      .style("margin-left", margin.left + "px")
-      .style("margin-top", margin.top + "px")
+      .attr("class", "breadcrumb-nav")
+      .style("display", "flex")
+      .style("align-items", "center")
+      .style("gap", "4px")
 
     // Create tooltip
     const tooltip = d3.select("body")
@@ -1346,146 +1429,194 @@ export default function OutperformingIndex() {
       .style("max-width", "300px")
       .style("box-shadow", "0 4px 6px rgba(0, 0, 0, 0.1)")
 
-    // Add sector group backgrounds
-    container.selectAll(".sector")
-      .data(root.children || [])
-      .enter().append("div")
-      .attr("class", "sector")
-      .style("position", "absolute")
-      .style("left", (d: any) => d.x0 + "px")
-      .style("top", (d: any) => d.y0 + "px")
-      .style("width", (d: any) => Math.max(0, d.x1 - d.x0) + "px")
-      .style("height", (d: any) => Math.max(0, d.y1 - d.y0) + "px")
-      .style("border", "2px solid #333")
-      .style("border-radius", "4px")
-      .style("background", "rgba(0,0,0,0.05)")
-      .style("box-sizing", "border-box")
+    // Display the root initially
+    let group = svg.append("g")
 
-    // Add sector labels
-    container.selectAll(".sector-label")
-      .data(root.children || [])
-      .enter().append("div")
-      .attr("class", "sector-label")
-      .style("position", "absolute")
-      .style("left", (d: any) => d.x0 + 4 + "px")
-      .style("top", (d: any) => d.y0 + 2 + "px")
-      .style("font-size", "12px")
-      .style("font-weight", "bold")
-      .style("color", "#333")
-      .style("pointer-events", "none")
-      .style("z-index", "2")
-      .text((d: any) => d.data.name)
+         // Render function
+     function render(group: any, root: any) {
+       const node = group
+         .selectAll("g")
+         .data(root.children || [])
+         .join("g")
 
-    // Add industry group backgrounds
-    const industryNodes = root.children ? root.children.flatMap(sector => sector.children || []) : []
-    container.selectAll(".industry")
-      .data(industryNodes)
-      .enter().append("div")
-      .attr("class", "industry")
-      .style("position", "absolute")
-      .style("left", (d: any) => d.x0 + "px")
-      .style("top", (d: any) => d.y0 + "px")
-      .style("width", (d: any) => Math.max(0, d.x1 - d.x0) + "px")
-      .style("height", (d: any) => Math.max(0, d.y1 - d.y0) + "px")
-      .style("border", "1px solid #666")
-      .style("border-radius", "2px")
-      .style("background", "rgba(0,0,0,0.02)")
-      .style("box-sizing", "border-box")
+       // Add click handlers for zoom and external links
+       node.attr("cursor", "pointer")
+         .on("click", (event: any, d: any) => {
+           if (d.children) {
+             // Has children - zoom in
+             zoomToNode(d)
+           } else {
+             // Leaf node (individual stock) - open Yahoo Finance
+             const symbol = d.data.name
+             const yahooFinanceUrl = `https://finance.yahoo.com/quote/${symbol}/`
+             window.open(yahooFinanceUrl, '_blank')
+           }
+         })
 
-    // Add industry labels
-    container.selectAll(".industry-label")
-      .data(industryNodes)
-      .enter().append("div")
-      .attr("class", "industry-label")
-      .style("position", "absolute")
-      .style("left", (d: any) => d.x0 + 2 + "px")
-      .style("top", (d: any) => d.y0 + 1 + "px")
-      .style("font-size", "9px")
-      .style("font-weight", "600")
-      .style("color", "#666")
-      .style("pointer-events", "none")
-      .style("z-index", "1")
-      .style("max-width", (d: any) => Math.max(0, d.x1 - d.x0 - 4) + "px")
-      .style("overflow", "hidden")
-      .style("white-space", "nowrap")
-      .style("text-overflow", "ellipsis")
-      .text((d: any) => {
-        const width = d.x1 - d.x0
-        // Only show industry label if there's enough space
-        if (width > 80) {
-          return d.data.name
-        }
-        return ""
-      })
-
-    // Add leaf nodes (individual stocks)
-    container.selectAll(".leaf")
-      .data(root.leaves())
-      .enter().append("div")
-      .attr("class", "leaf")
-      .style("position", "absolute")
-      .style("left", (d: any) => d.x0 + "px")
-      .style("top", (d: any) => d.y0 + "px")
-      .style("width", (d: any) => Math.max(0, d.x1 - d.x0) + "px")
-      .style("height", (d: any) => Math.max(0, d.y1 - d.y0) + "px")
-      .style("background", (d: any) => colorScale((d.data.return || 0) - sp500AnnualizedReturn))
-      .style("border", "1px solid white")
-      .style("box-sizing", "border-box")
-      .style("display", "flex")
-      .style("align-items", "center")
-      .style("justify-content", "center")
-      .style("font-size", (d: any) => {
-        const area = (d.x1 - d.x0) * (d.y1 - d.y0)
-        return Math.min(11, Math.max(6, Math.sqrt(area) / 12)) + "px"
-      })
-      .style("font-weight", "bold")
-      .style("color", (d: any) => {
-        const relativeReturn = (d.data.return || 0) - sp500AnnualizedReturn
-        return Math.abs(relativeReturn) > 10 ? "white" : "black"
-      })
-      .style("text-shadow", (d: any) => {
-        const relativeReturn = (d.data.return || 0) - sp500AnnualizedReturn
-        return Math.abs(relativeReturn) > 10 ? "1px 1px 2px rgba(0,0,0,0.5)" : "none"
-      })
-      .style("cursor", "pointer")
-      .text((d: any) => {
-        const area = (d.x1 - d.x0) * (d.y1 - d.y0)
-        return area > 400 ? d.data.name : ""
-      })
-      .on("mouseover", function(event: MouseEvent, d: any) {
-        d3.select(this).style("opacity", 0.8)
+             // Add tooltips
+       node.on("mouseover", function(event: MouseEvent, d: any) {
         
-        const stockData = d.data
+        const nodeData = d.data
+        let tooltipContent = ""
         
-        const formatMarketCap = (cap: number) => {
-          if (cap >= 1e12) return `$${(cap / 1e12).toFixed(1)}T`
-          if (cap >= 1e9) return `$${(cap / 1e9).toFixed(1)}B`
-          if (cap >= 1e6) return `$${(cap / 1e6).toFixed(1)}M`
-          return `$${cap.toFixed(0)}`
-        }
+        if (nodeData.sector && nodeData.industry && nodeData.name && nodeData.marketCap) {
+          // Individual stock
+          const formatMarketCap = (cap: number) => {
+            if (cap >= 1e12) return `$${(cap / 1e12).toFixed(1)}T`
+            if (cap >= 1e9) return `$${(cap / 1e9).toFixed(1)}B`
+            if (cap >= 1e6) return `$${(cap / 1e6).toFixed(1)}M`
+            return `$${cap.toFixed(0)}`
+          }
 
-        const relativeReturn = stockData.return - sp500AnnualizedReturn
-        const outperformance = relativeReturn > 0 ? "outperformed" : "underperformed"
+          const relativeReturn = nodeData.return - sp500AnnualizedReturn
+          const outperformance = relativeReturn > 0 ? "outperformed" : "underperformed"
+          
+                     tooltipContent = `
+             <div style="font-weight: bold; margin-bottom: 8px; color: #f59e0b;">${nodeData.name}</div>
+             <div style="margin-bottom: 4px;"><strong>Sector:</strong> ${nodeData.sector}</div>
+             <div style="margin-bottom: 4px;"><strong>Industry:</strong> ${nodeData.industry}</div>
+             <div style="margin-bottom: 4px;"><strong>Market Cap:</strong> ${formatMarketCap(nodeData.marketCap)}</div>
+             <div style="margin-bottom: 4px;"><strong>Annualized Return:</strong> ${nodeData.return.toFixed(1)}%</div>
+             <div style="margin-bottom: 4px;"><strong>S&P 500 Annualized:</strong> ${sp500AnnualizedReturn.toFixed(1)}%</div>
+             <div style="margin-bottom: 4px; color: ${relativeReturn > 0 ? '#10b981' : '#ef4444'};"><strong>${outperformance} by:</strong> ${Math.abs(relativeReturn).toFixed(1)}%</div>
+             <div style="margin-bottom: 4px;"><strong>Volatility:</strong> ${nodeData.volatility.toFixed(1)}%</div>
+             <div style="font-size: 10px; color: #ccc; margin-top: 6px;">Click to view on Yahoo Finance</div>
+           `
+        } else {
+          // Sector or industry group
+          const avgReturn = nodeData.averageReturn || 0
+          const relativeReturn = avgReturn - sp500AnnualizedReturn
+          const outperformance = relativeReturn > 0 ? "outperformed" : "underperformed"
+          const childCount = d.children ? d.children.length : 0
+          
+          tooltipContent = `
+            <div style="font-weight: bold; margin-bottom: 8px; color: #f59e0b;">${nodeData.name}</div>
+            <div style="margin-bottom: 4px;"><strong>Average Return:</strong> ${avgReturn.toFixed(1)}%</div>
+            <div style="margin-bottom: 4px;"><strong>S&P 500 Annualized:</strong> ${sp500AnnualizedReturn.toFixed(1)}%</div>
+            <div style="margin-bottom: 4px; color: ${relativeReturn > 0 ? '#10b981' : '#ef4444'};"><strong>Average ${outperformance} by:</strong> ${Math.abs(relativeReturn).toFixed(1)}%</div>
+            <div style="margin-bottom: 4px;"><strong>Items:</strong> ${childCount}</div>
+            ${d.children ? '<div style="font-size: 10px; color: #ccc;">Click to zoom in</div>' : ''}
+          `
+        }
         
         tooltip
           .style("visibility", "visible")
-          .html(`
-            <div style="font-weight: bold; margin-bottom: 8px; color: #f59e0b;">${stockData.name}</div>
-            <div style="margin-bottom: 4px;"><strong>Sector:</strong> ${stockData.sector}</div>
-            <div style="margin-bottom: 4px;"><strong>Industry:</strong> ${stockData.industry}</div>
-            <div style="margin-bottom: 4px;"><strong>Market Cap:</strong> ${formatMarketCap(stockData.marketCap)}</div>
-            <div style="margin-bottom: 4px;"><strong>Annualized Return:</strong> ${stockData.return.toFixed(1)}%</div>
-            <div style="margin-bottom: 4px;"><strong>S&P 500 Annualized:</strong> ${sp500AnnualizedReturn.toFixed(1)}%</div>
-            <div style="margin-bottom: 4px; color: ${relativeReturn > 0 ? '#10b981' : '#ef4444'};"><strong>${outperformance} by:</strong> ${Math.abs(relativeReturn).toFixed(1)}%</div>
-            <div style="margin-bottom: 4px;"><strong>Volatility:</strong> ${stockData.volatility.toFixed(1)}%</div>
-          `)
+          .html(tooltipContent)
           .style("left", event.pageX + 15 + "px")
           .style("top", event.pageY - 10 + "px")
       })
       .on("mouseout", function() {
-        d3.select(this).style("opacity", 1)
         tooltip.style("visibility", "hidden")
       })
+
+      // Add rectangles
+      node.append("rect")
+        .attr("fill", getNodeColor)
+        .attr("stroke", "#fff")
+        .attr("stroke-width", 1)
+
+             // Add text labels
+       node.append("text")
+         .attr("font-weight", "bold")
+         .attr("font-size", "10px")
+         .attr("fill", (d: any) => {
+           const avgReturn = d.data.averageReturn || d.data.return || 0
+           const difference = Math.abs(avgReturn - sp500AnnualizedReturn)
+           return difference > 10 ? "white" : "black"
+         })
+         .attr("text-shadow", (d: any) => {
+           const avgReturn = d.data.averageReturn || d.data.return || 0
+           const difference = Math.abs(avgReturn - sp500AnnualizedReturn)
+           return difference > 10 ? "1px 1px 2px rgba(0,0,0,0.5)" : "none"
+         })
+         .selectAll("tspan")
+         .data((d: any) => {
+           const name = d.data.name
+           const words = name.split(/(?=[A-Z][^A-Z])/g)
+           return words
+         })
+         .join("tspan")
+         .attr("x", 3)
+         .attr("y", (d: any, i: number) => `${1.1 + i * 0.9}em`)
+         .text((d: any) => d)
+
+      group.call(position, root)
+    }
+
+         // Position function
+     function position(group: any, root: any) {
+       group.selectAll("g")
+         .attr("transform", (d: any) => `translate(${x(d.x0)},${y(d.y0)})`)
+         .select("rect")
+         .attr("width", (d: any) => x(d.x1) - x(d.x0))
+         .attr("height", (d: any) => y(d.y1) - y(d.y0))
+     }
+
+    // Zoom to node function
+    function zoomToNode(d: any) {
+      const group0 = group.attr("pointer-events", "none")
+      const group1 = group = svg.append("g").call(render, d)
+
+      x.domain([d.x0, d.x1])
+      y.domain([d.y0, d.y1])
+
+      // Update breadcrumbs
+      updateBreadcrumbs(d)
+
+      svg.transition()
+        .duration(750)
+        .call((t: any) => group0.transition(t).remove()
+          .call(position, d.parent || d))
+                 .call((t: any) => group1.transition(t)
+           .attrTween("opacity", () => d3.interpolate(0, 1) as any)
+           .call(position, d))
+    }
+
+         // Update breadcrumbs function
+     function updateBreadcrumbs(node: any) {
+       const path = node.ancestors().reverse()
+       
+       // Clear all breadcrumb content
+       breadcrumbNav.selectAll("*").remove()
+       
+       path.forEach((d: any, i: number) => {
+         if (i > 0) {
+           breadcrumbNav.append("span")
+             .attr("class", "breadcrumb-separator")
+             .style("color", "#666")
+             .style("margin", "0 4px")
+             .text(">")
+         }
+         
+         breadcrumbNav.append("span")
+           .attr("class", "breadcrumb-item")
+           .style("cursor", i < path.length - 1 ? "pointer" : "default")
+           .style("color", i < path.length - 1 ? "#3b82f6" : "#333")
+           .style("text-decoration", i < path.length - 1 ? "underline" : "none")
+           .style("font-weight", i === path.length - 1 ? "bold" : "normal")
+           .style("padding", "2px 4px")
+           .style("border-radius", "2px")
+           .style("background", i === path.length - 1 ? "#f3f4f6" : "transparent")
+           .text(d.data.name)
+           .on("click", () => {
+             if (i < path.length - 1) {
+               zoomToNode(d)
+             }
+           })
+           .on("mouseover", function() {
+             if (i < path.length - 1) {
+               d3.select(this).style("background", "#dbeafe")
+             }
+           })
+           .on("mouseout", function() {
+             d3.select(this).style("background", i === path.length - 1 ? "#f3f4f6" : "transparent")
+           })
+       })
+     }
+
+    // Initialize with root
+    render(group, root)
+    updateBreadcrumbs(root)
   }
 
   const drawPortfolioChart = () => {
@@ -1649,7 +1780,7 @@ export default function OutperformingIndex() {
       d3.selectAll(".event-tooltip").remove()
       d3.selectAll(".treemap-tooltip").remove()
     }
-  }, [nvidiaComparisonData, isCalculated, portfolioReturn, sp500Return, comparisonData, selectedCharts, showChartResults])
+  }, [nvidiaComparisonData, isCalculated, portfolioReturn, sp500Return, comparisonData, hindsightStocksData, selectedCharts, showChartResults])
 
   const addStock = (stock: string) => {
     if (!selectedStocks.includes(stock) && selectedStocks.length < 5) {
@@ -1872,22 +2003,22 @@ export default function OutperformingIndex() {
 
   // Hindsight Bias Demo
   const drawHindsightCharts = () => {
-    if (!hindsightChartRef.current || !comparisonData) return
+    if (!hindsightChartRef.current || !hindsightStocksData || !comparisonData) return
 
     d3.select(hindsightChartRef.current).selectAll("*").remove()
 
-    // Select 5 stocks for the demo
-    const stockSymbols = ["AAPL", "TSLA", "INTC", "GE", "AMZN"]
+    // Get all available stocks from the data file
+    const stockSymbols = Object.keys(hindsightStocksData)
     const stocksWithData = stockSymbols.filter(symbol => 
-      comparisonData.stocks[symbol] && comparisonData.stocks[symbol].data.length > 0
-    ).slice(0, 5)
+      hindsightStocksData[symbol] && hindsightStocksData[symbol].data.length > 2
+    )
 
     if (stocksWithData.length === 0) return
 
-    const chartsPerRow = 5
+    const chartsPerRow = Math.min(5, stocksWithData.length) // Adapt to number of stocks available
     const chartWidth = (hindsightChartRef.current.offsetWidth - 40) / chartsPerRow
     const chartHeight = 150
-    const margin = { top: 10, right: 10, bottom: 30, left: 30 }
+    const margin = { top: 10, right: 10, bottom: 30, left: 45 }
     const innerWidth = chartWidth - margin.left - margin.right
     const innerHeight = chartHeight - margin.top - margin.bottom
 
@@ -1898,19 +2029,58 @@ export default function OutperformingIndex() {
       .style("gap", "10px")
       .style("justify-content", "center")
 
+    // Define training and test periods
+    const parseDate = d3.timeParse("%Y-%m-%d")
+    const trainEndDate = new Date("2018-12-31")
+    
     stocksWithData.forEach((symbol, index) => {
-      const stockInfo = comparisonData.stocks[symbol]
-      const parseDate = d3.timeParse("%Y-%m-%d")
+      const stockInfo = hindsightStocksData[symbol]
       
-      // Create simple two-point line from start to end
-      const processedData = stockInfo.data
-        .filter(d => d.normalizedPrice !== null)
+      // Process the time series data
+      const fullData = stockInfo.data
+        .filter(d => d.normalizedPrice !== null && parseDate(d.date))
         .map(d => ({
           date: parseDate(d.date) as Date,
           price: d.normalizedPrice
         }))
+        .filter(d => d.date !== null)
+        .sort((a, b) => a.date.getTime() - b.date.getTime())
 
-      if (processedData.length < 2) return
+      if (fullData.length < 2) return
+
+      // Split data into training (2010-2018) and full timeline
+      const trainingData = fullData.filter(d => d.date <= trainEndDate)
+      const testData = fullData.filter(d => d.date > trainEndDate)
+
+      // Calculate test period performance vs S&P 500
+      let testPerformanceColor = "#3b82f6" // Default blue
+      let outperformedSP500 = false
+      
+      if (showChartResults && testData.length > 0 && trainingData.length > 0) {
+        // Get stock performance from end of training to end of test
+        const trainEndPrice = trainingData[trainingData.length - 1].price
+        const testEndPrice = testData[testData.length - 1].price
+        const stockTestReturn = (testEndPrice - trainEndPrice) / trainEndPrice
+        
+        // Get S&P 500 test period return from comparison data
+        const sp500Data = comparisonData.sp500.data
+          .filter(d => parseDate(d.date))
+          .map(d => ({
+            date: parseDate(d.date) as Date,
+            price: d.normalizedPrice
+          }))
+          .sort((a, b) => a.date.getTime() - b.date.getTime())
+        
+        const sp500TrainEnd = sp500Data.find(d => d.date <= trainEndDate && 
+          sp500Data.find(sp => sp.date > d.date && sp.date <= trainEndDate) === undefined)
+        const sp500TestEnd = sp500Data[sp500Data.length - 1]
+        
+        if (sp500TrainEnd && sp500TestEnd) {
+          const sp500TestReturn = (sp500TestEnd.price - sp500TrainEnd.price) / sp500TrainEnd.price
+          outperformedSP500 = stockTestReturn > sp500TestReturn
+          testPerformanceColor = outperformedSP500 ? "#10b981" : "#ef4444"
+        }
+      }
 
       const chartDiv = container
         .append("div")
@@ -1937,28 +2107,64 @@ export default function OutperformingIndex() {
       const g = svg.append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`)
 
+      // Choose data to display based on results state
+      const displayData = showChartResults ? fullData : trainingData
+      
       // Scales
       const xScale = d3.scaleTime()
-        .domain(d3.extent(processedData, d => d.date) as [Date, Date])
+        .domain(d3.extent(displayData, d => d.date) as [Date, Date])
         .range([0, innerWidth])
 
       const yScale = d3.scaleLinear()
-        .domain(d3.extent(processedData, d => d.price) as [number, number])
+        .domain(d3.extent(displayData, d => d.price) as [number, number])
         .nice()
         .range([innerHeight, 0])
 
-      // Line
+      // Line generator
       const line = d3.line<{date: Date, price: number}>()
         .x(d => xScale(d.date))
         .y(d => yScale(d.price))
         .curve(d3.curveMonotoneX)
 
-      g.append("path")
-        .datum(processedData)
+      // Add training period line
+      const trainingLine = g.append("path")
+        .datum(trainingData)
         .attr("fill", "none")
         .attr("stroke", "#3b82f6")
         .attr("stroke-width", 2)
         .attr("d", line)
+
+      // Add test period line (only if showing results)
+      if (showChartResults && testData.length > 0) {
+        // Connect training end to test start
+        const connectionData = [trainingData[trainingData.length - 1], testData[0]]
+        
+        g.append("path")
+          .datum(connectionData)
+          .attr("fill", "none")
+          .attr("stroke", testPerformanceColor)
+          .attr("stroke-width", 2)
+          .attr("d", line)
+        
+        g.append("path")
+          .datum(testData)
+          .attr("fill", "none")
+          .attr("stroke", testPerformanceColor)
+          .attr("stroke-width", 2)
+          .attr("d", line)
+        
+        // Add vertical line to separate training and test periods
+        const trainEndX = xScale(trainEndDate)
+        g.append("line")
+          .attr("x1", trainEndX)
+          .attr("x2", trainEndX)
+          .attr("y1", 0)
+          .attr("y2", innerHeight)
+          .attr("stroke", "#666")
+          .attr("stroke-width", 1)
+          .attr("stroke-dasharray", "3,3")
+          .attr("opacity", 0.7)
+      }
 
       // Axes
       g.append("g")
@@ -1975,7 +2181,7 @@ export default function OutperformingIndex() {
         .call(d3.axisLeft(yScale).ticks(3))
         .style("font-size", "10px")
 
-      // Title (show stock name only after results are revealed)
+      // Title
       chartDiv.append("div")
         .style("text-align", "center")
         .style("font-size", "12px")
@@ -1985,17 +2191,14 @@ export default function OutperformingIndex() {
 
       // Performance indicator (only show after results)
       if (showChartResults) {
-        const finalPrice = processedData[processedData.length - 1].price
-        const totalReturn = stockInfo.metrics.totalReturn * 100
-        const performance = totalReturn > 50 ? "Winner" : "Underperformed"
-        const color = totalReturn > 50 ? "#10b981" : "#ef4444"
+        const performance = outperformedSP500 ? "Beat S&P 500" : "Underperformed"
         
         chartDiv.append("div")
           .style("text-align", "center")
           .style("font-size", "10px")
-          .style("color", color)
+          .style("color", testPerformanceColor)
           .style("font-weight", "bold")
-          .text(`${performance} (${totalReturn.toFixed(0)}%)`)
+          .text(`${performance} (Test Period)`)
       }
     })
   }
@@ -2089,14 +2292,6 @@ export default function OutperformingIndex() {
                 }}
               >
                 Start Exploring
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="text-lg px-8 py-4 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
-                asChild
-              >
-                <Link href="/about">View Writeup</Link>
               </Button>
             </div>
             
@@ -2411,8 +2606,8 @@ export default function OutperformingIndex() {
                 ) : (
                   <>
                     <div className="text-center mb-4">
-                      <h3 className="text-xl font-semibold mb-2">S&P 500 Market Structure: All Available Stocks by Sector & Industry</h3>
-                      <p className="text-gray-600">Rectangle size = market cap (log scale) • Color = annualized return vs. S&P 500 • Hierarchical: Sector → Industry → Stock</p>
+                      <h3 className="text-xl font-semibold mb-2">Interactive S&P 500 Market Structure</h3>
+                      <p className="text-gray-600">Rectangle size = market cap (log scale) • Color = average return vs. S&P 500 • Click to zoom into sectors/industries • Use breadcrumbs to navigate</p>
                     </div>
                     <div ref={treemapRef} className="w-full border rounded-lg bg-white" />
                     <div className="mt-4 flex justify-center items-center gap-8">
@@ -2430,11 +2625,11 @@ export default function OutperformingIndex() {
                       </div>
                     </div>
                     <div className="mt-4 text-center text-sm text-gray-500">
-                      Hover over rectangles for detailed information • Data from{" "}
+                      Click sectors/industries to zoom in • Hover for details • Use reset button or breadcrumbs to navigate • Data from{" "}
                       {(() => {
                         const { startYear, endYear } = getDataDateRange();
                         return startYear && endYear ? `${startYear}-${endYear}` : "available period";
-                      })()} (annualized returns compared to S&P 500)
+                      })()} (average returns by level)
                     </div>
                   </>
                 )}
@@ -2580,21 +2775,21 @@ export default function OutperformingIndex() {
             {/* Hindsight Bias */}
             <div className="mb-16">
               <div className="text-center mb-8">
-                <h3 className="text-3xl font-bold text-gray-900 mb-4">🔮 Hindsight / Lookahead Bias</h3>
+                <h3 className="text-3xl font-bold text-gray-900 mb-4">🔮 Hindsight Bias</h3>
                 <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                  "Of course NVIDIA went up — AI was the future."
-                  That logic only works after the fact.
+                  "Of course that stock was going to win — the trend was so obvious!"
+                  But was it really predictable, or are you just seeing patterns after the fact?
                 </p>
               </div>
               
               <Card className="p-6">
                 <CardContent>
                   <div className="text-center mb-6">
-                    <h4 className="text-xl font-semibold">Pick the Winners</h4>
+                    <h4 className="text-xl font-semibold">The Holdout Test</h4>
                     <p className="text-gray-600">
                       {!showChartResults 
-                        ? `Select up to 3 charts that you think performed best (ticker names hidden)`
-                        : "Results revealed - see how hindsight makes everything seem obvious"
+                        ? `Based on 2010-2018 performance, select up to 3 stocks you think will outperform the S&P 500 going forward`
+                        : "Results revealed - see how your 'obvious' picks performed from 2019 onwards"
                       }
                     </p>
                   </div>
@@ -2608,6 +2803,13 @@ export default function OutperformingIndex() {
                       <div ref={hindsightChartRef} className="w-full mb-4" />
                       {!showChartResults ? (
                         <div className="text-center">
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 max-w-2xl mx-auto">
+                            <p className="text-blue-800 text-sm">
+                              <strong>Instructions:</strong> You can see each stock's performance from 2010-2018. 
+                              Pick up to 3 stocks that you think will continue to outperform the S&P 500 from 2019 onwards.
+                              Stock names are hidden to prevent bias.
+                            </p>
+                          </div>
                           <p className="text-sm text-gray-500 mb-4">
                             Selected: {selectedCharts.length}/3 charts
                           </p>
@@ -2615,17 +2817,29 @@ export default function OutperformingIndex() {
                             onClick={() => setShowChartResults(true)}
                             disabled={selectedCharts.length === 0}
                           >
-                            Reveal Results
+                            See How My Picks Did (2019-2024)
                           </Button>
                         </div>
                       ) : (
-                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                          <p className="text-yellow-800">
-                            <strong>The future is never as obvious as it feels in hindsight.</strong>
-                            <br/>
-                            In 2023, everyone "knew" AI stocks would soar. But in 2018, everyone "knew" 
-                            Intel and GE were solid picks. Yesterday's winners often become tomorrow's losers.
-                          </p>
+                        <div>
+                          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                            <p className="text-yellow-800">
+                              <strong>The Hindsight Trap:</strong> Now that you see the full timeline, the results might seem "obvious."
+                              But remember — you made your picks based only on 2010-2018 data!
+                              <br/><br/>
+                              <span className="text-sm">
+                                🔵 Blue = Training period (2010-2018) • 🟢 Green = Beat S&P 500 in test period (2019+) • 🔴 Red = Underperformed S&P 500 in test period
+                              </span>
+                            </p>
+                          </div>
+                          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                            <p className="text-gray-700 text-sm">
+                              <strong>Key Lesson:</strong> Past performance doesn't predict future results. 
+                              What looked like clear winners in 2018 may have become losers by 2024. 
+                              This is why professional investors use techniques like cross-validation and why 
+                              index funds remain a robust choice — they don't rely on predicting individual winners.
+                            </p>
+                          </div>
                         </div>
                       )}
                     </>
