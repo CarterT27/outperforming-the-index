@@ -2463,9 +2463,16 @@ export default function OutperformingIndex() {
           <div className="max-w-4xl text-center">
             <h2 className="text-4xl font-bold mb-6">The Lesson</h2>
             <p className="text-xl mb-8 text-gray-300">
-              While individual stocks can deliver spectacular returns, the majority underperform the market. Index
-              investing offers consistent, diversified growth without the need to pick winners.
+              You don't need to predict the future. You just need to own it. Index funds don't rely on luck. 
+              They own the entire market, capturing every NVIDIA and weathering every disappointment.
             </p>
+
+            {/* Callout Box */}
+            <div className="bg-blue-600 border border-blue-500 rounded-lg p-6 mb-8">
+              <p className="text-2xl font-semibold text-white">
+                "Consistent. Diversified. Low-cost. That's the index advantage."
+              </p>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
               <div className="p-6 bg-gray-800 rounded-lg">
