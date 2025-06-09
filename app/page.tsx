@@ -3408,7 +3408,88 @@ export default function OutperformingIndex() {
           </div>
         </section>
 
-        {/* Section 4: Try Your Luck */}
+        {/* Section 4: The Bigger Picture */}
+        <section className="min-h-screen flex items-center justify-center px-4 pt-32">
+          <div className="max-w-6xl w-full">
+            <div className="text-center mb-8 md:mb-12 mx-2">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 md:mb-6 mt-8 md:mt-16">🌳 The Bigger Picture</h2>
+              <p className="text-lg md:text-xl text-gray-600 mb-6 md:mb-8 leading-relaxed">
+                The market is a complex ecosystem — made up of diverse sectors and thousands of companies. 
+                Some thrive. Most don't.
+              </p>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 md:p-6 max-w-2xl mx-auto transition-all duration-300 hover:bg-green-100 hover:shadow-md hover:scale-105">
+                <p className="text-lg md:text-xl font-semibold text-green-800">
+                  "Understanding the forest, not just the trees."
+                </p>
+              </div>
+            </div>
+
+            {/* Chart - Hidden on mobile */}
+            <Card className="p-4 md:p-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:border-indigo-200 bg-white/95 backdrop-blur-sm mx-2 hidden md:block">
+              <CardContent>
+                {isLoading ? (
+                  <div className="w-full h-[500px] bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
+                    <div className="text-gray-400">Loading market structure...</div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-center mb-4">
+                      <h3 className="text-lg md:text-xl font-semibold mb-2">Interactive S&P 500 Market Structure</h3>
+                      <p className="text-sm md:text-base text-gray-600">Rectangle size = market cap (log scale) • Color = average return vs. S&P 500 • Click to zoom into sectors/industries • Use breadcrumbs to navigate</p>
+                    </div>
+                    <div ref={treemapRef} className="w-full border rounded-lg bg-white" />
+                    <div className="mt-4 flex flex-wrap justify-center items-center gap-4 md:gap-8">
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 bg-red-400 rounded"></div>
+                        <span className="text-xs md:text-sm">Underperformed S&P 500</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 bg-yellow-400 rounded"></div>
+                        <span className="text-xs md:text-sm">Similar to S&P 500</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 bg-green-400 rounded"></div>
+                        <span className="text-xs md:text-sm">Outperformed S&P 500</span>
+                      </div>
+                    </div>
+                    <div className="mt-4 text-center text-xs md:text-sm text-gray-500">
+                      Click sectors/industries to zoom in • Hover for details • Use reset button or breadcrumbs to navigate • Data from{" "}
+                      {(() => {
+                        const { startYear, endYear } = getDataDateRange();
+                        return startYear && endYear ? `${startYear}-${endYear}` : "available period";
+                      })()} (average returns by level)
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Mobile-only explanation */}
+            <div className="md:hidden mx-2 mb-6">
+              <Card className="p-4 bg-green-50 border-green-200">
+                <CardContent>
+                  <p className="text-sm text-green-800 leading-relaxed">
+                    📊 <strong>Interactive Market Structure Available on Desktop:</strong> An interactive treemap showing S&P 500 companies organized by sector and industry is available when viewing on a larger screen.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="mt-6 md:mt-8 text-center mx-2">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 md:p-6 max-w-3xl mx-auto transition-all duration-300 hover:bg-blue-100 hover:shadow-lg hover:scale-[1.02]">
+                <h3 className="text-base md:text-lg font-semibold text-blue-800 mb-2">Key Insight</h3>
+                <p className="text-sm md:text-base text-blue-700 leading-relaxed">
+                  Even within the same sector, individual stocks can have wildly different outcomes. 
+                  Technology stocks like NVIDIA soared while Intel struggled. This unpredictability 
+                  is why diversification through index funds is so powerful — you capture the 
+                  winners without having to predict which ones they'll be.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Section 5: Try Your Luck */}
         <section className="min-h-screen flex items-center justify-center px-4 pt-40">
           <div className="max-w-6xl w-full">
             <div className="text-center mb-8 md:mb-12 mx-2">
@@ -3740,87 +3821,6 @@ export default function OutperformingIndex() {
                   </Card>
                 </div>
               )}
-            </div>
-          </div>
-        </section>
-
-        {/* Section 5: The Bigger Picture */}
-        <section className="min-h-screen flex items-center justify-center px-4 pt-32">
-          <div className="max-w-6xl w-full">
-            <div className="text-center mb-8 md:mb-12 mx-2">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 md:mb-6 mt-8 md:mt-16">🌳 The Bigger Picture</h2>
-              <p className="text-lg md:text-xl text-gray-600 mb-6 md:mb-8 leading-relaxed">
-                The market is a complex ecosystem — made up of diverse sectors and thousands of companies. 
-                Some thrive. Most don't.
-              </p>
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 md:p-6 max-w-2xl mx-auto transition-all duration-300 hover:bg-green-100 hover:shadow-md hover:scale-105">
-                <p className="text-lg md:text-xl font-semibold text-green-800">
-                  "Understanding the forest, not just the trees."
-                </p>
-              </div>
-            </div>
-
-            {/* Chart - Hidden on mobile */}
-            <Card className="p-4 md:p-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:border-indigo-200 bg-white/95 backdrop-blur-sm mx-2 hidden md:block">
-              <CardContent>
-                {isLoading ? (
-                  <div className="w-full h-[500px] bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
-                    <div className="text-gray-400">Loading market structure...</div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="text-center mb-4">
-                      <h3 className="text-lg md:text-xl font-semibold mb-2">Interactive S&P 500 Market Structure</h3>
-                      <p className="text-sm md:text-base text-gray-600">Rectangle size = market cap (log scale) • Color = average return vs. S&P 500 • Click to zoom into sectors/industries • Use breadcrumbs to navigate</p>
-                    </div>
-                    <div ref={treemapRef} className="w-full border rounded-lg bg-white" />
-                    <div className="mt-4 flex flex-wrap justify-center items-center gap-4 md:gap-8">
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 bg-red-400 rounded"></div>
-                        <span className="text-xs md:text-sm">Underperformed S&P 500</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 bg-yellow-400 rounded"></div>
-                        <span className="text-xs md:text-sm">Similar to S&P 500</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 bg-green-400 rounded"></div>
-                        <span className="text-xs md:text-sm">Outperformed S&P 500</span>
-                      </div>
-                    </div>
-                    <div className="mt-4 text-center text-xs md:text-sm text-gray-500">
-                      Click sectors/industries to zoom in • Hover for details • Use reset button or breadcrumbs to navigate • Data from{" "}
-                      {(() => {
-                        const { startYear, endYear } = getDataDateRange();
-                        return startYear && endYear ? `${startYear}-${endYear}` : "available period";
-                      })()} (average returns by level)
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Mobile-only explanation */}
-            <div className="md:hidden mx-2 mb-6">
-              <Card className="p-4 bg-green-50 border-green-200">
-                <CardContent>
-                  <p className="text-sm text-green-800 leading-relaxed">
-                    📊 <strong>Interactive Market Structure Available on Desktop:</strong> An interactive treemap showing S&P 500 companies organized by sector and industry is available when viewing on a larger screen.
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="mt-6 md:mt-8 text-center mx-2">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 md:p-6 max-w-3xl mx-auto transition-all duration-300 hover:bg-blue-100 hover:shadow-lg hover:scale-[1.02]">
-                <h3 className="text-base md:text-lg font-semibold text-blue-800 mb-2">Key Insight</h3>
-                <p className="text-sm md:text-base text-blue-700 leading-relaxed">
-                  Even within the same sector, individual stocks can have wildly different outcomes. 
-                  Technology stocks like NVIDIA soared while Intel struggled. This unpredictability 
-                  is why diversification through index funds is so powerful — you capture the 
-                  winners without having to predict which ones they'll be.
-                </p>
-              </div>
             </div>
           </div>
         </section>
