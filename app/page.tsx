@@ -603,8 +603,20 @@ export default function OutperformingIndex() {
       .style("fill", "#3b82f6")
       .text(`${sp500Final.normalizedPrice.toFixed(0)}`)
 
-    // Add legend
-    const legend = g.append("g").attr("transform", `translate(${width - 120}, 20)`)
+    // Add legend with background
+    const legend = g.append("g").attr("transform", `translate(${width - 180}, 20)`)
+    
+    // Add background rectangle for legend
+    legend.append("rect")
+      .attr("x", -5)
+      .attr("y", -10)
+      .attr("width", 170)
+      .attr("height", 45)
+      .attr("fill", "white")
+      .attr("stroke", "#e5e7eb")
+      .attr("stroke-width", 1)
+      .attr("rx", 4)
+      .attr("opacity", 0.9)
 
     legend
       .append("line")
