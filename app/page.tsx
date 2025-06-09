@@ -2366,6 +2366,7 @@ export default function OutperformingIndex() {
         .style("padding", "5px")
         .style("background", "white")
         .style("cursor", "pointer")
+        .style("transition", "all 0.3s ease")
         .on("click", () => {
           if (!showChartResults) {
             setSelectedCharts(prev => 
@@ -2374,6 +2375,16 @@ export default function OutperformingIndex() {
                 : prev.length < 3 ? [...prev, index] : prev
             )
           }
+        })
+        .on("mouseover", function() {
+          d3.select(this)
+            .style("transform", "scale(1.05)")
+            .style("box-shadow", "0 10px 25px rgba(0,0,0,0.15)")
+        })
+        .on("mouseout", function() {
+          d3.select(this)
+            .style("transform", "scale(1)")
+            .style("box-shadow", "none")
         })
 
       const svg = chartDiv
@@ -2586,16 +2597,16 @@ export default function OutperformingIndex() {
               </a>
             </p>
             <div className="flex items-center justify-center gap-4">
-              <Button 
-                size="lg" 
-                className="text-lg px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white"
-                onClick={() => {
-                  const nextSection = document.querySelector('#comparison-section');
-                  nextSection?.scrollIntoView({ behavior: 'smooth' });
-                }}
-              >
-                Start Exploring
-              </Button>
+                          <Button 
+              size="lg" 
+              className="text-lg px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300 hover:scale-110 hover:shadow-lg"
+              onClick={() => {
+                const nextSection = document.querySelector('#comparison-section');
+                nextSection?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
+              Start Exploring
+            </Button>
             </div>
             
             {/* Bouncing scroll arrow */}
@@ -2640,13 +2651,13 @@ export default function OutperformingIndex() {
                 )}. 
                 It's a dream outcome — and it really happened.
               </p>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-2xl mx-auto">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-2xl mx-auto transition-all duration-300 hover:bg-blue-100 hover:shadow-md hover:scale-105">
                 <p className="text-xl font-semibold text-blue-800">
                   "Wouldn't it be great to pick the next NVIDIA?"
                 </p>
               </div>
             </div>
-            <Card className="p-6">
+            <Card className="p-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:border-blue-200">
               <CardContent>
                 {isLoading ? (
                   <div className="w-full h-[400px] bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
@@ -2687,13 +2698,13 @@ export default function OutperformingIndex() {
                 return underperformanceRate !== null ? `${underperformanceRate}%` : "the majority";
               })()} of S&P 500 stocks underperform the S&P 500 index on an annualized basis.
             </p>
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 max-w-2xl mx-auto">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 max-w-2xl mx-auto transition-all duration-300 hover:bg-yellow-100 hover:shadow-md hover:scale-105">
               <p className="text-xl font-semibold text-yellow-800">
                 "The few big winners carry the whole index."
               </p>
             </div>
           </div>
-          <Card className="p-6">
+          <Card className="p-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:border-blue-200">
             <CardContent>
               {isLoading ? (
                 <div className="w-full h-[400px] bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
@@ -2703,7 +2714,7 @@ export default function OutperformingIndex() {
                 <>
                   <div ref={histogramRef} className="w-full border rounded-lg bg-white" />
                   <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="text-center p-4 bg-red-50 rounded-lg">
+                    <div className="text-center p-4 bg-red-50 rounded-lg transition-all duration-200 hover:bg-red-100 hover:scale-105">
                       <div className="text-2xl font-bold text-red-600">
                         {comparisonData
                           ? `${getUnderperformancePercentage()}%`
@@ -2711,13 +2722,13 @@ export default function OutperformingIndex() {
                       </div>
                       <div className="text-sm text-gray-600">Underperformed S&P 500</div>
                     </div>
-                    <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <div className="text-center p-4 bg-blue-50 rounded-lg transition-all duration-200 hover:bg-blue-100 hover:scale-105">
                       <div className="text-2xl font-bold text-blue-600">
                         {comparisonData ? `${(comparisonData.sp500.metrics.annualizedReturn * 100).toFixed(1)}%` : "--"}
                       </div>
                       <div className="text-sm text-gray-600">S&P 500 Annualized Return</div>
                     </div>
-                    <div className="text-center p-4 bg-green-50 rounded-lg">
+                    <div className="text-center p-4 bg-green-50 rounded-lg transition-all duration-200 hover:bg-green-100 hover:scale-105">
                       <div className="text-2xl font-bold text-green-600">
                         {comparisonData
                           ? `${100 - (getUnderperformancePercentage() || 0)}%`
@@ -2746,7 +2757,7 @@ export default function OutperformingIndex() {
                   return startYear && endYear ? `${startYear} to ${endYear}` : "the available data period";
                 })()}.
               </p>
-              <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-2xl mx-auto">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-2xl mx-auto transition-all duration-300 hover:bg-red-100 hover:shadow-md hover:scale-105">
                 <p className="text-xl font-semibold text-red-800">
                   "Would you bet your retirement on one guess?"
                 </p>
@@ -2754,7 +2765,7 @@ export default function OutperformingIndex() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <Card className="p-6">
+              <Card className="p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:border-green-200">
                 <CardContent>
                   <h3 className="text-xl font-semibold mb-4">Stock Picker</h3>
                   <div className="space-y-4">
@@ -2819,7 +2830,7 @@ export default function OutperformingIndex() {
                         portfolioStocks.map((stock) => {
                           const stockData = comparisonData?.stocks[stock.symbol]
                           return (
-                            <div key={stock.symbol} className="border rounded-lg p-4 bg-gray-50">
+                            <div key={stock.symbol} className="border rounded-lg p-4 bg-gray-50 transition-all duration-200 hover:bg-gray-100 hover:shadow-md hover:scale-[1.02]">
                               <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-2">
                                   <Badge variant="secondary">{stock.symbol}</Badge>
@@ -2831,7 +2842,7 @@ export default function OutperformingIndex() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => removeStockFromPortfolio(stock.symbol)}
-                                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                  className="text-red-500 hover:text-red-700 hover:bg-red-50 transition-all duration-200 hover:scale-110"
                                 >
                                   Remove
                                 </Button>
@@ -2871,7 +2882,7 @@ export default function OutperformingIndex() {
                 </CardContent>
               </Card>
 
-              <Card className="p-6">
+              <Card className="p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:border-blue-200">
                 <CardContent>
                   <h3 className="text-xl font-semibold mb-4">Portfolio Allocation</h3>
                   <div className="space-y-4">
@@ -2892,7 +2903,7 @@ export default function OutperformingIndex() {
                         
                         {/* Portfolio Summary */}
                         <div className="space-y-2">
-                          <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                          <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg transition-all duration-300 hover:bg-blue-100 hover:scale-105 hover:shadow-md cursor-pointer">
                             <span className="font-medium">Total Portfolio Value</span>
                             <span className="font-bold text-blue-600">
                               ${(() => {
@@ -2924,7 +2935,7 @@ export default function OutperformingIndex() {
                                   const gain = stock.value - (stock.originalValue || 0)
                                   const returnPct = ((stock.return || 0) * 100).toFixed(1)
                                   return (
-                                    <div key={stock.symbol} className="flex justify-between items-center text-sm py-1">
+                                    <div key={stock.symbol} className="flex justify-between items-center text-sm py-1 px-2 rounded transition-all duration-200 hover:bg-gray-100 hover:scale-[1.02] cursor-pointer">
                                       <span className="font-medium">{stock.symbol}</span>
                                       <div className="text-right">
                                         <div>${stock.value.toLocaleString()}</div>
@@ -2946,7 +2957,7 @@ export default function OutperformingIndex() {
                                   const investment = stock.investment || 100
                                   const percentage = ((investment / getTotalPortfolioValue()) * 100).toFixed(1)
                                   return (
-                                    <div key={stock.symbol} className="flex justify-between items-center text-sm py-1">
+                                    <div key={stock.symbol} className="flex justify-between items-center text-sm py-1 px-2 rounded transition-all duration-200 hover:bg-gray-100 hover:scale-[1.02] cursor-pointer">
                                       <span className="font-medium">{stock.symbol}</span>
                                       <div className="text-right">
                                         <div>${investment.toLocaleString()}</div>
@@ -2967,7 +2978,7 @@ export default function OutperformingIndex() {
               {/* Results Section - Only shown after calculation */}
               {isCalculated && (
                 <div className="lg:col-span-2 mt-8">
-                  <Card className="p-6">
+                  <Card className="p-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-xl hover:border-purple-200">
                     <CardContent>
                       <h3 className="text-xl font-semibold mb-4">Your Results</h3>
                       <div className="space-y-4">
@@ -2978,19 +2989,19 @@ export default function OutperformingIndex() {
                         ) : (
                           <>
                             <div ref={portfolioChartRef} className="w-full border rounded-lg bg-white mb-4" />
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                              <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                                                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg transition-all duration-200 hover:bg-green-100 hover:scale-105 cursor-pointer">
                                 <span>Your Portfolio Return</span>
                                 <span className="font-bold text-green-600">{portfolioReturn.toFixed(2)}%</span>
                               </div>
-                              <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                              <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg transition-all duration-200 hover:bg-blue-100 hover:scale-105 cursor-pointer">
                                 <span>S&P 500 Return</span>
                                 <span className="font-bold text-blue-600">{sp500Return.toFixed(2)}%</span>
                               </div>
-                              <div className={`flex justify-between items-center p-3 rounded-lg ${
+                              <div className={`flex justify-between items-center p-3 rounded-lg transition-all duration-200 hover:scale-105 cursor-pointer ${
                                 portfolioReturn > sp500Return 
-                                  ? 'bg-gray-50' 
-                                  : 'bg-red-100'
+                                  ? 'bg-gray-50 hover:bg-gray-100' 
+                                  : 'bg-red-100 hover:bg-red-200'
                               }`}>
                                 <span>Difference</span>
                                 <span className={`font-bold ${portfolioReturn > sp500Return ? 'text-green-600' : 'text-red-600'}`}>
@@ -2999,10 +3010,10 @@ export default function OutperformingIndex() {
                               </div>
                             </div>
 
-                            <div className={`mt-6 p-4 rounded-lg ${
+                            <div className={`mt-6 p-4 rounded-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-lg ${
                               portfolioReturn > sp500Return 
-                                ? 'bg-green-50' 
-                                : 'bg-yellow-50'
+                                ? 'bg-green-50 hover:bg-green-100' 
+                                : 'bg-yellow-50 hover:bg-yellow-100'
                             }`}>
                               <h4 className={`font-semibold mb-2 ${
                                 portfolioReturn > sp500Return 
@@ -3041,14 +3052,14 @@ export default function OutperformingIndex() {
                 The market is a complex ecosystem — made up of diverse sectors and thousands of companies. 
                 Some thrive. Most don't.
               </p>
-              <div className="bg-green-50 border border-green-200 rounded-lg p-6 max-w-2xl mx-auto">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-6 max-w-2xl mx-auto transition-all duration-300 hover:bg-green-100 hover:shadow-md hover:scale-105">
                 <p className="text-xl font-semibold text-green-800">
                   "Understanding the forest, not just the trees."
                 </p>
               </div>
             </div>
 
-            <Card className="p-6">
+            <Card className="p-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:border-indigo-200">
               <CardContent>
                 {isLoading ? (
                   <div className="w-full h-[500px] bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
@@ -3088,7 +3099,7 @@ export default function OutperformingIndex() {
             </Card>
 
             <div className="mt-8 text-center">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-3xl mx-auto">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-3xl mx-auto transition-all duration-300 hover:bg-blue-100 hover:shadow-lg hover:scale-[1.02]">
                 <h3 className="text-lg font-semibold text-blue-800 mb-2">Key Insight</h3>
                 <p className="text-blue-700">
                   Even within the same sector, individual stocks can have wildly different outcomes. 
@@ -3122,7 +3133,7 @@ export default function OutperformingIndex() {
                 </p>
               </div>
               
-              <Card className="p-6">
+              <Card className="p-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:border-yellow-200">
                 <CardContent>
                   <div className="text-center mb-4">
                     <h4 className="text-xl font-semibold">Two Portfolios, Same 8% Annual Return</h4>
@@ -3135,7 +3146,7 @@ export default function OutperformingIndex() {
                   ) : (
                     <div ref={lossAversionRef} className="w-full border rounded-lg bg-white" />
                   )}
-                  <div className="mt-4 p-4 bg-yellow-50 rounded-lg">
+                  <div className="mt-4 p-4 bg-yellow-50 rounded-lg transition-colors duration-200 hover:bg-yellow-100">
                     <p className="text-sm text-yellow-700">
                       <strong>Reality Check:</strong> Most people say they want growth, but feel losses more deeply in practice.
                       The volatile portfolio's dips would cause many investors to panic and sell at the worst times.
@@ -3154,7 +3165,7 @@ export default function OutperformingIndex() {
                 </p>
               </div>
               
-              <Card className="p-6">
+              <Card className="p-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:border-orange-200">
                 <CardContent>
                   <div className="text-center mb-6">
                     <h4 className="text-xl font-semibold">Quick Knowledge Check</h4>
@@ -3164,7 +3175,7 @@ export default function OutperformingIndex() {
                   {!showQuizResults ? (
                     <div className="space-y-6">
                       {quizQuestions.map((q, qIndex) => (
-                        <div key={qIndex} className="border rounded-lg p-4">
+                        <div key={qIndex} className="border rounded-lg p-4 transition-all duration-200 hover:shadow-md hover:border-blue-300">
                           <h5 className="font-semibold mb-3">{q.question}</h5>
                           <div className="grid grid-cols-2 gap-2">
                             {q.options.map((option, oIndex) => (
@@ -3176,7 +3187,7 @@ export default function OutperformingIndex() {
                                   newAnswers[qIndex] = oIndex
                                   setQuizAnswers(newAnswers)
                                 }}
-                                className="justify-start"
+                                className="justify-start transition-all duration-200 hover:scale-105"
                               >
                                 {option}%
                               </Button>
@@ -3233,7 +3244,7 @@ export default function OutperformingIndex() {
                 </p>
               </div>
               
-              <Card className="p-6">
+              <Card className="p-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:border-purple-200">
                 <CardContent>
                   <div className="text-center mb-6">
                     <h4 className="text-xl font-semibold">The Holdout Test</h4>
@@ -3254,7 +3265,7 @@ export default function OutperformingIndex() {
                       <div ref={hindsightChartRef} className="w-full mb-4" />
                       {!showChartResults ? (
                         <div className="text-center">
-                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 max-w-2xl mx-auto">
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 max-w-2xl mx-auto transition-all duration-300 hover:bg-blue-100 hover:shadow-md hover:scale-[1.02]">
                             <p className="text-blue-800 text-sm">
                               <strong>Instructions:</strong> You can see each stock's performance from 2010-2018. 
                               Pick up to 3 stocks that you think will continue to outperform the S&P 500 from 2019 onwards.
@@ -3267,13 +3278,14 @@ export default function OutperformingIndex() {
                           <Button 
                             onClick={() => setShowChartResults(true)}
                             disabled={selectedCharts.length === 0}
+                            className="transition-all duration-300 hover:scale-110 hover:shadow-lg"
                           >
                             See How My Picks Did (2019-2024)
                           </Button>
                         </div>
                       ) : (
                         <div>
-                          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 transition-all duration-300 hover:bg-yellow-100 hover:shadow-md hover:scale-[1.02]">
                             <p className="text-yellow-800">
                               <strong>The Hindsight Trap:</strong> Now that you see the full timeline, the results might seem "obvious."
                               But remember — you made your picks based only on 2010-2018 data!
@@ -3283,7 +3295,7 @@ export default function OutperformingIndex() {
                               </span>
                             </p>
                           </div>
-                          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 transition-all duration-300 hover:bg-gray-100 hover:shadow-md hover:scale-[1.02]">
                             <p className="text-gray-700 text-sm">
                               <strong>Key Lesson:</strong> Past performance doesn't predict future results. 
                               What looked like clear winners in 2018 may have become losers by 2024. 
@@ -3301,14 +3313,14 @@ export default function OutperformingIndex() {
 
             {/* Recap */}
             <div className="text-center">
-              <div className="bg-gray-900 text-white rounded-lg p-8 max-w-2xl mx-auto">
+              <div className="bg-gray-900 text-white rounded-lg p-8 max-w-2xl mx-auto transition-all duration-300 hover:bg-gray-800 hover:scale-105 hover:shadow-2xl">
                 <h3 className="text-2xl font-bold mb-4 text-white">🧾 The Takeaway</h3>
                 <p className="text-xl mb-6 text-gray-100">
                   "Your brain isn't wired for investing. That's why index funds work."
                 </p>
                 <Button
                   variant="outline"
-                  className="border-gray-300 text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-all duration-300 hover:scale-110 hover:shadow-lg"
                   asChild
                 >
                   <a 
@@ -3334,20 +3346,20 @@ export default function OutperformingIndex() {
             </p>
 
             {/* Callout Box */}
-            <div className="bg-blue-600 border border-blue-500 rounded-lg p-6 mb-8">
+            <div className="bg-blue-600 border border-blue-500 rounded-lg p-6 mb-8 transition-all duration-300 hover:bg-blue-500 hover:scale-105 hover:shadow-2xl">
               <p className="text-2xl font-semibold text-white">
                 "Consistent. Diversified. Low-cost. That's the index advantage."
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
-              <div className="p-6 bg-gray-800 rounded-lg">
-                <TrendingUp className="w-12 h-12 text-green-500 mb-4 mx-auto" />
+              <div className="p-6 bg-gray-800 rounded-lg transition-all duration-300 hover:bg-gray-700 hover:scale-105 hover:shadow-xl">
+                <TrendingUp className="w-12 h-12 text-green-500 mb-4 mx-auto transition-transform duration-300 hover:scale-110" />
                 <h3 className="text-xl font-semibold mb-2">Index Investing</h3>
                 <p className="text-gray-300">Consistent returns, low fees, automatic diversification</p>
               </div>
-              <div className="p-6 bg-gray-800 rounded-lg">
-                <TrendingDown className="w-12 h-12 text-red-500 mb-4 mx-auto" />
+              <div className="p-6 bg-gray-800 rounded-lg transition-all duration-300 hover:bg-gray-700 hover:scale-105 hover:shadow-xl">
+                <TrendingDown className="w-12 h-12 text-red-500 mb-4 mx-auto transition-transform duration-300 hover:scale-110" />
                 <h3 className="text-xl font-semibold mb-2">Stock Picking</h3>
                 <p className="text-gray-300">High risk, requires expertise, most fail to beat the market</p>
               </div>
