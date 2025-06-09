@@ -83,7 +83,7 @@ interface ReturnsDistribution {
 
 interface PortfolioStock {
   symbol: string
-  investment: number
+  investment: number | ""
 }
 
 interface PieChartData {
@@ -110,6 +110,7 @@ export default function OutperformingIndex() {
   const [showChartResults, setShowChartResults] = useState<boolean>(false)
   const [searchQuery, setSearchQuery] = useState<string>("")
   const [showSearchResults, setShowSearchResults] = useState<boolean>(false)
+  const [scrollY, setScrollY] = useState<number>(0)
 
   const chartRef = useRef<HTMLDivElement>(null)
   const histogramRef = useRef<HTMLDivElement>(null)
@@ -242,7 +243,7 @@ export default function OutperformingIndex() {
         return
       }
 
-      const investment = stock.investment || 100 // Treat empty as $100
+      const investment = typeof stock.investment === "number" ? stock.investment : 100 // Treat empty as $100
       const stockReturn = stockInfo.metrics.totalReturn
       console.log(`Using pre-calculated return for ${stock.symbol}:`, {
         totalReturn: stockReturn,
@@ -308,7 +309,7 @@ export default function OutperformingIndex() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const updateInvestment = (symbol: string, investment: number) => {
+  const updateInvestment = (symbol: string, investment: number | "") => {
     setPortfolioStocks(prev => {
       const existing = prev.find(s => s.symbol === symbol)
       if (existing) {
@@ -357,7 +358,7 @@ export default function OutperformingIndex() {
 
   // Get total portfolio value
   const getTotalPortfolioValue = () => {
-    return portfolioStocks.reduce((total, stock) => total + (stock.investment || 100), 0)
+    return portfolioStocks.reduce((total, stock) => total + (typeof stock.investment === "number" ? stock.investment : 100), 0)
   }
 
   // Get consistent color for a stock symbol
@@ -374,7 +375,7 @@ export default function OutperformingIndex() {
     return portfolioStocks
       .map(stock => {
         const stockInfo = comparisonData.stocks[stock.symbol]
-        const investment = stock.investment || 100 // Treat empty as $100
+        const investment = typeof stock.investment === "number" ? stock.investment : 100 // Treat empty as $100
         if (!stockInfo) return { 
           symbol: stock.symbol, 
           value: investment,
@@ -1922,12 +1923,12 @@ export default function OutperformingIndex() {
       isShowingReturns = true
     } else {
       // Show original investment amounts
-      portfolioData = portfolioStocks.map(stock => ({
-        symbol: stock.symbol,
-        investment: stock.investment || 100,
-        originalValue: null,
-        return: null
-      }))
+                    portfolioData = portfolioStocks.map(stock => ({
+                symbol: stock.symbol,
+                investment: typeof stock.investment === "number" ? stock.investment : 100,
+                originalValue: null,
+                return: null
+              }))
       pieTotal = getTotalPortfolioValue()
       isShowingReturns = false
     }
@@ -2856,10 +2857,10 @@ export default function OutperformingIndex() {
                                     min="0"
                                     step="100"
                                     placeholder="100"
-                                    value={stock.investment === 0 ? "" : stock.investment}
+                                    value={stock.investment === "" ? "" : stock.investment}
                                     onChange={(e) => {
-                                      const value = e.target.value === "" ? 100 : parseFloat(e.target.value) || 100
-                                      updateInvestment(stock.symbol, Math.max(0, value))
+                                      const value = e.target.value === "" ? "" : parseFloat(e.target.value) || ""
+                                      updateInvestment(stock.symbol, typeof value === "number" ? Math.max(0, value) : "")
                                     }}
                                     className="w-24 text-sm"
                                   />
@@ -2952,9 +2953,13 @@ export default function OutperformingIndex() {
                             } else {
                               // Show original investment amounts
                               return portfolioStocks
-                                .sort((a, b) => (b.investment || 100) - (a.investment || 100))
+                                .sort((a, b) => {
+                                  const aInvestment = typeof a.investment === "number" ? a.investment : 100
+                                  const bInvestment = typeof b.investment === "number" ? b.investment : 100
+                                  return bInvestment - aInvestment
+                                })
                                 .map((stock) => {
-                                  const investment = stock.investment || 100
+                                  const investment = typeof stock.investment === "number" ? stock.investment : 100
                                   const percentage = ((investment / getTotalPortfolioValue()) * 100).toFixed(1)
                                   return (
                                     <div key={stock.symbol} className="flex justify-between items-center text-sm py-1 px-2 rounded transition-all duration-200 hover:bg-gray-100 hover:scale-[1.02] cursor-pointer">
