@@ -1,6 +1,17 @@
 import type { Metadata } from 'next'
+import { Inter, Roboto_Mono } from 'next/font/google'
 import './globals.css'
 import { getAssetPath } from '@/lib/config'
+
+const inter = Inter({ 
+  subsets: ['latin'],
+  variable: '--font-inter',
+})
+
+const robotoMono = Roboto_Mono({ 
+  subsets: ['latin'],
+  variable: '--font-roboto-mono',
+})
 
 const faviconPath = getAssetPath('/favicon.ico')
 
@@ -29,7 +40,7 @@ export default function RootLayout({
         <link rel="icon" href={faviconPath} sizes="any" />
         <link rel="shortcut icon" href={faviconPath} />
       </head>
-      <body>{children}</body>
+      <body className={`${inter.variable} ${robotoMono.variable} font-sans`}>{children}</body>
     </html>
   )
 }
