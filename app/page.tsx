@@ -2557,7 +2557,33 @@ export default function OutperformingIndex() {
               Explore real S&P 500 data and see why index investing is often the smartest choice.
             </p>
             <p className="text-lg text-gray-500 mb-12 font-medium">
-              By Carter Tran, April Huang, and Cheryl Xiang
+              By{" "}
+              <a 
+                href="https://github.com/CarterT27" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+              >
+                Carter Tran
+              </a>
+              ,{" "}
+              <a 
+                href="https://github.com/aprilhuang39" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+              >
+                April Huang
+              </a>
+              , and{" "}
+              <a 
+                href="https://github.com/cheryl-xiang" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+              >
+                Cheryl Xiang
+              </a>
             </p>
             <div className="flex items-center justify-center gap-4">
               <Button 
