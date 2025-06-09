@@ -1012,16 +1012,20 @@ export default function OutperformingIndex() {
     const sp500Return = comparisonData.sp500.metrics.annualizedReturn
     const stockReturns = Object.values(comparisonData.stocks).map(stock => stock.metrics.annualizedReturn)
     
-    // Create histogram bins from actual data
+    // Create histogram bins with consistent width
     const minReturn = Math.min(...stockReturns)
     const maxReturn = Math.max(...stockReturns)
     const binWidth = 0.02 // 2% bins
-    const numBins = Math.ceil((maxReturn - minReturn) / binWidth)
     
-    // Generate bins
-    const bins = d3.range(numBins + 1).map(i => minReturn + i * binWidth)
+    // Extend the range slightly to ensure all data fits properly
+    const extendedMin = Math.floor(minReturn / binWidth) * binWidth
+    const extendedMax = Math.ceil(maxReturn / binWidth) * binWidth
+    const numBins = Math.round((extendedMax - extendedMin) / binWidth)
+    
+    // Generate consistent bins
+    const bins = d3.range(numBins + 1).map(i => extendedMin + i * binWidth)
     const histogram = d3.histogram()
-      .domain([minReturn, maxReturn])
+      .domain([extendedMin, extendedMax])
       .thresholds(bins)
       
     const binData = histogram(stockReturns)
@@ -1029,7 +1033,7 @@ export default function OutperformingIndex() {
     // Create dynamic x-axis scale
     const xScale = d3
       .scaleLinear()
-      .domain([minReturn, maxReturn])
+      .domain([extendedMin, extendedMax])
       .nice()
       .range([0, width])
 
@@ -1121,24 +1125,55 @@ export default function OutperformingIndex() {
         // Remove any existing histogram tooltips
         d3.selectAll(".histogram-tooltip").remove()
 
+        // Find stocks that fall within this bin range
+        const stocksInBin = Object.entries(comparisonData.stocks)
+          .filter(([symbol, stockData]) => {
+            const annualizedReturn = stockData.metrics.annualizedReturn
+            return annualizedReturn >= d.x0 && annualizedReturn < d.x1
+          })
+          .map(([symbol, stockData]) => ({
+            symbol,
+            return: (stockData.metrics.annualizedReturn * 100).toFixed(1)
+          }))
+          .sort((a, b) => parseFloat(b.return) - parseFloat(a.return)) // Sort by return descending
+
+        // Create tooltip content
+        let tooltipContent = `
+          <div><strong>Return Range:</strong> ${(d.x0 * 100).toFixed(1)}% to ${(d.x1 * 100).toFixed(1)}%</div>
+          <div><strong>Number of Stocks:</strong> ${d.length}</div>
+          <div><strong>vs S&P 500:</strong> ${(((d.x0 + d.x1) / 2 - sp500Return) * 100).toFixed(1)}% difference</div>
+        `
+
+        if (stocksInBin.length > 0) {
+          tooltipContent += `<div style="margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.3); padding-top: 8px;"><strong>Stocks in this range:</strong></div>`
+          
+          // Show up to 10 stocks to avoid tooltip getting too long
+          const stocksToShow = stocksInBin.slice(0, 10)
+          stocksToShow.forEach(stock => {
+            tooltipContent += `<div style="font-size: 11px;">${stock.symbol}: ${stock.return}%</div>`
+          })
+          
+          if (stocksInBin.length > 10) {
+            tooltipContent += `<div style="font-size: 11px; color: #ccc;">...and ${stocksInBin.length - 10} more</div>`
+          }
+        }
+
         const tooltip = d3
           .select("body")
           .append("div")
           .attr("class", "histogram-tooltip")
           .style("position", "absolute")
-          .style("background", "rgba(0, 0, 0, 0.8)")
+          .style("background", "rgba(0, 0, 0, 0.9)")
           .style("color", "white")
-          .style("padding", "8px")
-          .style("border-radius", "4px")
+          .style("padding", "12px")
+          .style("border-radius", "6px")
           .style("font-size", "12px")
           .style("pointer-events", "none")
           .style("z-index", "1000")
-          .html(`
-            <div><strong>Return Range:</strong> ${(d.x0 * 100).toFixed(1)}% to ${(d.x1 * 100).toFixed(1)}%</div>
-            <div><strong>Number of Stocks:</strong> ${d.length}</div>
-            <div><strong>vs S&P 500:</strong> ${(((d.x0 + d.x1) / 2 - sp500Return) * 100).toFixed(1)}% difference</div>
-          `)
-          .style("left", event.pageX + 10 + "px")
+          .style("max-width", "250px")
+          .style("box-shadow", "0 4px 6px rgba(0, 0, 0, 0.1)")
+          .html(tooltipContent)
+          .style("left", event.pageX + 15 + "px")
           .style("top", event.pageY - 10 + "px")
       })
       .on("mouseout", function() {
@@ -1185,9 +1220,9 @@ export default function OutperformingIndex() {
       .attr("y1", 0)
       .attr("y2", height)
       .attr("stroke", "#f59e0b")
-      .attr("stroke-width", 3)
+      .attr("stroke-width", 4)
       .attr("stroke-dasharray", "5,5")
-      .style("opacity", 0.8);
+      .style("opacity", 0.9);
 
     //Add NVIDIA Label with background for better visibility
     g.append("rect")
