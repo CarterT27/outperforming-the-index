@@ -3058,7 +3058,25 @@ export default function OutperformingIndex() {
             </div>
             <h1 className="text-6xl font-bold text-gray-900 mb-6">The Illusion of Outperformance: What Looks Like a Win, Rarely Lasts</h1>
             <p className="text-xl text-gray-600 mb-4">
-              Explore real S&P 500 data and see why index investing is often the smartest choice.
+              Explore{" "}
+              <a 
+                href="https://www.kaggle.com/datasets/andrewmvd/sp-500-stocks/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+              >
+                real S&P 500 data
+              </a>
+              {" "}and see why{" "}
+              <a 
+                href="https://www.bogleheads.org/wiki/Bogleheads%C2%AE_investment_philosophy" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+              >
+                index investing
+              </a>
+              {" "}is often the smartest choice.
             </p>
             <p className="text-lg text-gray-500 mb-12 font-medium">
               By{" "}
