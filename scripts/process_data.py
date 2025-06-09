@@ -150,7 +150,7 @@ def process_all_stocks_comparison_data(stocks_df: pd.DataFrame, companies_df: pd
         stock_data = stocks_df[stocks_df['Symbol'] == symbol].copy()
         
         # Skip if insufficient data
-        if len(stock_data) < 252:  # At least 1 year of data
+        if len(stock_data) < 756:  # At least ~3 years of data (3 * 252 trading days)
             continue
             
         # Get company information
@@ -173,20 +173,26 @@ def process_all_stocks_comparison_data(stocks_df: pd.DataFrame, companies_df: pd
             continue
             
         # Calculate total return and annualized return
-        start_price = stock_data[price_column].iloc[0]
-        end_price = stock_data[price_column].iloc[-1]
+        # Use first and last non-NaN prices instead of just first/last rows
+        valid_prices = stock_data[price_column].dropna()
+        
+        if len(valid_prices) < 2:
+            continue
+            
+        start_price = valid_prices.iloc[0]
+        end_price = valid_prices.iloc[-1]
         
         if pd.isna(start_price) or pd.isna(end_price) or start_price <= 0:
             continue
             
         total_return = (end_price / start_price) - 1
         
-        # Calculate years for this specific stock
-        stock_start = stock_data.index.min()
-        stock_end = stock_data.index.max()
+        # Calculate years for this specific stock using valid price dates
+        stock_start = valid_prices.index.min()
+        stock_end = valid_prices.index.max()
         stock_years = (stock_end - stock_start).days / 365.25
         
-        if stock_years <= 0:
+        if stock_years < 3:  # Require at least 3 years of actual time span
             continue
             
         annualized_return = (1 + total_return) ** (1 / stock_years) - 1
@@ -273,7 +279,7 @@ def process_hindsight_stocks_data(stocks_df: pd.DataFrame, companies_df: pd.Data
         stock_data = stocks_df[stocks_df['Symbol'] == symbol].copy()
         
         # Skip if insufficient data
-        if len(stock_data) < 60:  # At least ~3 months of data
+        if len(stock_data) < 252:  # At least ~1 year of data for hindsight analysis
             continue
             
         # Get company information
@@ -296,7 +302,7 @@ def process_hindsight_stocks_data(stocks_df: pd.DataFrame, companies_df: pd.Data
         
         monthly_data = stock_data_indexed[price_column].resample('MS').first().dropna()
         
-        if len(monthly_data) < 3:  # Need at least 3 months
+        if len(monthly_data) < 12:  # Need at least 12 months of data
             continue
         
         # Calculate normalized prices starting from 100
@@ -312,7 +318,7 @@ def process_hindsight_stocks_data(stocks_df: pd.DataFrame, companies_df: pd.Data
         stock_end = monthly_data.index.max()
         stock_years = (stock_end - stock_start).days / 365.25
         
-        if stock_years <= 0:
+        if stock_years < 1:  # Require at least 1 year of actual time span for hindsight analysis
             continue
             
         annualized_return = (1 + total_return) ** (1 / stock_years) - 1
